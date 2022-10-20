@@ -1,0 +1,10 @@
+import type { AxiosResponse } from "axios";
+
+export type ApiResult = {
+  readonly url: string;
+  readonly ok: boolean;
+  readonly status: number;
+  readonly statusText: string;
+  readonly body: any;
+  readonly response: AxiosResponse;
+};

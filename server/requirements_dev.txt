@@ -1,0 +1,2 @@
+types-toml==0.10.8
+numpy==1.23.3

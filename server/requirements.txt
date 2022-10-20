@@ -1,0 +1,9 @@
+fastapi==0.82.0
+pydantic[dotenv]==1.10.2
+uvicorn==0.18.3
+hypercorn==0.14.3
+aiofiles==22.1.0
+toml==0.10.2
+pyarrow==9.0.0
+numpy==1.23.3
+pandas==1.5.0

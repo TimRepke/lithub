@@ -1,0 +1,40 @@
+{
+  "extends" : "@vue/tsconfig/tsconfig.web.json",
+  "include" : [
+    "env.d.ts",
+    "src/**/*",
+    "src/**/*.vue",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "tests/**/*.tsx"
+  ],
+  "exclude" : [
+    "node_modules",
+    "tools/**"
+  ],
+  "compilerOptions" : {
+    "baseUrl" : ".",
+    "paths" : {
+      "@/*" : [
+        "./src/*"
+      ]
+    },
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": false,
+    "noImplicitReturns": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "sourceMap": true,
+  },
+  "references" : [
+    {
+      "path" : "./tsconfig.config.json"
+    }
+  ]
+}
