@@ -2,7 +2,7 @@
 
 import {onMounted, ref, watch} from "vue";
 import * as d3 from "d3";
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import {Scatterplot} from "@/plugins/scatter/scatterplot";
 import {cmap20} from "@/plugins/scatter/cmaps";
 import {MaterialType} from "@/plugins/scatter/types";
@@ -52,7 +52,7 @@ function fetchDocumentInfo(key: string, ix: number) {
     API.data.getInfoApiDataDatasetInfoDocIdGet({
       dataset: queryDataset.value,
       secret: querySecret.value,
-      docId: doc_id, // parseInt(doc_id.toString(10), 10),
+      docId: doc_id as unknown as number, // parseInt(doc_id.toString(10), 10),
     })
       .then((result) => {
         document.value = result.data;
@@ -94,7 +94,7 @@ onMounted(async () => {
       raycasterThreshold: 0.1,
       colorScheme: cmap20,
     });
-    window.plt = plt;
+    // window.plt = plt;
     plt.redraw();
 
     // setTimeout(() => {
@@ -117,7 +117,6 @@ onMounted(async () => {
       // .call(plt.zoomHandler.transform, d3.zoomIdentity.translate(0, 1.25 * plt.height).scale(1));
       .call(plt.zoomHandler.transform, d3.zoomIdentity.translate(1, plt.height).scale(8));
 
-    window.plot = plt;
   }
 });
 

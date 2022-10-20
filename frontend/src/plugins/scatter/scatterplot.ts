@@ -169,11 +169,13 @@ export class Scatterplot {
   }
 
   initLabels() {
-    labelRenderer = new CSS2DRenderer();
-    labelRenderer.setSize(window.innerWidth, window.innerHeight);
-    labelRenderer.domElement.style.position = 'absolute';
-    labelRenderer.domElement.style.top = '0px';
-    document.body.appendChild(labelRenderer.domElement);
+    // https://threejs.org/examples/?q=css#css2d_label
+    // https://github.com/mrdoob/three.js/blob/master/examples/css2d_label.html#L171
+    // labelRenderer = new CSS2DRenderer();
+    // labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    // labelRenderer.domElement.style.position = 'absolute';
+    // labelRenderer.domElement.style.top = '0px';
+    // document.body.appendChild(labelRenderer.domElement);
   }
 
   initScene() {

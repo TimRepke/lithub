@@ -3,7 +3,7 @@ import type {Document, Dataset} from "@/plugins/api/api-backend";
 import {API} from "@/plugins/api";
 import {ref} from "vue";
 
-defineProps<{
+const props = defineProps<{
   doc: Document;
   dataset: Dataset;
 }>();
@@ -11,7 +11,10 @@ defineProps<{
 const abstract = ref<string | null>(null);
 
 function loadAbstract() {
-  API.data.getAbstractApiDataDatasetAbstractDocIdGet({dataset: dataset.key, secret: dataset.secret, docId: doc.doc_id})
+  API.data.getAbstractApiDataDatasetAbstractDocIdGet({
+    dataset: props.dataset.key,
+    secret: props.dataset.secret,
+    docId: props.doc.doc_id})
     .then((response) => {
       abstract.value = response.data;
     })

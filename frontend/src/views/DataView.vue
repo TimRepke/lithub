@@ -83,8 +83,8 @@ function loadDocuments() {
         secret: querySecret.value,
         page: page.value,
         limit: limit.value,
-        label: selectedLabel.value,
-        choice: selectedChoice.value,
+        label: selectedLabel.value as number,
+        choice: selectedChoice.value as number,
       })
         .then((response) => {
           documents.value = response.data;
@@ -96,8 +96,10 @@ function loadDocuments() {
       API.data.getLabelSampleApiDataDatasetSampleLabelChoiceGet({
         dataset: queryDataset.value,
         secret: queryDataset.value,
-        label: selectedLabel.value,
-        choice: selectedChoice.value,
+        label: selectedLabel.value as number,
+        choice: selectedChoice.value as number,
+        // ...(selectedLabel.value !== undefined) && {label: selectedLabel.value},
+        // ...(selectedChoice.value !== undefined) && {choice: selectedChoice.value},
         limit: limit.value,
       })
         .then((response) => {
@@ -172,7 +174,7 @@ const pageNav = {
 
     <ul class="list-group list-group-flush border-bottom" id="topic-list">
       <li v-for="label in schema" :key="label.scheme_id">
-        <div class="fw-bold">{{ label.key }} {{ label.label }}</div>
+        <div class="fw-bold">{{ label.scheme_id }} {{ label.label }}</div>
         <ul class="list-group list-group-flush border-bottom">
           <li v-for="(count, choice) in label.choices" :key="choice"
               :class="{ active: isActive(label.scheme_id, label.s2i[choice]) }"
@@ -203,12 +205,12 @@ const pageNav = {
     <!-- PAGINATION -->
     <nav class="d-flex flex-row justify-content-center mt-2" v-if="limit > 0 && numPages > 0">
       <ul class="pagination">
-<!--        <li class="page-item" :class="{ disabled: isSamplePage }">-->
-<!--          <span class="page-link" aria-label="Previous" role="button"-->
-<!--                @click="pageNav.sample">-->
-<!--              <span class="bi bi-calendar4-week"></span>-->
-<!--          </span>-->
-<!--        </li>-->
+        <!--        <li class="page-item" :class="{ disabled: isSamplePage }">-->
+        <!--          <span class="page-link" aria-label="Previous" role="button"-->
+        <!--                @click="pageNav.sample">-->
+        <!--              <span class="bi bi-calendar4-week"></span>-->
+        <!--          </span>-->
+        <!--        </li>-->
         <li class="page-item" :class="{ disabled: !hasPrevPage }">
           <span class="page-link" aria-label="Previous" role="button"
                 @click="pageNav.prev">
@@ -241,7 +243,7 @@ const pageNav = {
     <!-- /PAGINATION -->
 
     <!-- Dataset View (aka tweet listing) -->
-    <div v-if="documents.length > 0" class="d-flex flex-row flex-wrap p-2 scrollarea">
+    <div v-if="documents.length > 0 && dataset!==null" class="d-flex flex-row flex-wrap p-2 scrollarea">
       <DocItem
         v-for="doc in documents"
         :key="doc.doc_id"

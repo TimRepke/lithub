@@ -2,7 +2,7 @@
 import type {AnnotatedDocument} from "@/plugins/api/api-backend";
 
 defineProps<{
-  doc: AnnotatedDocument,
+  doc: AnnotatedDocument|undefined,
   isLoading: boolean,
 }>();
 
@@ -11,7 +11,7 @@ defineProps<{
 <template>
   <div class="card m-2 p-0">
     <div class="card-header">
-      <template v-if="isLoading">
+      <template v-if="isLoading||!doc">
         <div class="ms-2 me-auto placeholder-wave">
           <span class="placeholder col-8 placeholder-xs"></span>
         </div>
@@ -21,7 +21,7 @@ defineProps<{
       </template>
     </div>
     <div class="card-body">
-      <template v-if="isLoading">
+      <template v-if="isLoading||!doc">
         <div class="ms-2 me-auto placeholder-wave">
           <span class="placeholder col-7 placeholder-xs"></span>
           <span class="placeholder col-8 placeholder-xs"></span>
@@ -39,12 +39,12 @@ defineProps<{
             class="bi-box-arrow-up-right"></i></a>
         </p>
         <p class="card-text text-muted small">
-          {{ doc.abstract.replaceAll('\n', '<br />') }}
+          {{ (doc.abstract || '[ABSTRACT MISSING]').replaceAll('\n', '<br />') }}
         </p>
       </template>
     </div>
     <div class="card-footer d-flex justify-content-between">
-      <small class="text-muted" v-if="!isLoading">
+      <small class="text-muted" v-if="!isLoading && doc">
         <i class="bi-tags-fill"></i>&nbsp;
         <span v-for="(choices, label) in doc.annotations" :key="label">
           <strong>{{ label }}:</strong> {{ choices.join(', ') }}

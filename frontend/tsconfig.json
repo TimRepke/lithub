@@ -21,16 +21,21 @@
         "./src/*"
       ]
     },
-    "target": "esnext",
-    "module": "esnext",
-    "strict": true,
-    "noImplicitAny": true,
-    "noImplicitThis": false,
-    "noImplicitReturns": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "useDefineForClassFields": true,
-    "sourceMap": true,
+    "lib" : [
+      "ES2021.String",
+      "ES2021.Promise",
+      "DOM"
+    ],
+    "target" : "ESNext",
+    "module" : "ESNext",
+    "strict" : true,
+    "noImplicitAny" : true,
+    "noImplicitThis" : false,
+    "noImplicitReturns" : true,
+    "allowSyntheticDefaultImports" : true,
+    "forceConsistentCasingInFileNames" : true,
+    "useDefineForClassFields" : true,
+    "sourceMap" : true
   },
   "references" : [
     {
