@@ -1,146 +1,220 @@
 <script setup lang="ts">
-
-import {onMounted, ref, watch} from "vue";
-import * as d3 from "d3";
-import type * as THREE from 'three';
-import {Scatterplot} from "@/plugins/scatter/scatterplot";
-import {cmap20} from "@/plugins/scatter/cmaps";
-import {MaterialType} from "@/plugins/scatter/types";
+import * as d3 from 'd3';
+import {onMounted, ref} from "vue";
+import {ScatterPlot, cat20} from "@/plugins/scatter";
+import Barchart from "@/plugins/scatter/barchart";
+import type {MetaData, RowSchema} from "@/plugins/scatter";
 import {API} from "@/plugins/api";
-import {useRouteQuery} from "@vueuse/router";
-import type {AnnotatedDocument} from "@/plugins/api/api-backend";
 import AnnotatedDocItem from "@/components/AnnotatedDocItem.vue";
+import type {AnnotatedDocument} from "@/plugins/api/api-backend";
+import {useRouteQuery} from "@vueuse/router";
+import {CancelablePromise} from "@/plugins/api/core/CancelablePromise";
+
+const loadingPoints = ref<boolean>(false);
+const loadingDocument = ref<boolean>(false);
+const loadedPoints = ref<number>(0);
+const totalPoints = ref<number>(0);
+const metadata = ref<MetaData | undefined>(undefined);
+const highlight = ref<RowSchema | undefined>(undefined);
+const highlightDocument = ref<AnnotatedDocument | undefined>(undefined);
+const neighbourDocuments = ref<Array<AnnotatedDocument> | undefined>(undefined);
 
 const queryDataset = useRouteQuery('dataset', 'test1');
 const querySecret = useRouteQuery('secret', undefined);
 
-const focus = ref(':-)');
-const loading = ref<boolean>(false);
-const document = ref<AnnotatedDocument | undefined>(undefined);
+let histContainer: d3.Selection<HTMLDivElement, never, HTMLDivElement, never>;
 
-const scale = ref(.5);
-const fogNear = ref(2000);
-const fogFar = ref(2012);
-const fogDensity = ref(0.0014);
+let documentRequest: CancelablePromise<AnnotatedDocument> | undefined;
+let neighbourRequests: Array<CancelablePromise<AnnotatedDocument>> | undefined;
 
-let plt: Scatterplot;
+const onSchemaReceived = (numTotalRows: number) => {
+  totalPoints.value = numTotalRows;
+  metadata.value = plot.metadata;
+}
 
-watch(scale, (newS) => {
-  if ('uniforms' in plt.tileManager.material) {
-    plt.tileManager.material.uniforms.zoomFactor.value = newS;
-    plt.redraw()
+const onBatchReceived = (currentBatchSize: number, currentNumLoadedRows: number, numTotalRows: number) => {
+  loadedPoints.value = currentNumLoadedRows;
+}
+
+function initLabelBarchart(data: Array<RowSchema>) {
+
+  // const counts = d3.group(data, d => d.label_0);
+  const counts = d3.rollup(data, v => v.length, d => d.label_0);
+
+  const category = d3.scaleOrdinal<number, string, never>()
+      .range(plot.metadata!.schemes[0].choices)
+      .domain(plot.metadata!.schemes[0].choices.map((v, i) => i));
+  const categoryInverse = d3.scaleOrdinal<string, number, never>()
+      .domain(plot.metadata!.schemes[0].choices)
+      .range(plot.metadata!.schemes[0].choices.map((v, i) => i));
+
+  const plotData = new Map();
+  for (const [key, value] of counts.entries()) {
+    plotData.set(category(key), value)
   }
-})
 
-watch(fogNear, (newFN) => {
-  (plt.scene.fog as THREE.Fog).near = newFN;
-  plt.redraw()
-})
-watch(fogFar, (newFF) => {
-  (plt.scene.fog as THREE.Fog).far = newFF;
-  plt.redraw()
-})
-watch(fogDensity, (newD) => {
-  (plt.scene.fog as THREE.FogExp2).density = newD;
-  plt.redraw()
-})
+  Barchart(histContainer, plotData,
+      (cat) => {
+        // pass
+      },
+      (cat) => {
+        // pass
+      },
+      (cat) => {
+        const catIx = categoryInverse(cat);
+        plot.data.forEach(d => {
+          d.opacity = (catIx == d.label_0) ? 1.0 : 0.3;
+        });
+        plot.redraw();
+      },
+      (cat) => {
+        plot.data.forEach(d => {
+          d.opacity = 1.0;
+        });
+        plot.redraw();
+      }, 500, 400,
+      // @ts-ignore
+      (x) => cat20[categoryInverse(x)],
+      {top: 0, right: 0, bottom: 135, left: 110},
+  )
+}
 
-function fetchDocumentInfo(key: string, ix: number) {
-  const doc_id = plt.tileManager.tiles[key].tile?.get(ix)?.ix;
-  if (doc_id !== undefined) {
-    loading.value = true;
-    API.data.getInfoApiDataDatasetInfoDocIdGet({
-      dataset: queryDataset.value,
-      secret: querySecret.value,
-      docId: doc_id as unknown as number, // parseInt(doc_id.toString(10), 10),
-    })
-      .then((result) => {
-        document.value = result.data;
-        loading.value = false;
-      })
+const onDataComplete = (data: Array<RowSchema>) => {
+  initLabelBarchart(data);
+
+};
+
+const onHover = (d: RowSchema, neighbours: Array<RowSchema>) => {
+  highlight.value = d;
+  loadingDocument.value = true;
+  cancelAllRequests()
+
+  documentRequest = API.data.getInfoApiDataDatasetInfoDocIdGet({
+    dataset: queryDataset.value,
+    secret: querySecret.value,
+    docId: d.dbid,
+  });
+  documentRequest.then((result) => {
+    highlightDocument.value = result.data;
+    fetchNeighbours();
+  })
       .catch((reason) => {
-        console.error(reason);
-        loading.value = false;
+        // console.error(reason);
       })
+      .finally(() => {
+        loadingDocument.value = false;
+        documentRequest = undefined;
+      })
+
+  function fetchNeighbours() {
+    neighbours.forEach((neighbour) => {
+      API.data.getInfoApiDataDatasetInfoDocIdGet({
+        dataset: queryDataset.value,
+        secret: querySecret.value,
+        docId: neighbour.dbid,
+      })
+          .then((result) => {
+            if (neighbourDocuments.value === undefined) {
+              neighbourDocuments.value = [result.data]
+            } else {
+              neighbourDocuments.value.push(result.data);
+            }
+          })
+    });
   }
 }
 
-onMounted(async () => {
-  const canvas = d3.select('#scatter>canvas') as unknown as d3.Selection<HTMLCanvasElement, never, HTMLDivElement, never>;
-  const canvasNode = canvas.node();
-  let timeout: ReturnType<typeof setTimeout> | undefined = undefined;
-
-  if (canvasNode) {
-    plt = new Scatterplot({
-      canvas: canvasNode,
-      tileBaseUrl: 'http://127.0.0.1:8082/tiles/test1/tiles',
-      mouseInCallback: (key, ix) => {
-        focus.value = `${key} -> ${ix}`;
-        timeout = setTimeout(() => fetchDocumentInfo(key, ix), 100);
-        // title.value = plt.tileManager.tiles[key].tile.get(ix).title;
-        // console.log('in', key, ix)
-      },
-      mouseOutCallback: () => {
-        focus.value = '--';
-        clearTimeout(timeout);
-        // console.log('out', key, ix)
-      },
-      colorField: 'label_0',
-      pointMaterial: MaterialType.SHADER,
-      pointColorHover: 0x00FF00,
-      pointSizeHover: 10,
-      pointSizeBuffer: 3,
-      textureSize: 33,
-      raycasterThreshold: 0.1,
-      colorScheme: cmap20,
-    });
-    // window.plt = plt;
-    plt.redraw();
-
-    // setTimeout(() => {
-    //   plt.renderer.compile(plt.scene, plt.camera);
-    //   const c = plt.renderer.getContext()
-    //   console.log(c.getShaderSource(plt.renderer.info.programs[0].fragmentShader))
-    //   console.log(c.getShaderSource(plt.renderer.info.programs[0].vertexShader))
-    // }, 2000)
-
-    const handleResize = () => {
-      const [height, width] = [700, (canvasNode.parentElement?.clientWidth || 1000) - 30];
-      plt.handleCanvasResize(height, width);
+function cancelAllRequests() {
+  if (documentRequest) {
+    try {
+      documentRequest.cancel();
+      documentRequest = undefined;
+    } catch (TypeError) {
+      // pass
     }
-    window.addEventListener('resize', handleResize, false);
-    handleResize();
+  }
+  if (neighbourRequests) {
+    neighbourRequests.forEach(req => {
+      try {
+        req.cancel()
+      } catch (TypeError) {
+        // pass
+      }
+    });
+    neighbourRequests = undefined;
+  }
+}
 
-    d3.select(plt.canvas)
-      .transition()
-      .duration(750)
-      // .call(plt.zoomHandler.transform, d3.zoomIdentity.translate(0, 1.25 * plt.height).scale(1));
-      .call(plt.zoomHandler.transform, d3.zoomIdentity.translate(1, plt.height).scale(8));
+const unHover = () => {
+  highlight.value = undefined;
+  // highlightDocument.value = undefined;
+  cancelAllRequests();
+}
 
+
+let plot: ScatterPlot;
+onMounted(async () => {
+  histContainer = d3.select('#histContainer') as unknown as d3.Selection<HTMLDivElement, never, HTMLDivElement, never>;
+  const canvasContainer = d3.select('#chart') as unknown as d3.Selection<HTMLDivElement, never, HTMLDivElement, never>;
+  const canvasContainerNode = canvasContainer.node();
+  loadingPoints.value = true;
+  if (canvasContainerNode) {
+    plot = new ScatterPlot('http://127.0.0.1:8082/tiles/test1/data.arrows',
+        canvasContainerNode,
+        onSchemaReceived,
+        onBatchReceived,
+        onDataComplete,
+        onHover,
+        unHover,
+    );
+
+    plot.load().then(() => {
+      loadingPoints.value = false;
+    });
   }
 });
 
 </script>
 
 <template>
-  <div class="row g-2">
-    <div id="scatter" class="col-8">
-      <canvas width="10" height="10" style="background: #0f5132"></canvas>
+  <div class="d-flex flex-row p-0">
+    <div class="col-5 me-2">
+      <div id="chart" class="h-100 w-100" style="background-color: antiquewhite"/>
     </div>
-    <div class="col-4">
+    <div class="flex-fill overflow-auto p-4" style="max-height: calc(100vh - 50px);">
       <div class="row">
         <div class="col">
-          <div v-if="document || loading">
-            {{ focus }}
-            <AnnotatedDocItem :doc="document" :is-loading="loading"/>
+          <div class="mt-4">
+            <div id="histContainer"></div>
+          </div>
+        </div>
+        <div class="col-lg-6 col-12 docscroll p-0 m-0">
+          <div class="text-end">
+            Number of documents:
+            <template v-if="loadingPoints">
+              <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              {{ loadedPoints }} / {{ totalPoints }}
+            </template>
+            <template v-else>
+              {{ totalPoints }}
+            </template>
+          </div>
+          <div v-if="highlightDocument||loadingDocument">
+            <AnnotatedDocItem :doc="highlightDocument" :is-loading="loadingDocument"/>
+
+            <template v-if="neighbourDocuments">
+              <hr/>
+              <h5 class="ps-2">Similar documents</h5>
+              <AnnotatedDocItem v-for="doc in neighbourDocuments" :key="doc.doc_id" :doc="doc" :is-loading="false"/>
+            </template>
+
           </div>
           <div v-else>
             Hover a point or use box-selection tool to see the associated document(s).
           </div>
         </div>
-      </div>
-      <div class="row">
-        <input type="range" min="0.01" max="10" step="0.01" v-model="scale"/> {{ scale }}
       </div>
     </div>
   </div>
@@ -163,6 +237,27 @@ dd {
   margin: 0 0 0 80px;
   padding: 0 0 0.5em 0;
   width: 180px;
+}
+
+#chart g.tick > text {
+  display: none;
+}
+
+#histContainer rect.hover {
+  stroke-width: 1;
+  stroke: black;
+}
+
+#histContainer rect.active {
+  stroke-width: 2;
+  stroke: red;
+}
+
+@media (min-width: 992px) {
+  .docscroll {
+    height: calc(100vh - 100px);
+    overflow-y: auto;
+  }
 }
 
 .selectBox {

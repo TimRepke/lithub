@@ -1,6 +1,15 @@
 # topic-explorer
 
+https://blog.scottlogic.com/2021/10/15/efficiently-loading-massive-d3-datasets-using-apache-arrow.html
+https://chrisprice.io/d3fc-webgl-hathi-explorer/#ctl
+https://github.com/chrisprice/d3fc-webgl-hathi-explorer
+
+
+
 This template should help get you started developing with Vue 3 in Vite.
+
+
+
 
 ## Recommended IDE Setup
 

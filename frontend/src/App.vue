@@ -47,8 +47,8 @@ API.datasets.getDatasetApiDatasetsDatasetGet({dataset: queryDataset.value})
       </div>
     </div>
   </header>
-  <div class="container-fluid">
-    <div class="row">
+  <div class="container-fluid" style="height: calc(100vh - 40px)">
+    <div class="row w-100 h-100">
       <RouterView/>
     </div>
   </div>

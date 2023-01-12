@@ -22,16 +22,6 @@ const router = createRouter({
       path: '/scatter',
       name: 'scatter',
       component: () => import('../views/ScatterView.vue'),
-    }, {
-      // query: dataset
-      path: '/scatter2',
-      name: 'scatter2',
-      component: () => import('../views/ScatterTwoView.vue'),
-    }, {
-      // query: dataset
-      path: '/scatter3',
-      name: 'scatter3',
-      component: () => import('../views/ScatterThreeView.vue'),
     },
     {
       path: '/about',
