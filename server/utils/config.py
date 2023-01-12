@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     HEADER_TRUSTED_HOST: bool = False  # set to true to allow hosts from any origin
     CORS_ORIGINS: list[AnyHttpUrl] = []  # list of trusted hosts
 
+    SUB_SECTORS: int = 2  # number of divisions for scatterplot tile queries
+
     @validator("CORS_ORIGINS", pre=True)
     def assemble_cors_origins(cls, v: str | list[str]) -> str | list[str]:
         if isinstance(v, str) and not v.startswith('['):

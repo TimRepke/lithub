@@ -1,5 +1,5 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
-import type { RouteLocationNormalized } from 'vue-router';
+import {createRouter, createWebHashHistory} from 'vue-router';
+import type {RouteLocationNormalized} from 'vue-router';
 import HomeView from '../views/HomeView.vue';
 
 const router = createRouter({
@@ -22,6 +22,16 @@ const router = createRouter({
       path: '/scatter',
       name: 'scatter',
       component: () => import('../views/ScatterView.vue'),
+    }, {
+      // query: dataset
+      path: '/scatter2',
+      name: 'scatter2',
+      component: () => import('../views/ScatterTwoView.vue'),
+    }, {
+      // query: dataset
+      path: '/scatter3',
+      name: 'scatter3',
+      component: () => import('../views/ScatterThreeView.vue'),
     },
     {
       path: '/about',
@@ -37,7 +47,7 @@ function hasQueryParams(route: RouteLocationNormalized) {
 
 router.beforeEach((to, from, next) => {
   if (!hasQueryParams(to) && hasQueryParams(from)) {
-    next({ path: to.path, query: from.query });
+    next({path: to.path, query: from.query});
   } else {
     next();
   }
