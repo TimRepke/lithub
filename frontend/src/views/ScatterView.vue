@@ -99,13 +99,13 @@ function initYearBarchart(data: Array<RowSchema>) {
       () => {
         // pass
       },
-      (yr) => {
-        filters.hideYear(yr);
+      (yr: string) => {
+        filters.hideYear(parseInt(yr));
         plot.data.forEach(updateOpacity);
         plot.redraw();
       },
-      (yr) => {
-        filters.unHideYear(yr);
+      (yr:string) => {
+        filters.unHideYear(parseInt(yr));
         plot.data.forEach(updateOpacity);
         plot.redraw();
       }, 500, 400,
@@ -197,7 +197,8 @@ onMounted(async () => {
   const canvasContainerNode = canvasContainer.node();
   loadingPoints.value = true;
   if (canvasContainerNode) {
-    plot = new ScatterPlot('http://127.0.0.1:8082/tiles/test1/data.arrows',
+    `${import.meta.env.VITE_LANDSCAPE_API}`
+    plot = new ScatterPlot(`${import.meta.env.VITE_LANDSCAPE_API}/tiles/${queryDataset.value}/data.arrows`,//'http://127.0.0.1:8082/tiles/test1/data.arrows',
         canvasContainerNode,
         onSchemaReceived,
         onBatchReceived,

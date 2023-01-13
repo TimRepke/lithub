@@ -4,7 +4,7 @@ import * as d3 from "d3";
 export type Margins = { top: number, right: number, left: number, bottom: number }
 
 export default (container: d3.Selection<HTMLDivElement, never, HTMLDivElement, never>,
-                counts: Map<string, number>,
+                counts: Map<string, number> | Map<number, number>,
                 mouseOverCallback: (category: string) => void,
                 mouseOutCallback: (category: string) => void,
                 clickCallback: (category: string) => void,
@@ -26,8 +26,10 @@ export default (container: d3.Selection<HTMLDivElement, never, HTMLDivElement, n
     .attr("transform",
       `translate(${margin.left},${margin.top})`);
 
+  const categories = [...counts.keys()].map((c) => c + '');
+
   const x = d3.scaleBand()
-    .domain(counts.keys())
+    .domain(categories)
     .range([0, width])
     .padding(0.2);
 
@@ -51,11 +53,12 @@ export default (container: d3.Selection<HTMLDivElement, never, HTMLDivElement, n
 
   // Bars
   svg.selectAll("mybar")
+    // @ts-ignore
     .data(counts.entries())
     .enter()
     .append("rect")
     // @ts-ignore
-    .attr("x", d => x(d[0]))
+    .attr("x", d => x(d[0] + ''))
     .attr("y", d => y(d[1]))
     .attr("width", x.bandwidth())
     .attr("height", d => height - y(d[1]))
