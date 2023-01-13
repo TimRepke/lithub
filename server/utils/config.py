@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     WORKERS: int = 2  # number of worker processes
     STATIC_FILES: str = './frontend/dist/'  # path to the static files to be served
     DATASETS_FOLDER: str = './data/'
+    OPENAPI_FILE: str = '/openapi.json'  # absolute URL path to openapi.json file
+    OPENAPI_PREFIX: str = ''  # see https://fastapi.tiangolo.com/advanced/behind-a-proxy/
+    ROOT_PATH: str = ''  # see https://fastapi.tiangolo.com/advanced/behind-a-proxy/
 
     HASH_ALGORITHM: str = 'HS256'
     SECRET_KEY: str = secrets.token_urlsafe(32)

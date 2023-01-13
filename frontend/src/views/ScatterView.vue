@@ -8,7 +8,8 @@ import {API} from "@/plugins/api";
 import AnnotatedDocItem from "@/components/AnnotatedDocItem.vue";
 import type {AnnotatedDocument} from "@/plugins/api/api-backend";
 import {useRouteQuery} from "@vueuse/router";
-import {CancelablePromise} from "@/plugins/api/core/CancelablePromise";
+import type {CancelablePromise} from "@/plugins/api/core/CancelablePromise";
+import Filters from "@/plugins/scatter/filters";
 
 const loadingPoints = ref<boolean>(false);
 const loadingDocument = ref<boolean>(false);
@@ -23,6 +24,7 @@ const queryDataset = useRouteQuery('dataset', 'test1');
 const querySecret = useRouteQuery('secret', undefined);
 
 let histContainer: d3.Selection<HTMLDivElement, never, HTMLDivElement, never>;
+let histYrContainer: d3.Selection<HTMLDivElement, never, HTMLDivElement, never>;
 
 let documentRequest: CancelablePromise<AnnotatedDocument> | undefined;
 let neighbourRequests: Array<CancelablePromise<AnnotatedDocument>> | undefined;
@@ -34,6 +36,12 @@ const onSchemaReceived = (numTotalRows: number) => {
 
 const onBatchReceived = (currentBatchSize: number, currentNumLoadedRows: number, numTotalRows: number) => {
   loadedPoints.value = currentNumLoadedRows;
+}
+
+const filters = Filters();
+
+function updateOpacity(d: RowSchema) {
+  d.opacity = filters.isHidden(d) ? 0.3 : 1.0;
 }
 
 function initLabelBarchart(data: Array<RowSchema>) {
@@ -61,16 +69,13 @@ function initLabelBarchart(data: Array<RowSchema>) {
         // pass
       },
       (cat) => {
-        const catIx = categoryInverse(cat);
-        plot.data.forEach(d => {
-          d.opacity = (catIx == d.label_0) ? 1.0 : 0.3;
-        });
+        filters.hideCategory(categoryInverse(cat));
+        plot.data.forEach(updateOpacity);
         plot.redraw();
       },
       (cat) => {
-        plot.data.forEach(d => {
-          d.opacity = 1.0;
-        });
+        filters.unHideCategory(categoryInverse(cat));
+        plot.data.forEach(updateOpacity);
         plot.redraw();
       }, 500, 400,
       // @ts-ignore
@@ -79,8 +84,40 @@ function initLabelBarchart(data: Array<RowSchema>) {
   )
 }
 
+
+function initYearBarchart(data: Array<RowSchema>) {
+
+  // const counts = d3.group(data, d => d.label_0);
+  const counts = d3.rollup(data, v => v.length, d => d.year);
+
+  const plotData = new Map([...counts.entries()].sort());
+
+  Barchart(histYrContainer, plotData,
+      () => {
+        // pass
+      },
+      () => {
+        // pass
+      },
+      (yr) => {
+        filters.hideYear(yr);
+        plot.data.forEach(updateOpacity);
+        plot.redraw();
+      },
+      (yr) => {
+        filters.unHideYear(yr);
+        plot.data.forEach(updateOpacity);
+        plot.redraw();
+      }, 500, 400,
+      // @ts-ignore
+      (x) => [0,0,0,1],
+      {top: 0, right: 0, bottom: 135, left: 110},
+  )
+}
+
 const onDataComplete = (data: Array<RowSchema>) => {
   initLabelBarchart(data);
+  initYearBarchart(data);
 
 };
 
@@ -155,6 +192,7 @@ const unHover = () => {
 let plot: ScatterPlot;
 onMounted(async () => {
   histContainer = d3.select('#histContainer') as unknown as d3.Selection<HTMLDivElement, never, HTMLDivElement, never>;
+  histYrContainer = d3.select('#histYrContainer') as unknown as d3.Selection<HTMLDivElement, never, HTMLDivElement, never>;
   const canvasContainer = d3.select('#chart') as unknown as d3.Selection<HTMLDivElement, never, HTMLDivElement, never>;
   const canvasContainerNode = canvasContainer.node();
   loadingPoints.value = true;
@@ -173,7 +211,6 @@ onMounted(async () => {
     });
   }
 });
-
 </script>
 
 <template>
@@ -186,6 +223,9 @@ onMounted(async () => {
         <div class="col">
           <div class="mt-4">
             <div id="histContainer"></div>
+          </div>
+          <div class="mt-4">
+            <div id="histYrContainer"></div>
           </div>
         </div>
         <div class="col-lg-6 col-12 docscroll p-0 m-0">
@@ -248,9 +288,13 @@ dd {
   stroke: black;
 }
 
-#histContainer rect.active {
-  stroke-width: 2;
-  stroke: red;
+#histContainer rect.hidden {
+  /*stroke-width: 2;
+  stroke: red;*/
+  stroke-width: 1;
+  stroke: darkslategrey;
+  stroke-dasharray: 5;
+  fill-opacity: 0.5;
 }
 
 @media (min-width: 992px) {

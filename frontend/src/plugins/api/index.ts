@@ -2,7 +2,7 @@ import type { App } from "vue";
 import { BackendClient } from "./api-backend";
 
 const API = new BackendClient({
-  BASE: "http://127.0.0.1:8082",
+  BASE: import.meta.env.VITE_LANDSCAPE_API,
 });
 
 export default {

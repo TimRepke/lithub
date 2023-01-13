@@ -15,7 +15,9 @@ mimetypes.init()
 
 logger = get_logger('server')
 
-app = FastAPI()
+app = FastAPI(openapi_url=settings.OPENAPI_FILE,
+              openapi_prefix=settings.OPENAPI_PREFIX,
+              root_path=settings.ROOT_PATH)
 
 logger.debug('Setting up server and middlewares')
 mimetypes.add_type('application/javascript', '.js')

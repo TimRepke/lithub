@@ -15,6 +15,7 @@ export default (container: d3.Selection<HTMLDivElement, never, HTMLDivElement, n
   width = 460 - margin.left - margin.right;
   height = 400 - margin.top - margin.bottom;
 
+  const maxY = Math.max(...counts.values());
 
   // append the svg object to the body of the page
   const svg = container
@@ -40,14 +41,14 @@ export default (container: d3.Selection<HTMLDivElement, never, HTMLDivElement, n
 
   // Add Y axis
   const y = d3.scaleLinear()
-    .domain([0, 15000])
+    .domain([0, maxY + (maxY * 0.1)])
     .range([height, 0]);
   svg.append("g")
     // @ts-ignore
     .call(d3.axisLeft(y));
 
-  let currentActiveRect: SVGRectElement | undefined = undefined;
-  let currentActiveCat: string | undefined = undefined;
+  const currentHidden: Record<string, SVGRectElement> = {};
+
   // Bars
   svg.selectAll("mybar")
     .data(counts.entries())
@@ -69,17 +70,13 @@ export default (container: d3.Selection<HTMLDivElement, never, HTMLDivElement, n
       mouseOutCallback(data[0]);
     })
     .on('click', (event, data) => {
-      const unselect = currentActiveCat == data[0];
-      if (currentActiveRect && currentActiveCat) {
-        unClickCallback(currentActiveCat);
-        currentActiveRect.classList.remove('active');
-        currentActiveCat = undefined;
-        currentActiveRect = undefined;
-      }
-      if (!unselect) {
-        currentActiveCat = data[0];
-        currentActiveRect = event.target;
-        currentActiveRect!.classList.add('active');
+      if (data[0] in currentHidden) {
+        unClickCallback(data[0]);
+        currentHidden[data[0]].classList.remove('hidden');
+        delete currentHidden[data[0]];
+      } else {
+        event.target.classList.add('hidden');
+        currentHidden[data[0]] = event.target;
         clickCallback(data[0]);
       }
     })
