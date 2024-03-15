@@ -1,0 +1,31 @@
+:root {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+    font-weight: 400;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+
+    --accent-hsl: 39.89189189, 74.29718876%, 51.17647059%;
+    --darkAccent-hsl: 120, 15.44715447%, 24.11764706%;
+    --lightAccent-hsl: 30, 2.56410256%, 84.70588235%;
+    --safeLightAccent-hsl: 39.89189189, 74.29718876%, 51.17647059%;
+    --safeDarkAccent-hsl: 39.89189189, 74.29718876%, 51.17647059%;
+}
+
+.ribbon {
+  width: 60px;
+  font-size: 14px;
+  padding: 4px;
+  position: absolute;
+  right: -25px;
+  top: -12px;
+  text-align: center;
+  border-radius: 25px;
+  transform: rotate(20deg);
+  background-color: #ff9800;
+  color: white;
+}
