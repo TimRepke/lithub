@@ -54,8 +54,8 @@ export class LabelValueMask extends Mask {
     this._version.value++;
   }
 
-  updateCounts(globalMask: Bitmask) {
-    this._counts.value.countFiltered = this.active ? and(globalMask, this.mask).count : 0;
+  updateCounts(globalMask:Bitmask| null) {
+    this._counts.value.countFiltered = this.active ? and(globalMask, this.mask)?.count ?? this._counts.value.countTotal : 0;
   }
 }
 
@@ -92,7 +92,7 @@ export class HistogramValueMask extends Mask {
   protected update(): void {
   }
 
-  updateCounts(globalMask: Bitmask): void {
+  updateCounts(globalMask: Bitmask|null): void {
   }
 }
 

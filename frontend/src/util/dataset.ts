@@ -124,21 +124,26 @@ export class Dataset {
     for (let mask of Object.values(this.labelMaskGroups)) yield mask;
   }
 
-  * activeMasks() {
-    for (let mask of Object.values(this.labelMaskGroups)) if (mask.active.value) yield mask;
+  * masks() {
+    for (let mask of Object.values(this.labelMaskGroups)) yield mask;
     // if (this.pyMask.active) yield this.pyMask;
     // if (this.indexMask.active) yield this.indexMask;
   }
+
+  * activeMasks() {
+    for (let mask of this.masks()) if (mask.active.value) yield mask;
+  }
+
   * activeBitmasks() {
     for (let mask of this.activeMasks()) if (mask.mask) yield mask.mask;
   }
 
   private update() {
     const globalMask = and(...this.activeBitmasks());
-    for(let mask of this.activeMasks()){
+    for (let mask of this.masks()) {
       mask.updateCounts(globalMask);
     }
-    this._counts.value.countFiltered = globalMask.count;
+    this._counts.value.countFiltered = globalMask?.count ?? this._counts.value.countTotal;
   }
 
 }

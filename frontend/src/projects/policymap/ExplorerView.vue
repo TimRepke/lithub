@@ -29,6 +29,7 @@ onMounted(async () => {
   dataset.labelMaskGroups['reg'].toggleActive();
   dataset.labelMaskGroups['edu'].toggleActive();
   dataset.labelMaskGroups['gov'].toggleActive();
+
   console.log([...dataset.activeMasks()].length)
   // console.log(dataset.labelMaskGroups['sec'].masks[1].mask.count)
   // console.log(dataset.labelMaskGroups['sec'].masks[1].mask.count)
@@ -48,10 +49,11 @@ onMounted(async () => {
   //   dataset.labelMaskGroups['sec'].masks[1].mask,
   //   dataset.labelMaskGroups['sec'].masks[2].mask).count)
 
-  setTimeout(() => dataset.labelMaskGroups['sec'].masks[0].setActive(false), 1000)
-  setTimeout(() => dataset.labelMaskGroups['sec'].masks[0].toggleActive(), 2000)
-
-
+  setTimeout(() => dataset.labelMaskGroups['sec'].masks[0].toggleActive(), 1000)
+  setTimeout(() => dataset.labelMaskGroups['sec'].setActive(true), 2000)
+  setTimeout(() => dataset.labelMaskGroups['sec'].masks[1].toggleActive(), 3000)
+  setTimeout(() => dataset.labelMaskGroups['sec'].masks[0].toggleActive(), 4000)
+  setTimeout(() => dataset.labelMaskGroups['sec'].masks[1].toggleActive(), 5000)
 })
 </script>
 

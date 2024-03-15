@@ -61,13 +61,13 @@ export abstract class Mask extends MaskBase {
 
   abstract get mask(): Bitmask | null;
 
-  abstract updateCounts(globalMask: Bitmask): void;
+  abstract updateCounts(globalMask: Bitmask| null): void;
 }
 
 export abstract class MaskGroup extends MaskBase {
   abstract get mask(): Bitmask | null;
 
-  abstract updateCounts(globalMask: Bitmask): void;
+  abstract updateCounts(globalMask: Bitmask | null): void;
 }
 
 export function colKey(key: string, value: number | boolean) {

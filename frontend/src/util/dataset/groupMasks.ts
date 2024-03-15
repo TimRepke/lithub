@@ -12,7 +12,7 @@ export class LabelMaskGroup extends MaskGroup {
   public readonly type: SchemeLabelType;
   public readonly masks: Record<number, LabelValueMask>;
 
-  protected _mask: Bitmask|null; // holds all OR/AND combined submasks
+  protected _mask: Bitmask | null; // holds all OR/AND combined submasks
 
   public readonly inclusive: Ref<boolean>;  // when true, use OR for combination, else AND
 
@@ -54,7 +54,7 @@ export class LabelMaskGroup extends MaskGroup {
     this._version.value++;
   }
 
-  updateCounts(globalMask: Bitmask) {
+  updateCounts(globalMask: Bitmask | null) {
     Object.values(this.masks).forEach((mask) => {
       mask.updateCounts(globalMask);
     });
@@ -117,7 +117,7 @@ export class SearchMask extends Mask {
     this._version.value++;
   }
 
-  updateCounts(globalMask: Bitmask): void {
+  updateCounts(globalMask: Bitmask|null): void {
     if (this.mask !== null) {
       this._counts.value.countFiltered = and(globalMask, this.mask).count;
       this._counts.value.countTotal = this.mask.count;
