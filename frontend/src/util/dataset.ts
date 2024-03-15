@@ -1,9 +1,9 @@
-import { type ReadonlyRef, Scheme, SchemeLabelType } from "@/util/types";
+import { type ReadonlyRef, Scheme } from "@/util/types";
 import { and, Bitmask, or } from "@/util/dataset/bitmask.ts";
-import { DATA_BASE, GETWithProgress, request } from "@/util/api.ts";
-import { DeepReadonly, readonly, Ref, ref, watch } from "vue";
+import { DATA_BASE, GETWithProgress } from "@/util/api.ts";
+import { readonly, Ref, ref, watch } from "vue";
 import { Table, tableFromIPC } from "apache-arrow";
-import { Counts, MaskBufferEntry, MaskGroup } from "@/util/dataset/maskBase.ts";
+import { Counts, MaskBufferEntry } from "@/util/dataset/maskBase.ts";
 import { LabelValueMask } from "@/util/dataset/masks.ts";
 import { HistogramMask, IndexMask, LabelMaskGroup, SearchMask } from "@/util/dataset/groupMasks.ts";
 
@@ -87,7 +87,8 @@ export class Dataset {
   // mask for server-side filtering (esp. full-text search)
   public readonly searchMask: SearchMask;
   // aggregate global mask
-  private _bitmask: Bitmask | null;
+  private _mask: Bitmask | null;
+  public readonly inclusive: Ref<boolean>;  // when true, use OR for combination, else AND
 
   constructor(name: string, scheme: Scheme, labelMasks: Record<string, LabelMaskGroup>, arrow: Table) {
     this.name = name;
@@ -104,20 +105,21 @@ export class Dataset {
 
     this.searchMask = new SearchMask(name, ["title", "abstract"]);
 
-    this._bitmask = null;
+    this.inclusive = ref(true);
+
+    this._mask = null;
 
     // TODO init histogram mask
     // TODO init index mask
     // TODO start fetching keywords file
 
     // set up watchers so we can bubble up changes
-    watch([...this.labelMasks()].map(mask => mask.version), () => {
-      this.update();
-    });
+    watch([...this.labelMasks()].map(mask => mask.version), () => this.update());
+    watch(this.inclusive, () => this.update());
   }
 
-  get bitmask(): Bitmask | null {
-    return this._bitmask;
+  get mask(): Bitmask | null {
+    return this._mask;
   }
 
   * labelMasks() {
@@ -139,11 +141,11 @@ export class Dataset {
   }
 
   private update() {
-    const globalMask = and(...this.activeBitmasks());
+    this._mask = (this.inclusive) ? or(...this.activeBitmasks()) : and(...this.activeBitmasks());
     for (let mask of this.masks()) {
-      mask.updateCounts(globalMask);
+      mask.updateCounts(this._mask);
     }
-    this._counts.value.countFiltered = globalMask?.count ?? this._counts.value.countTotal;
+    this._counts.value.countFiltered = this._mask?.count ?? this._counts.value.countTotal;
   }
 
 }

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import {onMounted, ref, Ref, toRef} from "vue";
+import {onMounted, ref} from "vue";
 import {Dataset, loadDataset} from "@/util/dataset.ts";
 import {GET} from "@/util/api.ts";
 import {DatasetInfo} from "@/util/types";
-import {or} from "@/util/dataset/bitmask.ts";
 
 type LoadInfo = { progressCols: number, progressArrow: number };
 const loading = ref<LoadInfo | null>({

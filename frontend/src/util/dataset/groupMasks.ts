@@ -29,9 +29,8 @@ export class LabelMaskGroup extends MaskGroup {
     this._mask = this.getCombinedMasks();
 
     // set up watchers so we can bubble up changes
-    watch(Object.values(this.masks).map(mask => mask.version), () => {
-      this.update();
-    });
+    watch(Object.values(this.masks).map(mask => mask.version), () => this.update());
+    watch(this.inclusive, () => this.update());
   }
 
   get mask() {
