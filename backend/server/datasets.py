@@ -1,18 +1,16 @@
 from datetime import date
 
 import toml
-import base64
 import sqlite3
-import logging
-from array import array
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, ConfigDict
 
-from ..utils.config import settings
+from .logging import get_logger
+from .config import settings
 
-logger = logging.getLogger('util.datasets')
+logger = get_logger('util.datasets')
 
 
 class SchemeLabelValue(BaseModel):
@@ -28,45 +26,84 @@ class SchemeLabel(BaseModel):
 
 
 class DatasetInfo(BaseModel):
+    model_config = ConfigDict(extra='ignore')
+
     name: str
     teaser: str
-    description: str
+    # description: str
 
-    authors: list[str] | None = None
-    contributors: list[str] | None = None
+    #  authors: list[str] | None = None
+    # contributors: list[str] | None = None
 
     created_date: date
     last_update: date
 
-    figure: str | None = None
+    # figure: str | None = None
 
+
+class DatasetInfoFull(DatasetInfo):
+    model_config = ConfigDict(extra='ignore')
     db_filename: str
-    arrow_file: str
-    keywords_file: str | None = None
+    arrow_filename: str
+    keywords_filename: str | None = None
 
     scheme: dict[str, SchemeLabel]
 
 
+class DatasetInfoWeb(DatasetInfoFull):
+    model_config = ConfigDict(extra='ignore')
+    key: str
+    total: int
+    columns: set[str]
+
+
 class Dataset:
-    def __init__(self, info: DatasetInfo, path: Path, key: str):
+    def __init__(self, info: DatasetInfoFull, path: Path, key: str):
         self.key = key
-        self.info = info
+        self._info = info
         self.db_file = path / info.db_filename
+        self.logger = get_logger(f'util.db.{key}')
         self._total: int | None = None
+        self._columns: set[str] | None = None
 
     @property
-    def total(self):
+    def info(self) -> DatasetInfoWeb:
+        return DatasetInfoWeb(
+            key=self.key,
+            total=self.total,
+            columns=self.columns,
+            **self._info.dict())
+
+    @property
+    def total(self) -> int:
         if self._total is None:
-            with self.__enter__() as db:
-                logger.debug(f'Loading size of dataset for {self.key}')
-                rslt = db.cur.execute('SELECT COUNT(1) as total FROM abstracts;').fetchone()
-                self._total = rslt['total']
+            try:
+                with self as db:
+                    logger.debug(f'Loading size of dataset for {self.key}')
+                    rslt = db.cur.execute('SELECT COUNT(1) as total FROM documents;').fetchone()
+                    self._total = rslt['total']
+            except:
+                return 0
         return self._total
+
+    @property
+    def columns(self) -> set[str]:
+        if self._columns is None:
+            with self as db:
+                logger.debug(f'Loading columns for {self.key}')
+                rslt = db.cur.execute('PRAGMA table_info(documents);').fetchall()
+                self._columns = set([r['name'] for r in rslt])
+        return self._columns
+
+    def safe_col(self, col: str):
+        if col not in self.columns:
+            raise ValueError(f'Invalid column name: {col}')
+        return f'"{col}"'
 
     def __enter__(self):
         self.con: sqlite3.Connection = sqlite3.connect(self.db_file)
         self.con.row_factory = sqlite3.Row
-        self.con.set_trace_callback(logger.debug)
+        self.con.set_trace_callback(self.logger.debug)
         self.cur: sqlite3.Cursor = self.con.cursor()
 
         return self
@@ -75,27 +112,10 @@ class Dataset:
         self.con.close()
 
 
-def get_bitmask(ids: list[int], total: int):
-    # https://wiki.python.org/moin/BitArrays
-    intSize = total >> 5  # number of 32 bit integers
-    if total & 31:  # if bitSize != (32 * n) add
-        intSize += 1  # a record for stragglers
-    bitmask = array('I')  # 'I' = unsigned 32-bit integer
-    bitmask.extend((0,) * intSize)
-
-    def set_bit(idx):
-        record = idx >> 5
-        offset = idx & 31
-        mask = 1 << offset
-        bitmask[record] |= mask
-
-    [set_bit(idx_) for idx_ in ids]
-    return base64.b64encode(bitmask)
-
-
 class DatasetCache:
 
     def __init__(self, base_path: Path):
+        logger.info(f'Setting up dataset cache for {base_path}')
         self.base_path = base_path
         self.datasets: dict[str, Dataset] = {}
 
@@ -109,36 +129,33 @@ class DatasetCache:
                 try:
                     with open(entry / 'info.toml', 'r') as f:
                         # Read meta-data from info file
-                        info = DatasetInfo.model_validate(toml.loads(f.read()))
+                        info = DatasetInfoFull.model_validate(toml.loads(f.read()))
 
                     # verify files exist
                     if not (entry / info.db_filename).exists():
-                        logger.warning(f'Dataset in {entry} is missing db_filename; ignoring dataset!')
+                        logger.warning(f'Dataset in {entry.name} is missing db_filename; ignoring dataset!')
                         continue
-                    if not (entry / info.arrow_file).exists():
-                        logger.warning(f'Dataset in {entry} is missing arrow_file; ignoring dataset!')
+                    if not (entry / info.arrow_filename).exists():
+                        logger.warning(f'Dataset in {entry.name} is missing arrow_file; ignoring dataset!')
                         continue
-                    if not info.get('keywords_file') is not None or not (entry / info['keywords_file']).exists():
-                        logger.warning(f'Dataset in {entry} is missing keywords_file!')
+                    if not info.keywords_filename or not (entry / info.keywords_filename).exists():
+                        logger.warning(f'Dataset in {entry.name} is missing keywords_file!')
 
                     # Append to list of known datasets
                     dataset = Dataset(info=info, key=entry.name, path=entry.absolute())
                     self.datasets[dataset.key] = dataset
 
                     # Log this (indirectly also fetches the dataset size from the database)
-                    logger.info(f'Loaded {entry} with {dataset.total:,} documents.')
+                    logger.info(f'Loaded {entry.name} with {dataset.total:,} documents.')
 
                 except ValidationError as e:
-                    logger.warning(f'Failed to validate dataset info at {entry}')
+                    logger.warning(f'Failed to validate dataset info at {entry.name}')
                     logger.exception(e)
+            else:
+                logger.info(f'Ignoring data in {entry.name}')
 
 
 datasets = DatasetCache(base_path=Path(settings.DATASETS_FOLDER))
 datasets.reload()
 
-__all__ = ['get_bitmask', 'datasets', 'Dataset', 'DatasetInfo']
-
-# DROP TABLE search;
-# CREATE VIRTUAL TABLE search USING fts5(id, title, "text", authors);
-# INSERT INTO search (id, title, "text", authors) SELECT "index", title, "text", authors FROM abstracts;
-# SELECT id, highlight(search, 2, '<b>', '</b>') FROM search('calif* AND low');
+__all__ = ['datasets', 'Dataset', 'DatasetInfo']

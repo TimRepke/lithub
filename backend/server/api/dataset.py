@@ -4,6 +4,7 @@ from collections import defaultdict
 from fastapi import APIRouter
 import logging
 
+from ..datasets import datasets
 
 logger = logging.getLogger('api.data')
 router = APIRouter()
@@ -11,79 +12,7 @@ router = APIRouter()
 Scheme = dict[int, tuple[str, list[str]]]
 
 
-def get_scheme(dataset: str, secret: str | None = None) -> Scheme:
-    with Database(dataset, secret) as db:
-        res = db.cur.execute('SELECT * FROM scheme')
-        return {
-            r['scheme_id']: (r['label'], json.loads(r['choices']))
-            for r in res
-        }
 
-
-def resolve_annotations(s: str, scheme: Scheme) -> DocumentAnnotation:
-    parsed = [tuple(int(ci) for ci in c.split(':')[:2]) for c in s.split('|')]
-    ret = defaultdict(list)
-    for lab, choice in parsed:
-        ret[scheme[lab][0]].append(scheme[lab][1][choice])
-    return dict(ret)
-
-
-def resolve_json(s: str | None):
-    if s is not None and len(s) > 0:
-        return json.loads(s)
-    return None
-
-
-@router.get('/scheme', response_model=list[SchemeInfo])
-async def get_scheme_with_numbers(dataset: str, secret: str | None = None):
-    def prepare_scheme_info(r):
-        counts = dict((int(ci) for ci in c.split(':')[:2]) for c in r['counts'].split('|'))
-        choices = json.loads(r['choices'])
-        parsed_choices = {choices[k]: v for k, v in counts.items()}
-
-        return SchemeInfo(scheme_id=r['scheme_id'], label=r['label'], description=r['description'],
-                          choices=parsed_choices,
-                          i2s=choices,
-                          s2i={v: k for k, v in enumerate(choices)})
-
-    with Database(dataset, secret) as db:
-        q = db.resolve("SELECT scheme_id, s.label, choices, description, "
-                       "       group_concat(choice || ':' || cnt, '|') as counts "
-                       "FROM scheme s "
-                       "         LEFT JOIN (SELECT label, choice, count(choice) as cnt "
-                       "                    FROM labels "
-                       "                    GROUP BY choice) l on s.scheme_id = l.label "
-                       "GROUP BY scheme_id, s.label, choices, description;")
-        res = db.cur.execute(q)
-
-        return [prepare_scheme_info(r_) for r_ in res]
-
-
-@router.get('/sample/{label}/{choice}',
-            response_model=list[Document],
-            response_model_exclude={'x', 'y', 'RowNum'})
-async def get_label_sample(dataset: str, label: int, choice: int, limit: int = 50, secret: str | None = None):
-    with Database(dataset, secret) as db:
-        q = db.resolve('SELECT d.* '
-                       'FROM $data_tab d '
-                       '         JOIN '
-                       '     (SELECT doc_id '
-                       # get all matching labels and assign consecutive row numbers
-                       '      FROM (SELECT ROW_NUMBER() OVER (ORDER BY label_id ) RowNum, doc_id '
-                       '            FROM labels '
-                       '            WHERE label = :label '
-                       '              AND choice = :choice) '
-                       # only return every n-th row (RowNum `mod` stepsize) == 0
-                       '      WHERE RowNum % floor(('
-                       # number of documents with this label/choice
-                       '            SELECT count(1) FROM labels WHERE label = :label AND choice = :choice'
-                       '          ) / :limit) = 0) l on d.doc_id = l.doc_id')
-        res = db.cur.execute(q, {'label': label, 'choice': choice, 'limit': limit})
-
-        if db.dataset.info.type == 'documents':
-            return [Document(**r) for r in res]
-        else:
-            raise UnknownDatatypeError(f'{db.dataset.info.type} not implemented!')
 
 
 @router.get('/paged/{label}/{choice}',

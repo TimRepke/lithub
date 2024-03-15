@@ -1,43 +1,41 @@
 import abc
 import time
-import logging
 from asyncio import Lock
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
 
-logger = logging.getLogger('cache.backend')
+from ..logging import get_logger
+from ..config import settings
+
+logger = get_logger('cache.backend')
 
 
 @dataclass
 class Value:
     data: bytes
-    ttl_ts: int
+    ttl_ts: int | None
     ts: int
-
-
-CACHE_LIMIT = 1024 * 1024 * 128  # Maximum cache size is 128MB
 
 
 class Backend(abc.ABC):
     @abc.abstractmethod
-    async def get_with_ttl(self, key: str) -> Tuple[int, Optional[bytes]]:
+    async def get_with_ttl(self, key: str) -> tuple[int | None, bytes | None]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def get(self, key: str) -> Optional[bytes]:
+    async def get(self, key: str) -> bytes | None:
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def set(self, key: str, value: bytes, expire: Optional[int] = None) -> None:
+    async def set(self, key: str, value: bytes, expire: int | None = None) -> None:
         raise NotImplementedError
 
     @abc.abstractmethod
-    async def clear(self, namespace: Optional[str] = None, key: Optional[str] = None) -> int:
+    async def clear(self, namespace: str | None = None, key: str | None = None) -> int:
         raise NotImplementedError
 
 
 class InMemoryBackend(Backend):
-    _store: Dict[str, Value] = {}
+    _store: dict[str, Value] = {}
     _size: int = 0
     _lock = Lock()
 
@@ -45,23 +43,25 @@ class InMemoryBackend(Backend):
     def _now(self) -> int:
         return int(time.time())
 
-    def _get(self, key: str) -> Optional[Value]:
+    def _get(self, key: str) -> Value | None:
         v = self._store.get(key)
         if v:
-            if v.ttl_ts < self._now:
+            if v.ttl_ts is not None and v.ttl_ts < self._now:
                 del self._store[key]
             else:
                 return v
         return None
 
-    async def get_with_ttl(self, key: str) -> Tuple[int, Optional[bytes]]:
+    async def get_with_ttl(self, key: str) -> tuple[int | None, bytes | None]:
         async with self._lock:
             v = self._get(key)
-            if v:
+            if v and v.ttl_ts is not None:
                 return v.ttl_ts - self._now, v.data
+            if v:
+                return None, v.data
             return 0, None
 
-    async def get(self, key: str) -> Optional[bytes]:
+    async def get(self, key: str) -> bytes | None:
         async with self._lock:
             v = self._get(key)
             if v:
@@ -69,7 +69,7 @@ class InMemoryBackend(Backend):
             return None
 
     def _ensure_capacity(self, new_value: bytes):
-        headroom = CACHE_LIMIT - self._size - len(new_value)
+        headroom = settings.CACHE_LIMIT - self._size - len(new_value)
         if headroom < 0:
             logger.info(f'Cache is full, overhead is {headroom}')
             # sort by age and keep deleting the oldest entries until enough space is there
@@ -82,12 +82,14 @@ class InMemoryBackend(Backend):
                 if headroom >= 0:
                     break
 
-    async def set(self, key: str, value: bytes, expire: Optional[int] = None) -> None:
+    async def set(self, key: str, value: bytes, expire: int | None = None) -> None:
         async with self._lock:
             self._ensure_capacity(value)
-            self._store[key] = Value(value, self._now + (expire or 0), self._now)
+            self._store[key] = Value(data=value,
+                                     ttl_ts=None if expire is None else self._now + expire,
+                                     ts=self._now)
 
-    async def clear(self, namespace: Optional[str] = None, key: Optional[str] = None) -> int:
+    async def clear(self, namespace: str | None = None, key: str | None = None) -> int:
         count = 0
         if namespace:
             keys = list(self._store.keys())

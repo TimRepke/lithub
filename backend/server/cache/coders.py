@@ -1,5 +1,6 @@
 import datetime
 import json
+import logging
 import pickle  # nosec:B403
 from decimal import Decimal
 from typing import (
@@ -14,6 +15,7 @@ from typing import (
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseConfig, ValidationError, fields
+from pydantic_core import core_schema
 from starlette.responses import JSONResponse, PlainTextResponse
 from starlette.templating import _TemplateResponse as TemplateResponse
 
@@ -57,7 +59,7 @@ class Coder:
     # decode_as_type method and then stores a different kind of field for a
     # given type, do make sure that the subclass provides its own class
     # attribute for this cache.
-    _type_field_cache: ClassVar[Dict[Any, fields.ModelField]] = {}
+    _type_field_cache: ClassVar[Dict[Any, fields.Field]] = {}
 
     @overload
     @classmethod
@@ -80,8 +82,9 @@ class Coder:
         if type_ is not None:
             try:
                 field = cls._type_field_cache[type_]
-            except KeyError:
-                field = cls._type_field_cache[type_] = fields.ModelField(
+            except KeyError as e:
+                logging.debug(f'decode_as_type KeyError: {e}')
+                field = cls._type_field_cache[type_] = core_schema.ModelField(
                     name="body", type_=type_, class_validators=None, model_config=BaseConfig
                 )
             result, errors = field.validate(result, {}, loc=())
@@ -114,6 +117,8 @@ class BytesCoder(Coder):
             if type(value.body) is bytes:
                 return value.body
             return value.body.encode()
+        if type(value) is bytes:
+            return value
         return value.encode()
 
     @classmethod

@@ -3,14 +3,16 @@ import traceback
 import logging
 import logging.config
 
+import toml
 from uvicorn.logging import DefaultFormatter
 
-from server.utils.config import settings
+from .config import settings
 
 
 def get_logger(name: str | None = None):
-    if settings.LOGGING_CONF is not None:
-        logging.config.dictConfig(settings.LOGGING_CONF)
+    with open(settings.LOG_CONF_FILE, 'r') as f:
+        log_conf = toml.loads(f.read())
+    logging.config.dictConfig(log_conf)
     return logging.getLogger(name)
 
 
@@ -27,9 +29,8 @@ class ColourFormatter(DefaultFormatter):
 
 
 def except2str(e, logger=None):
-    if settings.SERVER.DEBUG_MODE:
-        tb = traceback.format_exc()
-        if logger:
-            logger.error(tb)
-        return tb
+    tb = traceback.format_exc()
+    if logger:
+        logger.error(tb)
+    # return tb
     return f'{type(e).__name__}: {e}'

@@ -212,8 +212,10 @@ def cache(
                     if if_none_match == etag:
                         response.status_code = HTTP_304_NOT_MODIFIED
                         return response
-
-                result = cast(R, coder.decode_as_type(cached, type_=return_type))
+                try:
+                    result = cast(R, coder.decode_as_type(cached, type_=return_type))
+                except:
+                    return cached
 
             return result
 
