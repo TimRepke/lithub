@@ -3,7 +3,10 @@ import { and, Bitmask, or } from "@/util/dataset/bitmask.ts";
 import { readonly, ref, type Ref, watch } from "vue";
 import { Mask, MaskGroup } from "@/util/dataset/maskBase.ts";
 import { request } from "@/util/api.ts";
-import { LabelValueMask } from "@/util/dataset/masks.ts";
+import { HistogramValueMask, LabelValueMask } from "@/util/dataset/masks.ts";
+import type { Vector } from "apache-arrow/vector";
+import { DataType } from "apache-arrow/type";
+import { Type } from "apache-arrow/enum";
 
 export class LabelMaskGroup extends MaskGroup {
   public readonly dataset: string;
@@ -42,8 +45,8 @@ export class LabelMaskGroup extends MaskGroup {
     const masks = Object
       .values(this.masks)
       //.map((mask) => (mask.active) ? mask.mask : mask.mask.inverse);
-      .filter((mask) => mask.active.value)
-      .map((mask) => mask.mask);
+      // .filter((mask) => mask.active.value)
+      .map((mask) => mask.active.value ? mask.mask : null);
     if (this.inclusive) return or(...masks);
     return and(...masks);
   }
@@ -116,69 +119,127 @@ export class SearchMask extends Mask {
     this._version.value++;
   }
 
-  updateCounts(globalMask: Bitmask|null): void {
+  updateCounts(globalMask: Bitmask | null): void {
     if (this.mask !== null) {
-      this._counts.value.countFiltered = and(globalMask, this.mask).count;
       this._counts.value.countTotal = this.mask.count;
+      this._counts.value.countFiltered = and(globalMask, this.mask)?.count ?? this._counts.value.countTotal;
     }
   }
 }
 
-export class IndexMask extends MaskGroup {
-  protected readonly _ids: Ref<number[]>;
-  public readonly ids: ReadonlyRef<number[]>;
-
-  constructor(dataset: string, name: string, key: string, value: number | boolean, size: number) {
-    super(dataset, name, key, value, new Bitmask(size));
-    this._ids = ref([]);
-    this.ids = readonly(this._ids);
-  }
-
-  selectIds(ids: number[]) {
-    // TODO create bitmask from indexes
-    this.update();
-  }
-
-  clear() {
-    this._active.value = false;
-    this.update();
-  }
-}
-
 export class HistogramMask extends MaskGroup {
-  protected readonly _ids: Ref<number[]>;
-  public readonly ids: ReadonlyRef<number[]>;
+  public readonly years: number[];
+  public readonly masks: Record<number, HistogramValueMask>;
+  public readonly restMask: HistogramValueMask;
 
-  constructor(publicationYears: number[]) {
-    // TODO make mask from years
-    //      iterate list, spawn new bitmask when unseen year appears, populate bits as we go across different masks
-    //      second pass to fill gaps
+  private _mask: Bitmask | null; // holds all OR/AND combined submasks
+
+  constructor(startYear: number, endYear: number, col: Vector<DataType<Type.Uint16>>) {
     super();
-    this._ids = ref([]);
-    this.ids = readonly(this._ids);
+    const diff = endYear - startYear;
+    this.years = [...Array(diff).keys()].map(i => i + diff);
+
+    const masks: Record<number, Bitmask> = Object.fromEntries(this.years.map(yr => [yr, new Bitmask(col.length)]));
+    const restMask = new Bitmask(col.length);  // includes items not in the year range
+    let yr;
+    for (let i = 0; i < col.length; i++) {
+      yr = col.get(i);
+      if (yr in masks) masks[yr].set(i);
+      else restMask.set(i);
+    }
+    this.masks = Object.fromEntries(Object.entries(masks).map(([yr, mask]) => [yr, new HistogramValueMask(mask, +yr)]));
+    this.restMask = new HistogramValueMask(restMask);
+    this._mask = null;
   }
 
   get mask() {
-    // TODO
+    return this._mask;
   }
 
   selectRange(begin: number, end: number) {
-    // TODO set all years active between begin and end
+    Object.entries(this.masks).forEach(([yr, mask]) => mask.setActive(+yr >= begin && +yr <= end));
+    this.restMask.setActive(false);
+    this.update();
   }
 
-  selectYears(ids: number[]) {
-    // TODO create bitmask from indexes
+  selectYears(years: number[]) {
+    Object.entries(this.masks).forEach(([yr, mask]) => mask.setActive(years.indexOf(+yr) >= 0));
+    this.restMask.setActive(false);
+    this.update();
+  }
+
+  protected getCombinedMasks() {
+    const masks = Object
+      .values(this.masks)
+      .map((mask) => mask.active.value ? mask.mask : null);
+    // TODO: We are always ignoring the restMask. Kind of makes sense, but might need to be reconsidered.
+    return or(...masks);
+  }
+
+  clear() {
+    this._active.value = false;
+    Object.values(this.masks).forEach((mask) => mask.clear());
+    this.restMask.clear();
+    this.update();
+  }
+
+  update() {
+    this._mask = this.getCombinedMasks();
+    this._version.value++;
+  }
+
+  updateCounts(globalMask: Bitmask | null) {
+    Object.values(this.masks).forEach((mask) => {
+      mask.updateCounts(globalMask);
+    });
+    this.restMask.updateCounts(globalMask);
+  }
+}
+
+export class IndexMask extends Mask {
+  protected readonly _ids: Ref<number[]>;
+  public readonly ids: ReadonlyRef<number[]>;
+
+  private readonly _mask: Bitmask;
+
+  constructor(length: number) {
+    super();
+    this._ids = ref([]);
+    this.ids = readonly(this._ids);
+    this._mask = new Bitmask(length);
+  }
+
+  selectIds(ids: number[]) {
+    this._mask.reset();
+    for (let idx of ids) {
+      this._mask.set(idx);
+    }
+    this._ids.value = ids;
+    this._active.value = true;
     this.update();
   }
 
   clear() {
     this._active.value = false;
+    this._ids.value = [];
+    this._mask.reset();
     this.update();
   }
 
-  protected update(): void {
+  get mask(): Bitmask | null {
+    return this._mask;
   }
 
-  updateCounts(globalMask: Bitmask): void {
+  protected update(): void {
+    this._version.value++;
+  }
+
+  updateCounts(globalMask: Bitmask | null): void {
+    this._counts.value.countTotal = this._ids.value.length;
+    if (!globalMask) {
+      this._counts.value.countFiltered = this._counts.value.countTotal;
+    } else {
+      this._counts.value.countFiltered = and(this.mask, globalMask)?.count ?? this._counts.value.countTotal;
+    }
   }
 }

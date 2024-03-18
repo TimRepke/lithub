@@ -15,7 +15,7 @@ export class LabelValueMask extends Mask {
 
   protected readonly _threshold: Ref<number>;
   public readonly threshold: ReadonlyRef<number>;
-  protected _mask: Bitmask|null;
+  protected _mask: Bitmask | null;
 
   constructor(dataset: string, name: string, key: string, value: number | boolean, mask: Bitmask) {
     super();
@@ -54,34 +54,27 @@ export class LabelValueMask extends Mask {
     this._version.value++;
   }
 
-  updateCounts(globalMask:Bitmask| null) {
+  updateCounts(globalMask: Bitmask | null) {
     this._counts.value.countFiltered = this.active ? and(globalMask, this.mask)?.count ?? this._counts.value.countTotal : 0;
   }
 }
 
 export class HistogramValueMask extends Mask {
-  protected readonly _ids: Ref<number[]>;
-  public readonly ids: ReadonlyRef<number[]>;
+  public readonly year: number | null;
+  protected _mask: Bitmask;
 
-  constructor(publicationYears: number[]) {
-    // TODO make mask from years
-
+  constructor(mask: Bitmask, year: number | null = null) {
     super();
-    this._ids = ref([]);
-    this.ids = readonly(this._ids);
+    this._mask = mask;
+    this.year = year;
+
+    const count = mask.count;
+    this._counts.value.countFiltered = count;
+    this._counts.value.countTotal = count;
   }
 
   get mask() {
-    // TODO
-  }
-
-  selectRange(begin: number, end: number) {
-    // TODO set all years active between begin and end
-  }
-
-  selectYears(ids: number[]) {
-    // TODO create bitmask from indexes
-    this.update();
+    return this._mask;
   }
 
   clear() {
@@ -89,13 +82,14 @@ export class HistogramValueMask extends Mask {
     this.update();
   }
 
-  protected update(): void {
+  protected update() {
+    this._version.value++;
   }
 
-  updateCounts(globalMask: Bitmask|null): void {
+  updateCounts(globalMask: Bitmask | null) {
+    this._counts.value.countFiltered = this.active ? and(globalMask, this.mask)?.count ?? this._counts.value.countTotal : 0;
   }
 }
-
 
 function loadMask(dataset: string, col: string, threshold: number = 0.5) {
   return new Promise((resolve: (mask: Bitmask) => void, reject) => {

@@ -24,13 +24,19 @@ export class Bitmask {
     return mask;
   }
 
+  reset() {
+    for (let chunk of this._mask){
+      chunk &= 0;
+    }
+  }
+
   invert() {
     for (let i = 0; i < this._mask.length; i++) {
       this._mask[i] = ~this._mask[i];
     }
   }
 
-  set(i: number, v: boolean) {
+  set(i: number, v: boolean = true) {
     i |= 0;
     const idx = i >>> 5;
     const bit = 1 << (i & 31);
@@ -46,9 +52,8 @@ export class Bitmask {
     /**
      * Returns a list of integer IDs where the bit is set
      */
-    return ([...Array(this.length)])
-      // @ts-ignore
-      .map((v, i) => this.get(i) ? i : null)
+    return ([...Array(this.length).keys()])
+      .map((i) => this.get(i) ? i : null)
       .filter((e): e is number => e !== null);
   }
 

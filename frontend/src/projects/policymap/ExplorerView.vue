@@ -14,14 +14,17 @@ let dataset: Dataset;
 onMounted(async () => {
   const info = await GET<DatasetInfo>({path: "/basic/info/policymap"});
 
-  dataset = await loadDataset(
-    "policymap",
-    info.scheme,
-    info.arrow_filename,
-    (colsLoaded) => {
-      (loading.value as LoadInfo).progressCols = colsLoaded;
-    },
-    bytesLoaded => (loading.value as LoadInfo).progressArrow = bytesLoaded
+  dataset = await loadDataset({
+      dataset: "policymap",
+      scheme: info.scheme,
+      arrowFile: info.arrow_filename,
+      maskCallback: (colsLoaded) => {
+        (loading.value as LoadInfo).progressCols = colsLoaded;
+      },
+      dataCallback: bytesLoaded => (loading.value as LoadInfo).progressArrow = bytesLoaded,
+      startYear: info.start_year,
+      endYear: info.end_year,
+    }
   );
   loading.value = null;
 
@@ -47,6 +50,7 @@ onMounted(async () => {
   // console.log(or(
   //   dataset.labelMaskGroups['sec'].masks[1].mask,
   //   dataset.labelMaskGroups['sec'].masks[2].mask).count)
+  console.log(dataset.arrow);
 
   setTimeout(() => dataset.labelMaskGroups['sec'].masks[0].toggleActive(), 1000)
   setTimeout(() => dataset.labelMaskGroups['sec'].setActive(true), 2000)
