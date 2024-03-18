@@ -12,22 +12,26 @@ export function d2s(d: Date) {
 export type URLParams = Record<string, string | number | string[] | number[]>;
 
 export function getUrl(path: string, params: URLParams | null = null) {
-  let url = (path.startsWith("http")) ? path : API_BASE + path;
+  let url = path.startsWith("http") ? path : API_BASE + path;
   if (params) {
-    url += "?" + Object.entries(params).flatMap(([key, values]) => {
-      if (isArray<string | number>(values)) return values.map((value) => `${key}=${encodeURIComponent(value)}`);
-      return [`${key}=${encodeURIComponent(values)}`];
-    }).join("&");
+    url +=
+      "?" +
+      Object.entries(params)
+        .flatMap(([key, values]) => {
+          if (isArray<string | number>(values)) return values.map((value) => `${key}=${encodeURIComponent(value)}`);
+          return [`${key}=${encodeURIComponent(values)}`];
+        })
+        .join("&");
   }
   return url;
 }
 
 export function request(params: {
-  method: string,
-  path: string,
-  params?: URLParams | null,
-  headers?: HeadersInit,
-  body?: BodyInit | null,
+  method: string;
+  path: string;
+  params?: URLParams | null;
+  headers?: HeadersInit;
+  body?: BodyInit | null;
 }): Promise<Response> {
   const apiStore = useApiStore();
   const req = apiStore.startRequest();
@@ -47,29 +51,27 @@ export function request(params: {
   });
 }
 
-export async function GET<T>(params: {
-  path: string,
-  params?: URLParams,
-  headers?: HeadersInit
-}): Promise<T> {
+export async function GET<T>(params: { path: string; params?: URLParams; headers?: HeadersInit }): Promise<T> {
   const response = await request({ method: "GET", path: params.path, params: params.params, headers: params.headers });
   return response.json();
 }
 
-export async function DELETE<T>(params: {
-  path: string,
-  params?: URLParams,
-  headers?: HeadersInit
-}): Promise<T> {
-  const response = await request({ method: "DELETE", path: params.path, params: params.params, headers: params.headers });
+export async function DELETE<T>(params: { path: string; params?: URLParams; headers?: HeadersInit }): Promise<T> {
+  const response = await request({
+    method: "DELETE",
+    path: params.path,
+    params: params.params,
+    headers: params.headers,
+  });
   return response.json();
 }
 
 export async function POST<T>(params: {
-  path: string,
-  params?: URLParams,
-  payload: Record<string, any>,
-  headers?: HeadersInit
+  path: string;
+  params?: URLParams;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: Record<string, any>;
+  headers?: HeadersInit;
 }): Promise<T> {
   const response = await request({
     method: "POST",
@@ -77,17 +79,18 @@ export async function POST<T>(params: {
     path: params.path,
     params: params.params,
     headers: {
-      "Content-Type": "application/json; charset=UTF-8", ...params.headers
-    }
+      "Content-Type": "application/json; charset=UTF-8",
+      ...params.headers,
+    },
   });
   return response.json();
 }
 
 export function GETWithProgress(params: {
-  path: string,
-  progressCallback: (bytesLoaded: number) => void,
-  params?: URLParams,
-  headers?: HeadersInit
+  path: string;
+  progressCallback: (bytesLoaded: number) => void;
+  params?: URLParams;
+  headers?: HeadersInit;
 }): Promise<ArrayBuffer> {
   const apiStore = useApiStore();
   const req = apiStore.startRequest();
@@ -132,9 +135,10 @@ export function GETWithProgress(params: {
           },
         });
       })
-      .then((stream) =>
-        // Respond with our stream
-        new Response(stream, { headers: { "Content-Type": "application/vnd.apache.arrow.file" } })
+      .then(
+        (stream) =>
+          // Respond with our stream
+          new Response(stream, { headers: { "Content-Type": "application/vnd.apache.arrow.file" } }),
       )
       .then(async (result) => {
         apiStore.finishRequest(req);

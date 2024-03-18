@@ -25,8 +25,8 @@ export class Bitmask {
   }
 
   reset() {
-    for (let chunk of this._mask){
-      chunk &= 0;
+    for (let i = 0; i < this._mask.length; i++) {
+      this._mask[i] &= 0;
     }
   }
 
@@ -52,8 +52,8 @@ export class Bitmask {
     /**
      * Returns a list of integer IDs where the bit is set
      */
-    return ([...Array(this.length).keys()])
-      .map((i) => this.get(i) ? i : null)
+    return [...Array(this.length).keys()] //
+      .map((i) => (this.get(i) ? i : null)) //
       .filter((e): e is number => e !== null);
   }
 
@@ -92,12 +92,12 @@ export class Bitmask {
     for (let i = 0; i < copy.length; i++) {
       copy[i] = copy[i] - ((copy[i] >> 1) & 0x55555555);
       copy[i] = (copy[i] & 0x33333333) + ((copy[i] >> 2) & 0x33333333);
-      ret += ((copy[i] + (copy[i] >> 4) & 0xF0F0F0F) * 0x1010101) >> 24;
+      ret += (((copy[i] + (copy[i] >> 4)) & 0xf0f0f0f) * 0x1010101) >> 24;
     }
     return ret;
   }
 
-  * [Symbol.iterator]() {
+  *[Symbol.iterator]() {
     /**
      * Iterates over all bits in the mask.
      */
@@ -115,7 +115,7 @@ export class Bitmask {
     for (let i = 0; i < data.length; i++) {
       buffer[i] = data.charCodeAt(i);
     }
-    let mask = new Uint32Array(buffer.buffer);
+    const mask = new Uint32Array(buffer.buffer);
     return new Bitmask(mask.length * 32, mask);
   }
 }
@@ -129,7 +129,7 @@ export function or(...sets: (Bitmask | null)[]) {
     return filtered[0];
   }
 
-  const out = new Bitmask(filtered[0].length, new Uint32Array(filtered[0].mask));  // copy of first set
+  const out = new Bitmask(filtered[0].length, new Uint32Array(filtered[0].mask)); // copy of first set
   for (let i = 1; i < sets.length; i++) {
     out.or(filtered[i]);
   }
@@ -145,7 +145,7 @@ export function and(...sets: (Bitmask | null)[]) {
     return filtered[0];
   }
 
-  const out = new Bitmask(filtered[0].length, new Uint32Array(filtered[0].mask));  // copy of first set
+  const out = new Bitmask(filtered[0].length, new Uint32Array(filtered[0].mask)); // copy of first set
   for (let i = 1; i < filtered.length; i++) {
     out.and(filtered[i]);
   }

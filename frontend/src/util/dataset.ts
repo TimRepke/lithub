@@ -13,34 +13,31 @@ import { HistogramMask, IndexMask, LabelMaskGroup, SearchMask } from "@/util/dat
 // }
 
 export async function loadDataset(params: {
-  dataset: string,
-  scheme: Scheme,
-  arrowFile: string,
-  maskCallback: (colsLoaded: number) => void,
-  dataCallback: (bytesLoaded: number) => void,
-  startYear: number,
-  endYear: number,
+  dataset: string;
+  scheme: Scheme;
+  arrowFile: string;
+  maskCallback: (colsLoaded: number) => void;
+  dataCallback: (bytesLoaded: number) => void;
+  startYear: number;
+  endYear: number;
 }): Promise<Dataset> {
   return new Promise(async (resolve: (res: Dataset) => void, reject) => {
-
     // request all masks
     let numLoadedMasks = 0;
     const maskBuffer: Record<string, MaskBufferEntry> = {};
-    const maskPromises = Object
-      .entries(params.scheme)
-      .flatMap(
-        ([key, label]) => label
-          .values
-          .map(async (value) => {
-            if (!(key in maskBuffer)) maskBuffer[key] = {
+    const maskPromises = Object.entries(params.scheme) //
+      .flatMap(([key, label]) =>
+        label.values.map(async (value) => {
+          if (!(key in maskBuffer))
+            maskBuffer[key] = {
               key,
               name: label.name,
               type: label.type,
               masks: [],
             };
-            maskBuffer[key].masks.push(await LabelValueMask.loadMask(params.dataset, value.name, key, value.value));
-            params.maskCallback(++numLoadedMasks);
-          })
+          maskBuffer[key].masks.push(await LabelValueMask.loadMask(params.dataset, value.name, key, value.value));
+          params.maskCallback(++numLoadedMasks);
+        }),
       );
 
     // request arrow base
@@ -51,29 +48,25 @@ export async function loadDataset(params: {
     const arrow = tableFromIPC<ArrowSchema>(arrowRaw);
 
     // wait for all requests to finish and return dataset
-    Promise
-      .all(maskPromises)
+    Promise.all(maskPromises)
       .then(() => {
-          const groupedLabelMasks = Object.fromEntries(Object
-            .entries(maskBuffer)
-            .map(([key, entry]) => {
-              return [
-                key,
-                new LabelMaskGroup(params.dataset, entry.key, entry.name, entry.type, entry.masks)
-              ];
-            })
-          );
+        const groupedLabelMasks = Object.fromEntries(
+          Object.entries(maskBuffer).map(([key, entry]) => {
+            return [key, new LabelMaskGroup(params.dataset, entry.key, entry.name, entry.type, entry.masks)];
+          }),
+        );
 
-          resolve(new Dataset({
+        resolve(
+          new Dataset({
             name: params.dataset,
             scheme: params.scheme,
             labelMasks: groupedLabelMasks,
             arrow,
             startYear: params.startYear,
-            endYear: params.endYear
-          }));
-        }
-      )
+            endYear: params.endYear,
+          }),
+        );
+      })
       .catch(reject);
   });
 }
@@ -99,15 +92,15 @@ export class Dataset {
   // public readonly doiMask: SearchMask;
   // aggregate global mask
   private _mask: Bitmask | null;
-  public readonly inclusive: Ref<boolean>;  // when true, use OR for combination, else AND
+  public readonly inclusive: Ref<boolean>; // when true, use OR for combination, else AND
 
   constructor(params: {
-    name: string,
-    scheme: Scheme,
-    labelMasks: Record<string, LabelMaskGroup>,
-    arrow: Table<ArrowSchema>,
-    startYear: number,
-    endYear: number
+    name: string;
+    scheme: Scheme;
+    labelMasks: Record<string, LabelMaskGroup>;
+    arrow: Table<ArrowSchema>;
+    startYear: number;
+    endYear: number;
   }) {
     this.name = params.name;
     this.scheme = params.scheme;
@@ -134,7 +127,10 @@ export class Dataset {
     // TODO start fetching keywords file
 
     // set up watchers so we can bubble up changes
-    watch([...this.labelMasks()].map(mask => mask.version), () => this.update());
+    watch(
+      [...this.labelMasks()].map((mask) => mask.version),
+      () => this.update(),
+    );
     watch(this.inclusive, () => this.update());
   }
 
@@ -142,31 +138,29 @@ export class Dataset {
     return this._mask;
   }
 
-  * labelMasks() {
-    for (let mask of Object.values(this.labelMaskGroups)) yield mask;
+  *labelMasks() {
+    for (const mask of Object.values(this.labelMaskGroups)) yield mask;
   }
 
-  * masks() {
-    for (let mask of Object.values(this.labelMaskGroups)) yield mask;
+  *masks() {
+    for (const mask of Object.values(this.labelMaskGroups)) yield mask;
     // if (this.pyMask.active) yield this.pyMask;
     // if (this.indexMask.active) yield this.indexMask;
   }
 
-  * activeMasks() {
-    for (let mask of this.masks()) if (mask.active.value) yield mask;
+  *activeMasks() {
+    for (const mask of this.masks()) if (mask.active.value) yield mask;
   }
 
-  * activeBitmasks() {
-    for (let mask of this.activeMasks()) if (mask.mask) yield mask.mask;
+  *activeBitmasks() {
+    for (const mask of this.activeMasks()) if (mask.mask) yield mask.mask;
   }
 
   private update() {
-    this._mask = (this.inclusive) ? or(...this.activeBitmasks()) : and(...this.activeBitmasks());
-    for (let mask of this.masks()) {
+    this._mask = this.inclusive ? or(...this.activeBitmasks()) : and(...this.activeBitmasks());
+    for (const mask of this.masks()) {
       mask.updateCounts(this._mask);
     }
     this._counts.value.countFiltered = this._mask?.count ?? this._counts.value.countTotal;
   }
-
 }
-

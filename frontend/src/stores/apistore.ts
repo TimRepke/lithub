@@ -1,7 +1,7 @@
-import {defineStore} from "pinia";
-import {computed, ref} from "vue";
+import { defineStore } from "pinia";
+import { computed, ref } from "vue";
 
-export const useApiStore = defineStore('api', () => {
+export const useApiStore = defineStore("api", () => {
   const requests = ref<number[]>([]);
   const counter = ref<number>(0);
 
@@ -19,5 +19,5 @@ export const useApiStore = defineStore('api', () => {
   }
 
   const isLoading = computed(() => requests.value.length > 0);
-  return {startRequest, finishRequest, isLoading};
+  return { startRequest, finishRequest, isLoading };
 });

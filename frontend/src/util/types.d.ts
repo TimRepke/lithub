@@ -44,15 +44,10 @@ export interface DatasetInfo {
   scheme: Scheme;
 }
 
-// export type ArrowSchema = {
-//   x: DataType<Type.Float16>,
-//   y: DataType<Type.Float16>,
-//   publication_year: DataType<Type.Uint16>,
-// };
 export interface ArrowSchema extends TypeMap {
-  x: DataType<Type.Float16>,
-  y: DataType<Type.Float16>,
-  publication_year: DataType<Type.Uint16>,
+  x: DataType<Type.Float16>;
+  y: DataType<Type.Float16>;
+  publication_year: DataType<Type.Uint16>;
 }
 
 export type ReadonlyRef<T> = DeepReadonly<Ref<T>>;

@@ -1,22 +1,11 @@
-<script setup lang="ts">
-
-</script>
+<script setup lang="ts"></script>
 
 <template>
   <h3>Climate policy map</h3>
   <p class="fst-italic">
     <strong>Authors:</strong>
-    Max Callaghan,
-    Lucy Banisch,
-    Niklas Doebbeling-Hildebrandt,
-    Duncan Edmondson,
-    Christian Flachsland,
-    William Lamb,
-    Sebastian Levi,
-    Finn Müller-Hansen,
-    Eduardo Posada,
-    Shraddha Vasudevan,
-    Jan Minx
+    Max Callaghan, Lucy Banisch, Niklas Doebbeling-Hildebrandt, Duncan Edmondson, Christian Flachsland, William Lamb,
+    Sebastian Levi, Finn Müller-Hansen, Eduardo Posada, Shraddha Vasudevan, Jan Minx
   </p>
   <p>
     This interactive website accompanies the paper [1], which uses machine learning to identify and classify the
@@ -37,6 +26,4 @@
   </p>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

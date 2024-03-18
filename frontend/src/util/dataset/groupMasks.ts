@@ -17,7 +17,7 @@ export class LabelMaskGroup extends MaskGroup {
 
   protected _mask: Bitmask | null; // holds all OR/AND combined submasks
 
-  public readonly inclusive: Ref<boolean>;  // when true, use OR for combination, else AND
+  public readonly inclusive: Ref<boolean>; // when true, use OR for combination, else AND
 
   constructor(dataset: string, key: string, name: string, type: SchemeLabelType, masks: LabelValueMask[]) {
     super();
@@ -32,7 +32,10 @@ export class LabelMaskGroup extends MaskGroup {
     this._mask = this.getCombinedMasks();
 
     // set up watchers so we can bubble up changes
-    watch(Object.values(this.masks).map(mask => mask.version), () => this.update());
+    watch(
+      Object.values(this.masks).map((mask) => mask.version),
+      () => this.update(),
+    );
     watch(this.inclusive, () => this.update());
   }
 
@@ -42,11 +45,10 @@ export class LabelMaskGroup extends MaskGroup {
 
   protected getCombinedMasks() {
     // TODO think about the logic again...
-    const masks = Object
-      .values(this.masks)
+    const masks = Object.values(this.masks)
       //.map((mask) => (mask.active) ? mask.mask : mask.mask.inverse);
       // .filter((mask) => mask.active.value)
-      .map((mask) => mask.active.value ? mask.mask : null);
+      .map((mask) => (mask.active.value ? mask.mask : null));
     if (this.inclusive) return or(...masks);
     return and(...masks);
   }
@@ -61,7 +63,6 @@ export class LabelMaskGroup extends MaskGroup {
       mask.updateCounts(globalMask);
     });
   }
-
 }
 
 export class SearchMask extends Mask {
@@ -101,7 +102,7 @@ export class SearchMask extends Mask {
       const rawMask = await request({
         method: "GET",
         path: `/basic/search/bitmask/${this.dataset}`,
-        params: { search: this.search.value, fields: this.fields }
+        params: { search: this.search.value, fields: this.fields },
       });
       this._mask = Bitmask.fromBase64(await rawMask.text());
       this.update();
@@ -137,10 +138,10 @@ export class HistogramMask extends MaskGroup {
   constructor(startYear: number, endYear: number, col: Vector<DataType<Type.Uint16>>) {
     super();
     const diff = endYear - startYear;
-    this.years = [...Array(diff).keys()].map(i => i + diff);
+    this.years = [...Array(diff).keys()].map((i) => i + diff);
 
-    const masks: Record<number, Bitmask> = Object.fromEntries(this.years.map(yr => [yr, new Bitmask(col.length)]));
-    const restMask = new Bitmask(col.length);  // includes items not in the year range
+    const masks: Record<number, Bitmask> = Object.fromEntries(this.years.map((yr) => [yr, new Bitmask(col.length)]));
+    const restMask = new Bitmask(col.length); // includes items not in the year range
     let yr;
     for (let i = 0; i < col.length; i++) {
       yr = col.get(i);
@@ -169,9 +170,7 @@ export class HistogramMask extends MaskGroup {
   }
 
   protected getCombinedMasks() {
-    const masks = Object
-      .values(this.masks)
-      .map((mask) => mask.active.value ? mask.mask : null);
+    const masks = Object.values(this.masks).map((mask) => (mask.active.value ? mask.mask : null));
     // TODO: We are always ignoring the restMask. Kind of makes sense, but might need to be reconsidered.
     return or(...masks);
   }
@@ -211,7 +210,7 @@ export class IndexMask extends Mask {
 
   selectIds(ids: number[]) {
     this._mask.reset();
-    for (let idx of ids) {
+    for (const idx of ids) {
       this._mask.set(idx);
     }
     this._ids.value = ids;

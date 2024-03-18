@@ -11,12 +11,12 @@ export default {
       name: `${routeBaseName}-explore`,
       path: "",
       alias: ["", "explore"],
-      component: () => import("./ExplorerView.vue")
+      component: () => import("./ExplorerView.vue"),
     },
     {
       name: `${routeBaseName}-info`,
       path: "info",
-      component: () => import("./InfoView.vue")
+      component: () => import("./InfoView.vue"),
     },
   ],
 } as RouteRecordRaw;

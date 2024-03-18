@@ -19,20 +19,21 @@ const router = createRouter({
     {
       name: "about",
       path: "/about",
-      component: () => import("./views/AboutView.vue")
+      component: () => import("./views/AboutView.vue"),
     },
     {
       path: "/project",
       component: () => import("@/views/ProjectContainer.vue"),
       children: [
+        //
         policyMapRoute,
-        carbonPricingMapRoute
+        carbonPricingMapRoute,
       ],
-    }
+    },
   ],
 });
 
-createApp(App)
-  .use(router)
-  .use(pinia)
+createApp(App) //
+  .use(router) //
+  .use(pinia) //
   .mount("#app");

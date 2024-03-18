@@ -55,7 +55,9 @@ export class LabelValueMask extends Mask {
   }
 
   updateCounts(globalMask: Bitmask | null) {
-    this._counts.value.countFiltered = this.active ? and(globalMask, this.mask)?.count ?? this._counts.value.countTotal : 0;
+    this._counts.value.countFiltered = this.active
+      ? and(globalMask, this.mask)?.count ?? this._counts.value.countTotal
+      : 0;
   }
 }
 
@@ -87,7 +89,9 @@ export class HistogramValueMask extends Mask {
   }
 
   updateCounts(globalMask: Bitmask | null) {
-    this._counts.value.countFiltered = this.active ? and(globalMask, this.mask)?.count ?? this._counts.value.countTotal : 0;
+    this._counts.value.countFiltered = this.active
+      ? and(globalMask, this.mask)?.count ?? this._counts.value.countTotal
+      : 0;
   }
 }
 
@@ -96,7 +100,7 @@ function loadMask(dataset: string, col: string, threshold: number = 0.5) {
     request({
       method: "GET",
       path: `/basic/bitmask/${dataset}`,
-      params: { key: col, min_score: threshold }
+      params: { key: col, min_score: threshold },
     })
       .then(async (result) => {
         resolve(Bitmask.fromBase64(await result.text()));

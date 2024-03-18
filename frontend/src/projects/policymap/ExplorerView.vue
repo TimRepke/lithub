@@ -1,38 +1,37 @@
 <script setup lang="ts">
-import {onMounted, ref} from "vue";
-import {Dataset, loadDataset} from "@/util/dataset.ts";
-import {GET} from "@/util/api.ts";
-import {DatasetInfo} from "@/util/types";
+import { onMounted, ref } from "vue";
+import { Dataset, loadDataset } from "@/util/dataset.ts";
+import { GET } from "@/util/api.ts";
+import { DatasetInfo } from "@/util/types";
 
-type LoadInfo = { progressCols: number, progressArrow: number };
+type LoadInfo = { progressCols: number; progressArrow: number };
 const loading = ref<LoadInfo | null>({
   progressCols: 0,
   progressArrow: 0,
-})
+});
 let dataset: Dataset;
 
 onMounted(async () => {
-  const info = await GET<DatasetInfo>({path: "/basic/info/policymap"});
+  const info = await GET<DatasetInfo>({ path: "/basic/info/policymap" });
 
   dataset = await loadDataset({
-      dataset: "policymap",
-      scheme: info.scheme,
-      arrowFile: info.arrow_filename,
-      maskCallback: (colsLoaded) => {
-        (loading.value as LoadInfo).progressCols = colsLoaded;
-      },
-      dataCallback: bytesLoaded => (loading.value as LoadInfo).progressArrow = bytesLoaded,
-      startYear: info.start_year,
-      endYear: info.end_year,
-    }
-  );
+    dataset: "policymap",
+    scheme: info.scheme,
+    arrowFile: info.arrow_filename,
+    maskCallback: (colsLoaded) => {
+      (loading.value as LoadInfo).progressCols = colsLoaded;
+    },
+    dataCallback: (bytesLoaded) => ((loading.value as LoadInfo).progressArrow = bytesLoaded),
+    startYear: info.start_year,
+    endYear: info.end_year,
+  });
   loading.value = null;
 
-  dataset.labelMaskGroups['reg'].toggleActive();
-  dataset.labelMaskGroups['edu'].toggleActive();
-  dataset.labelMaskGroups['gov'].toggleActive();
+  dataset.labelMaskGroups["reg"].toggleActive();
+  dataset.labelMaskGroups["edu"].toggleActive();
+  dataset.labelMaskGroups["gov"].toggleActive();
 
-  console.log([...dataset.activeMasks()].length)
+  console.log([...dataset.activeMasks()].length);
   // console.log(dataset.labelMaskGroups['sec'].masks[1].mask.count)
   // console.log(dataset.labelMaskGroups['sec'].masks[1].mask.count)
   // console.log(dataset.labelMaskGroups['sec'].masks[1].mask.count)
@@ -52,32 +51,30 @@ onMounted(async () => {
   //   dataset.labelMaskGroups['sec'].masks[2].mask).count)
   console.log(dataset.arrow);
 
-  setTimeout(() => dataset.labelMaskGroups['sec'].masks[0].toggleActive(), 1000)
-  setTimeout(() => dataset.labelMaskGroups['sec'].setActive(true), 2000)
-  setTimeout(() => dataset.labelMaskGroups['sec'].masks[1].toggleActive(), 3000)
-  setTimeout(() => dataset.labelMaskGroups['sec'].masks[0].toggleActive(), 4000)
-  setTimeout(() => dataset.labelMaskGroups['sec'].masks[1].toggleActive(), 5000)
-})
+  setTimeout(() => dataset.labelMaskGroups["sec"].masks[0].toggleActive(), 1000);
+  setTimeout(() => dataset.labelMaskGroups["sec"].setActive(true), 2000);
+  setTimeout(() => dataset.labelMaskGroups["sec"].masks[1].toggleActive(), 3000);
+  setTimeout(() => dataset.labelMaskGroups["sec"].masks[0].toggleActive(), 4000);
+  setTimeout(() => dataset.labelMaskGroups["sec"].masks[1].toggleActive(), 5000);
+});
 </script>
 
 <template>
   explorer
   <div v-if="loading">
-    {{ loading.progressCols }} filters loaded<br/>
+    {{ loading.progressCols }} filters loaded<br />
     {{ (loading.progressArrow / 1024 / 1024).toLocaleString() }}MB loaded
   </div>
   <div v-if="dataset">
     {{ dataset.counts.value.countFiltered }} / {{ dataset.counts.value.countTotal }}
     <ul>
-      <template v-for="(mask, key) in dataset.labelMaskGroups">
-        <li v-for="(lmask, lkey) in mask.masks">{{ key }}={{ lkey }}: {{ lmask.counts }} ({{ lmask.active }} /
-          {{ lmask.version }})
+      <template v-for="(mask, key) in dataset.labelMaskGroups" :key="key">
+        <li v-for="(lmask, lkey) in mask.masks" :key="lkey">
+          {{ key }}={{ lkey }}: {{ lmask.counts }} ({{ lmask.active }} / {{ lmask.version }})
         </li>
       </template>
     </ul>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

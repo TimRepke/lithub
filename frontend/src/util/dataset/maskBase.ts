@@ -3,8 +3,6 @@ import { type Bitmask } from "@/util/dataset/bitmask.ts";
 import type { ReadonlyRef, SchemeLabelType } from "@/util/types";
 import { LabelValueMask } from "@/util/dataset/masks.ts";
 
-export type MaskMap = Record<number, Mask>;
-
 export interface MaskBufferEntry {
   key: string;
   name: string;
@@ -18,8 +16,7 @@ export interface Counts {
 }
 
 export abstract class MaskBase {
-
-  protected readonly _active: Ref<boolean>;  // true, iff items shall be included, false for exclusion
+  protected readonly _active: Ref<boolean>; // true, iff items shall be included, false for exclusion
   public readonly active: ReadonlyRef<boolean>;
 
   protected readonly _version: Ref<number>;
@@ -61,7 +58,7 @@ export abstract class Mask extends MaskBase {
 
   abstract get mask(): Bitmask | null;
 
-  abstract updateCounts(globalMask: Bitmask| null): void;
+  abstract updateCounts(globalMask: Bitmask | null): void;
 }
 
 export abstract class MaskGroup extends MaskBase {
@@ -73,4 +70,3 @@ export abstract class MaskGroup extends MaskBase {
 export function colKey(key: string, value: number | boolean) {
   return `${key}|${+value}`;
 }
-
