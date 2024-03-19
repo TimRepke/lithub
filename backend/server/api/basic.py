@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 import logging
 
 from starlette.responses import PlainTextResponse
@@ -40,3 +40,18 @@ async def get_ids(dataset: str, key: str, min_score: float = 0.5) -> list[int]:
         rslt = db.cur.execute(f'SELECT idx FROM documents WHERE {db.safe_col(key)} >= :min_score ORDER BY idx;',
                               {'min_score': min_score})
         return [r['idx'] for r in rslt]
+
+
+@router.get('/search/bitmask/{dataset}', response_class=PlainTextResponse)
+async def get_search_mask(dataset: str, query: str, fields: list[str] = Query()) -> bytes:
+    with datasets[dataset] as db:
+        field_filters = [
+            f"{db.safe_col(field)} MATCH :query"
+            for field in fields
+        ]
+        rslt = db.cur.execute(f'SELECT idx FROM search '
+                              f'WHERE {" OR ".join(field_filters)} '
+                              f'ORDER BY idx;',
+                              {'query': query})
+        mask = as_bitmask((r['idx'] for r in rslt), datasets[dataset].total)
+        return mask

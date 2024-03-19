@@ -47,6 +47,9 @@ class DatasetInfoFull(DatasetInfo):
     arrow_filename: str
     keywords_filename: str | None = None
 
+    start_year: int = 1990
+    end_year: int = 2024
+
     scheme: dict[str, SchemeLabel]
 
 
@@ -109,7 +112,7 @@ class Dataset:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.con.close()
+        pass#self.con.close()
 
 
 class DatasetCache:
