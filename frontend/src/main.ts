@@ -1,15 +1,24 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import { createRouter, createWebHashHistory } from "vue-router";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap/dist/js/bootstrap";
 
-import "./style.css";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { fas } from "@fortawesome/free-solid-svg-icons";
+import { fab } from "@fortawesome/free-brands-svg-icons";
+import { far } from "@fortawesome/free-regular-svg-icons";
+
+import "./style.scss";
 import App from "./App.vue";
 import LandingView from "./views/LandingView.vue";
 
 import { default as policyMapRoute } from "@/projects/policymap/route.ts";
 import { default as carbonPricingMapRoute } from "@/projects/carbonpricing/route.ts";
+
+// set up font awesome
+library.add(fas);
+library.add(fab);
+library.add(far);
 
 const pinia = createPinia();
 const router = createRouter({
@@ -20,6 +29,11 @@ const router = createRouter({
       name: "about",
       path: "/about",
       component: () => import("./views/AboutView.vue"),
+    },
+    {
+      name: "privacy",
+      path: "/privacy",
+      component: () => import("./views/PrivacyView.vue"),
     },
     {
       path: "/project",
@@ -36,4 +50,5 @@ const router = createRouter({
 createApp(App) //
   .use(router) //
   .use(pinia) //
+  .component("font-awesome-icon", FontAwesomeIcon)
   .mount("#app");

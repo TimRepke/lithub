@@ -1,4 +1,4 @@
-import { ArrowSchema, type ReadonlyRef, Scheme } from "@/util/types";
+import { ArrowSchema, DatasetInfo, type ReadonlyRef, Scheme } from "@/util/types";
 import { and, Bitmask, or } from "@/util/dataset/bitmask.ts";
 import { DATA_BASE, GETWithProgress } from "@/util/api.ts";
 import { readonly, Ref, ref, watch } from "vue";
@@ -13,6 +13,7 @@ import { HistogramMask, IndexMask, LabelMaskGroup, SearchMask } from "@/util/dat
 // }
 
 export async function loadDataset(params: {
+  info: DatasetInfo;
   dataset: string;
   scheme: Scheme;
   arrowFile: string;
@@ -58,6 +59,7 @@ export async function loadDataset(params: {
 
         resolve(
           new Dataset({
+            info: params.info,
             name: params.dataset,
             scheme: params.scheme,
             labelMasks: groupedLabelMasks,
@@ -72,6 +74,7 @@ export async function loadDataset(params: {
 }
 
 export class Dataset {
+  public readonly info: DatasetInfo;
   public readonly name: string;
   public readonly scheme: Scheme;
 
@@ -87,7 +90,7 @@ export class Dataset {
   // mask for document ids (esp. for scatterplot)
   public readonly indexMask: IndexMask;
   // mask for title/abstract search (server-side filtering)
-  public readonly searchMask: SearchMask;
+  public searchMask: SearchMask;
   // mask for DOI search (server-side filtering)
   // public readonly doiMask: SearchMask;
   // aggregate global mask
@@ -95,6 +98,7 @@ export class Dataset {
   public readonly inclusive: Ref<boolean>; // when true, use OR for combination, else AND
 
   constructor(params: {
+    info: DatasetInfo;
     name: string;
     scheme: Scheme;
     labelMasks: Record<string, LabelMaskGroup>;
@@ -102,6 +106,7 @@ export class Dataset {
     startYear: number;
     endYear: number;
   }) {
+    this.info = params.info;
     this.name = params.name;
     this.scheme = params.scheme;
 
@@ -116,7 +121,7 @@ export class Dataset {
     if (!pyYears) throw new Error("Missing publication_years column in arrow file!");
     // @ts-ignore
     this.pyMask = new HistogramMask(params.startYear, params.endYear, pyYears);
-    this.searchMask = new SearchMask(params.name, ["title", "abstract"]);
+    this.searchMask = new SearchMask(params.name);
     this.indexMask = new IndexMask(this.arrow.numRows);
     this.labelMaskGroups = params.labelMasks;
 
@@ -128,7 +133,7 @@ export class Dataset {
 
     // set up watchers so we can bubble up changes
     watch(
-      [...this.labelMasks()].map((mask) => mask.version),
+      [...this.masks()].map((mask) => mask.version),
       () => this.update(),
     );
     watch(this.inclusive, () => this.update());
@@ -138,26 +143,27 @@ export class Dataset {
     return this._mask;
   }
 
-  *labelMasks() {
+  * labelMasks() {
     for (const mask of Object.values(this.labelMaskGroups)) yield mask;
   }
 
-  *masks() {
+  * masks() {
     for (const mask of Object.values(this.labelMaskGroups)) yield mask;
-    // if (this.pyMask.active) yield this.pyMask;
-    // if (this.indexMask.active) yield this.indexMask;
+    if (this.searchMask.active) yield this.searchMask;
+    if (this.pyMask.active) yield this.pyMask;
+    if (this.indexMask.active) yield this.indexMask;
   }
 
-  *activeMasks() {
+  * activeMasks() {
     for (const mask of this.masks()) if (mask.active.value) yield mask;
   }
 
-  *activeBitmasks() {
+  * activeBitmasks() {
     for (const mask of this.activeMasks()) if (mask.mask) yield mask.mask;
   }
 
   private update() {
-    this._mask = this.inclusive ? or(...this.activeBitmasks()) : and(...this.activeBitmasks());
+    this._mask = this.inclusive.value ? or(...this.activeBitmasks()) : and(...this.activeBitmasks());
     for (const mask of this.masks()) {
       mask.updateCounts(this._mask);
     }

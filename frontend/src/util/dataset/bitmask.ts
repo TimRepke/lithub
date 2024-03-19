@@ -1,4 +1,4 @@
-import { notNone } from "@/util";
+import { is } from "@/util";
 
 export class Bitmask {
   public readonly length: number;
@@ -57,21 +57,25 @@ export class Bitmask {
       .filter((e): e is number => e !== null);
   }
 
-  or(other: Bitmask) {
+  or(other: Bitmask | null) {
     /**
      * Merge another bitmask with bitwise OR into this bitmask
      */
-    for (let i = 0; i < this._mask.length; i++) {
-      this._mask[i] = this._mask[i] | other.mask[i];
+    if (other) {
+      for (let i = 0; i < this._mask.length; i++) {
+        this._mask[i] = this._mask[i] | other.mask[i];
+      }
     }
   }
 
-  and(other: Bitmask) {
+  and(other: Bitmask | null) {
     /**
      * Merge another bitmask with bitwise AND into this bitmask
      */
-    for (let i = 0; i < this._mask.length; i++) {
-      this._mask[i] = this._mask[i] & other.mask[i];
+    if (other) {
+      for (let i = 0; i < this._mask.length; i++) {
+        this._mask[i] = this._mask[i] & other.mask[i];
+      }
     }
   }
 
@@ -97,7 +101,7 @@ export class Bitmask {
     return ret;
   }
 
-  *[Symbol.iterator]() {
+  * [Symbol.iterator]() {
     /**
      * Iterates over all bits in the mask.
      */
@@ -121,7 +125,7 @@ export class Bitmask {
 }
 
 export function or(...sets: (Bitmask | null)[]) {
-  const filtered = sets.filter((m): m is Bitmask => notNone(m));
+  const filtered = sets.filter((m): m is Bitmask => is<Bitmask>(m));
   if (filtered.length == 0) {
     return null;
   }
@@ -137,7 +141,7 @@ export function or(...sets: (Bitmask | null)[]) {
 }
 
 export function and(...sets: (Bitmask | null)[]) {
-  const filtered = sets.filter((m): m is Bitmask => notNone(m));
+  const filtered = sets.filter((m): m is Bitmask => is<Bitmask>(m));
   if (filtered.length == 0) {
     return null;
   }

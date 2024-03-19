@@ -1,80 +1,217 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { Dataset, loadDataset } from "@/util/dataset.ts";
-import { GET } from "@/util/api.ts";
-import { DatasetInfo } from "@/util/types";
+import { ref } from "vue";
+import { useDatasetStore } from "@/stores/datasetstore.ts";
+import SidebarLabelFilter from "@/components/SidebarLabelFilter.vue";
+import SidebarSearchFilter from "@/components/SidebarSearchFilter.vue";
+import InclusiveIcon from "@/components/InclusiveIcon.vue";
 
-type LoadInfo = { progressCols: number; progressArrow: number };
-const loading = ref<LoadInfo | null>({
-  progressCols: 0,
-  progressArrow: 0,
-});
-let dataset: Dataset;
+// https://colorkit.co/palettes/8-colors/
+// ["#f0b6ad","#dc8864","#ba4848","#c75a1b","#f7c435","#818b2e","#0b5227","#85a993"]
+const colourScheme = {
+  ins: {
+    //
+    0: "#f0b6ad",
+    1: "#dc8864",
+    2: "#ba4848",
+    3: "#c75a1b",
+    4: "#f7c435",
+  },
+  gov: {
+    //
+    0: "#f0b6ad",
+    1: "#dc8864",
+    2: "#ba4848",
+  },
+  sec: {
+    //
+    0: "#f0b6ad",
+    1: "#dc8864",
+    2: "#ba4848",
+    3: "#c75a1b",
+    4: "#f7c435",
+    5: "#818b2e",
+    6: "#0b5227",
+  },
+};
 
-onMounted(async () => {
-  const info = await GET<DatasetInfo>({ path: "/basic/info/policymap" });
+const dataStore = useDatasetStore();
+console.log(dataStore.dataset)
 
-  dataset = await loadDataset({
-    dataset: "policymap",
-    scheme: info.scheme,
-    arrowFile: info.arrow_filename,
-    maskCallback: (colsLoaded) => {
-      (loading.value as LoadInfo).progressCols = colsLoaded;
-    },
-    dataCallback: (bytesLoaded) => ((loading.value as LoadInfo).progressArrow = bytesLoaded),
-    startYear: info.start_year,
-    endYear: info.end_year,
-  });
-  loading.value = null;
+const pickedColour = ref("ins");
 
-  dataset.labelMaskGroups["reg"].toggleActive();
-  dataset.labelMaskGroups["edu"].toggleActive();
-  dataset.labelMaskGroups["gov"].toggleActive();
+// props.dataset.labelMaskGroups["reg"].toggleActive();
+// props.dataset.labelMaskGroups["edu"].toggleActive();
+// props.dataset.labelMaskGroups["gov"].toggleActive();
+//
+// setTimeout(() => props.dataset.labelMaskGroups["sec"].setActive(true), 1000);
+// setTimeout(() => props.dataset.labelMaskGroups["sec"].masks[0].toggleActive(), 2000);
+// setTimeout(() => props.dataset.labelMaskGroups["sec"].masks[1].toggleActive(), 3000);
+// setTimeout(() => props.dataset.labelMaskGroups["sec"].masks[0].toggleActive(), 4000);
+// setTimeout(() => props.dataset.labelMaskGroups["sec"].masks[1].toggleActive(), 5000);
 
-  console.log([...dataset.activeMasks()].length);
-  // console.log(dataset.labelMaskGroups['sec'].masks[1].mask.count)
-  // console.log(dataset.labelMaskGroups['sec'].masks[1].mask.count)
-  // console.log(dataset.labelMaskGroups['sec'].masks[1].mask.count)
-  // console.log(
-  //   dataset.labelMaskGroups['sec'].masks[1].key,
-  //   dataset.labelMaskGroups['sec'].masks[1].value,
-  //   dataset.labelMaskGroups['sec'].masks[1].counts.value,
-  //   dataset.labelMaskGroups['sec'].masks[1].mask.count)
-  // console.log(
-  //   dataset.labelMaskGroups['sec'].masks[2].key,
-  //   dataset.labelMaskGroups['sec'].masks[2].value,
-  //   dataset.labelMaskGroups['sec'].masks[2].counts.value,
-  //   dataset.labelMaskGroups['sec'].masks[2].mask.count)
-  //
-  // console.log(or(
-  //   dataset.labelMaskGroups['sec'].masks[1].mask,
-  //   dataset.labelMaskGroups['sec'].masks[2].mask).count)
-  console.log(dataset.arrow);
-
-  setTimeout(() => dataset.labelMaskGroups["sec"].masks[0].toggleActive(), 1000);
-  setTimeout(() => dataset.labelMaskGroups["sec"].setActive(true), 2000);
-  setTimeout(() => dataset.labelMaskGroups["sec"].masks[1].toggleActive(), 3000);
-  setTimeout(() => dataset.labelMaskGroups["sec"].masks[0].toggleActive(), 4000);
-  setTimeout(() => dataset.labelMaskGroups["sec"].masks[1].toggleActive(), 5000);
-});
+// props.dataset.labelMaskGroups['gov'].active.value = true;
+// props.dataset.labelMaskGroups['gov'].active.value = false;
+// props.dataset.labelMaskGroups["sec"].setActive(true)
+// props.dataset.labelMaskGroups["gov"].toggleActive()
+// props.dataset.labelMaskGroups["sec"].toggleActive()
+// props.dataset.labelMaskGroups["sec"].active.value=true;
+// props.dataset.labelMaskGroups["sec"].active.value=false;
 </script>
 
 <template>
-  explorer
-  <div v-if="loading">
-    {{ loading.progressCols }} filters loaded<br />
-    {{ (loading.progressArrow / 1024 / 1024).toLocaleString() }}MB loaded
-  </div>
-  <div v-if="dataset">
-    {{ dataset.counts.value.countFiltered }} / {{ dataset.counts.value.countTotal }}
-    <ul>
-      <template v-for="(mask, key) in dataset.labelMaskGroups" :key="key">
-        <li v-for="(lmask, lkey) in mask.masks" :key="lkey">
-          {{ key }}={{ lkey }}: {{ lmask.counts }} ({{ lmask.active }} / {{ lmask.version }})
-        </li>
-      </template>
-    </ul>
+  <div class="explorer-container">
+    <div class="filter-sidebar">
+      <div class="column-head">
+        Filters
+      </div>
+      <div class="filter-sidebar-container">
+        <div class="filter-top">
+          <div>
+            Number of items: {{ dataStore.dataset!.counts.countFiltered.toLocaleString() }} /
+            {{ dataStore.dataset!.counts.countTotal.toLocaleString() }}
+          </div>
+          <InclusiveIcon v-model:inclusive="dataStore.dataset!.inclusive" class="ms-auto" />
+        </div>
+
+        <SidebarLabelFilter mask-key="ins" v-model:picked-colour="pickedColour" :colours="colourScheme['ins']" />
+        <SidebarLabelFilter mask-key="gov" v-model:picked-colour="pickedColour" :colours="colourScheme['gov']" />
+        <SidebarLabelFilter mask-key="sec" v-model:picked-colour="pickedColour" :colours="colourScheme['sec']" />
+        <SidebarSearchFilter />
+
+        <ul>
+          <template v-for="(mask, key) in dataStore.dataset!.labelMaskGroups" :key="key">
+            <li v-for="(lmask, lkey) in mask.masks" :key="lkey">
+              {{ key }}={{ lkey }}: {{ lmask.counts }} ({{ lmask.active }} / {{ lmask.version }})
+            </li>
+          </template>
+        </ul>
+      </div>
+    </div>
+
+    <div class="scatter-column">
+      <div class="column-head">
+        Scatterplot
+      </div>
+    </div>
+
+    <div class="results-column">
+      <div class="column-head">
+        Results
+      </div>
+      <div class="results-column-results">
+        <div>Result</div>
+        <div>Result</div>
+        <div>Result</div>
+        <div>Result</div>
+        <div>Result</div>
+        <div>Result</div>
+        <div>Result</div>
+        <div>Result</div>
+        <div>Result</div>
+        <div>Result</div>
+        <div>Result</div>
+      </div>
+      <div class="results-column-pagination">
+        <span>&lt;</span>
+        <span>1</span>
+        <span>2</span>
+        <span>3</span>
+        <span>4</span>
+        <span>&gt;</span>
+      </div>
+    </div>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped lang="scss">
+.explorer-container {
+  display: grid;
+  grid-template-areas: "col1 col2 col3";
+  /*grid-template-columns: 1fr 1fr 20fr;*/
+  grid-template-columns: minmax(150px, auto) minmax(150px, auto) minmax(150px, 1fr);
+  gap: 0.25rem;
+
+  flex-grow: 1;
+
+  & > div {
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    border: {
+      left: 1px solid var(--socdr-grey);
+      right: 1px solid var(--socdr-grey);
+    }
+  }
+}
+
+.column-head {
+  background-color: var(--socdr-grey);
+  font-variant-caps: small-caps;
+  font-weight: bold;
+  padding-left: 0.25rem;
+}
+
+.filter-sidebar {
+  grid-area: col1;
+  resize: horizontal;
+  min-width: 150px;
+  max-width: 50vw;
+  width: 20vw;
+
+  display: flex;
+  flex-direction: column !important;
+
+  &-container {
+    display: flex;
+    flex-direction: column !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    height: 0;
+    font-size: 0.85em;
+  }
+}
+
+.scatter-column {
+  grid-area: col2;
+  resize: horizontal;
+  min-width: 150px;
+  max-width: 80vw;
+  border-right: 1px solid var(--socdr-grey);
+  width: 35vw;
+}
+
+.results-column {
+  grid-area: col3;
+  min-width: 150px;
+  max-width: 80vw;
+
+  display: flex;
+  flex-direction: column !important;
+
+  &-results {
+    display: flex;
+    flex-direction: column !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    flex: 1 1 auto;
+    height: 0;
+  }
+
+  &-pagination {
+    display: flex;
+    flex-direction: row;
+    height: 1.5rem;
+    justify-content: space-between;
+    padding: {
+      left: 2ch;
+      right: 2ch;
+    }
+  }
+}
+
+.filter-top {
+  display: flex;
+  flex-direction: row;
+}
+</style>

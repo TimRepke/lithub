@@ -49,7 +49,7 @@ export class LabelMaskGroup extends MaskGroup {
       //.map((mask) => (mask.active) ? mask.mask : mask.mask.inverse);
       // .filter((mask) => mask.active.value)
       .map((mask) => (mask.active.value ? mask.mask : null));
-    if (this.inclusive) return or(...masks);
+    if (this.inclusive.value) return or(...masks);
     return and(...masks);
   }
 
@@ -66,23 +66,30 @@ export class LabelMaskGroup extends MaskGroup {
 }
 
 export class SearchMask extends Mask {
-  public static SEARCH_DELAY = 100;
+  public static SEARCH_DELAY = 1000;
   public static MIN_LEN = 3;
   private readonly dataset: string;
-  private readonly fields: string[];
+  private readonly fields: Ref<string[]>;
   public readonly search: Ref<string>;
   private _mask: Bitmask | null;
   private _delay: number | null;
+  public trigger: () => void;
 
-  constructor(dataset: string, fields: string[]) {
+  constructor(dataset: string) {
     super();
     this.dataset = dataset;
-    this.fields = fields;
+    this.fields = ref(["title", "abstract"]);
     this.search = ref("");
     this._mask = null;
     this._delay = null;
 
-    watch(this.search, this.fetchSearch);
+    this._counts.value.countFiltered = 0;
+    this._counts.value.countTotal = 0;
+
+    // watch(this.search, () => this.delayedFetch()); // uncomment this for searching as you type
+    watch(this.fields, () => this.fetchSearch());
+    // this is just a hack; calling fetchSearch would otherwise loose this.* context
+    this.trigger = () => this.fetchSearch();
   }
 
   get mask() {
@@ -90,33 +97,39 @@ export class SearchMask extends Mask {
     return this._mask;
   }
 
+  delayedFetch() {
+    if (this._delay !== null) clearTimeout(this._delay);
+    // @ts-ignore
+    this._delay = setTimeout(async () => {
+      await this.fetchSearch();
+    }, SearchMask.SEARCH_DELAY);
+  }
+
   async fetchSearch() {
+    this.active.value = this.search.value.length >= SearchMask.MIN_LEN;
     if (this.search.value.length <= SearchMask.MIN_LEN) {
-      this._active.value = this.search.value.length >= SearchMask.MIN_LEN;
       // to not run update() here (no need to trigger a redraw when clearing the search bar)
       return;
     }
     if (this._delay !== null) clearTimeout(this._delay);
-    // @ts-ignore
-    this._delay = setTimeout(async () => {
-      const rawMask = await request({
-        method: "GET",
-        path: `/basic/search/bitmask/${this.dataset}`,
-        params: { search: this.search.value, fields: this.fields },
-      });
-      this._mask = Bitmask.fromBase64(await rawMask.text());
-      this.update();
-    }, SearchMask.SEARCH_DELAY);
-  }
-
-  clear() {
-    this._active.value = false;
-    this.search.value = "";
+    const rawMask = await request({
+      method: "GET",
+      path: `/basic/search/bitmask/${this.dataset}`,
+      params: { query: this.search.value, fields: this.fields.value },
+    });
+    this._mask = Bitmask.fromBase64(await rawMask.text());
     this.update();
   }
 
-  protected update(): void {
-    this._active.value = this.search.value.length >= SearchMask.MIN_LEN;
+  clear() {
+    this.active.value = false;
+    this.search.value = "";
+    this.fields.value = ["title", "abstract"];
+    this.update();
+  }
+
+  update(): void {
+    //this.active.value = this.search.value.length >= SearchMask.MIN_LEN;
     this._version.value++;
   }
 
@@ -176,7 +189,7 @@ export class HistogramMask extends MaskGroup {
   }
 
   clear() {
-    this._active.value = false;
+    this.active.value = false;
     Object.values(this.masks).forEach((mask) => mask.clear());
     this.restMask.clear();
     this.update();
@@ -214,12 +227,12 @@ export class IndexMask extends Mask {
       this._mask.set(idx);
     }
     this._ids.value = ids;
-    this._active.value = true;
+    this.active.value = true;
     this.update();
   }
 
   clear() {
-    this._active.value = false;
+    this.active.value = false;
     this._ids.value = [];
     this._mask.reset();
     this.update();
@@ -229,7 +242,7 @@ export class IndexMask extends Mask {
     return this._mask;
   }
 
-  protected update(): void {
+  update(): void {
     this._version.value++;
   }
 

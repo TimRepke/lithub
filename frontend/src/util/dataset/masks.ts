@@ -50,7 +50,7 @@ export class LabelValueMask extends Mask {
     this.update();
   }
 
-  protected update() {
+  update() {
     this._version.value++;
   }
 
@@ -80,11 +80,11 @@ export class HistogramValueMask extends Mask {
   }
 
   clear() {
-    this._active.value = false;
+    this.active.value = false;
     this.update();
   }
 
-  protected update() {
+  update() {
     this._version.value++;
   }
 

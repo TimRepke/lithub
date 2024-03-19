@@ -1,0 +1,130 @@
+/*
+$enable-grid-classes: false;
+$enable-cssgrid: true;
+*/
+@import "../node_modules/bootstrap/scss/bootstrap";
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  font-weight: 400;
+
+  /*font-synthesis: none;*/
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+
+  --accent-hsl: 39.89189189, 74.29718876%, 51.17647059%;
+  --darkAccent-hsl: 120, 15.44715447%, 24.11764706%;
+  --lightAccent-hsl: 30, 2.56410256%, 84.70588235%;
+  --safeLightAccent-hsl: 39.89189189, 74.29718876%, 51.17647059%;
+  --safeDarkAccent-hsl: 39.89189189, 74.29718876%, 51.17647059%;
+
+  --socdr-grey: #C8C8C8;
+  --socdr-grey-hsl: 0, 0%, 78.43%;
+  --socdr-orange-1: #E8C070;
+  --socdr-orange-2: #DFA126;
+  --socdr-orange-3: #C08B2C;
+  --socdr-orange-4: #EEA40C;
+
+  --grey-1: hsl(0, 0%, 60%); // normal or unselected
+  --grey-2: hsl(0, 0%, 45%); // hovered
+  --grey-3: hsl(0, 0%, 30%); // selected
+
+  --top-bar-height: 2rem;
+}
+
+html, body {
+  height: 100vh;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.ribbon {
+  width: 60px;
+  font-size: 14px;
+  padding: 4px;
+  position: absolute;
+  right: -25px;
+  top: -12px;
+  text-align: center;
+  border-radius: 25px;
+  transform: rotate(20deg);
+  background-color: #ff9800;
+  color: white;
+}
+
+@mixin icon-toggle {
+  input {
+      display: none;
+    }
+
+    input:checked + label {
+      color: var(--grey-3);
+      border-bottom: 1px solid var(--grey-3);
+
+      > svg {
+        fill: var(--grey-3);
+      }
+    }
+
+    input + label {
+      margin-left: 0.25em;
+      color: var(--grey-1);
+      cursor: pointer;
+
+      > svg {
+        fill: var(--grey-1);
+        width: 1.5em;
+      }
+
+      &:hover {
+        color: var(--grey-2);
+
+        > svg {
+          fill: var(--grey-2);
+        }
+      }
+    }
+}
+
+.icon-toggle{
+  @include icon-toggle;
+}
+
+.filter {
+  margin-top: 0.5em;
+  padding: 0.5em 1ch 0.5em 1ch;
+  border: {
+    top: 1px solid var(--socdr-grey);
+    bottom: 1px solid var(--socdr-grey);
+  }
+
+  .filter-head {
+    display: flex;
+    flex-direction: row;
+    font-weight: bold;
+    margin-bottom: 0.5em;
+
+    & > div {
+      display: flex;
+      justify-content: center;
+      align-content: center;
+      flex-wrap: wrap;
+    }
+
+  @include icon-toggle;
+
+    & > :first-child {
+      margin-right: auto;
+    }
+  }
+}

@@ -6,19 +6,18 @@ const apiStore = useApiStore();
 
 <template>
   <nav class="lh-nav">
-    <div class="d-flex">
-      <span class="fw-bold">Literature Hub</span>
+    <span class="fw-bold">Literature Hub</span>
 
-      <span v-if="apiStore.isLoading" class="ms-2">
-        <span class="spinner-border spinner-border-sm" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </span>
-        <span class="text-muted small ms-1">Loading...</span>
+    <span v-if="apiStore.isLoading" class="ms-2">
+      <span class="spinner-border spinner-border-sm" role="status">
+        <span class="visually-hidden">Loading...</span>
       </span>
+      <span class="text-muted small ms-1">Loading...</span>
+    </span>
 
-      <a class="navbar-brand ms-auto" href="#">Home</a>
-      <a class="navbar-brand" href="#">About</a>
-    </div>
+    <router-link class="navbar-brand ms-auto" :to="{ name: 'landing' }">Home</router-link>
+    <router-link class="navbar-brand" :to="{ name: 'about' }">About</router-link>
+    <router-link class="navbar-brand" :to="{ name: 'privacy' }">Privacy</router-link>
   </nav>
 
   <router-view></router-view>
@@ -28,7 +27,10 @@ const apiStore = useApiStore();
 .lh-nav {
   background-color: hsl(var(--accent-hsl));
   width: 100%;
-  padding: 0.25em;
+  padding: 0 0.35em;
+  height: var(--top-bar-height);
+  display: flex;
+  align-items: center;
 }
 
 .lh-nav a {

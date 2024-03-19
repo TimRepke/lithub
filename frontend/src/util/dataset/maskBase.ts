@@ -1,4 +1,4 @@
-import { readonly, ref, type Ref } from "vue";
+import { readonly, ref, type Ref, watch } from "vue";
 import { type Bitmask } from "@/util/dataset/bitmask.ts";
 import type { ReadonlyRef, SchemeLabelType } from "@/util/types";
 import { LabelValueMask } from "@/util/dataset/masks.ts";
@@ -16,31 +16,33 @@ export interface Counts {
 }
 
 export abstract class MaskBase {
-  protected readonly _active: Ref<boolean>; // true, iff items shall be included, false for exclusion
-  public readonly active: ReadonlyRef<boolean>;
+  public readonly active: Ref<boolean>; // true, iff items shall be included, false for exclusion
 
   protected readonly _version: Ref<number>;
   public readonly version: ReadonlyRef<number>;
 
   protected constructor() {
-    this._active = ref(false);
-    this.active = readonly(this._active);
+    this.active = ref(false);
 
     this._version = ref(0);
     this.version = readonly(this._version);
+
+    watch(this.active, () => {
+      this.update();
+    });
   }
 
   setActive(active: boolean) {
-    this._active.value = active;
+    this.active.value = active;
     this.update();
   }
 
   toggleActive() {
-    this._active.value = !this._active.value;
+    this.active.value = !this.active.value;
     this.update();
   }
 
-  protected abstract update(): void;
+  abstract update(): void;
 }
 
 export abstract class Mask extends MaskBase {
