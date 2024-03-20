@@ -1,63 +1,13 @@
-from datetime import date
-
 import toml
 import sqlite3
 from pathlib import Path
-from typing import Literal
-
-from pydantic import BaseModel, ValidationError, ConfigDict
+from pydantic import ValidationError
 
 from .logging import get_logger
 from .config import settings
+from .types import Document, DatasetInfoFull, SchemeLabel, DatasetInfoWeb
 
 logger = get_logger('util.datasets')
-
-
-class SchemeLabelValue(BaseModel):
-    name: str
-    value: bool | int
-
-
-class SchemeLabel(BaseModel):
-    name: str
-    key: str
-    type: Literal['single', 'bool', 'multi']
-    values: list[SchemeLabelValue]
-
-
-class DatasetInfo(BaseModel):
-    model_config = ConfigDict(extra='ignore')
-
-    name: str
-    teaser: str
-    # description: str
-
-    #  authors: list[str] | None = None
-    # contributors: list[str] | None = None
-
-    created_date: date
-    last_update: date
-
-    # figure: str | None = None
-
-
-class DatasetInfoFull(DatasetInfo):
-    model_config = ConfigDict(extra='ignore')
-    db_filename: str
-    arrow_filename: str
-    keywords_filename: str | None = None
-
-    start_year: int = 1990
-    end_year: int = 2024
-
-    scheme: dict[str, SchemeLabel]
-
-
-class DatasetInfoWeb(DatasetInfoFull):
-    model_config = ConfigDict(extra='ignore')
-    key: str
-    total: int
-    columns: set[str]
 
 
 class Dataset:
@@ -67,7 +17,14 @@ class Dataset:
         self.db_file = path / info.db_filename
         self.logger = get_logger(f'util.db.{key}')
         self._total: int | None = None
+
         self._columns: set[str] | None = None
+        self._label_columns: set[str] | None = None
+        self._document_columns: set[str] | None = None
+
+    @property
+    def schema(self) -> dict[str, SchemeLabel]:
+        return self._info.scheme
 
     @property
     def info(self) -> DatasetInfoWeb:
@@ -98,6 +55,21 @@ class Dataset:
                 self._columns = set([r['name'] for r in rslt])
         return self._columns
 
+    @property
+    def label_columns(self) -> set[str]:
+        if self._label_columns is None:
+            cols = [f'{key}|{int(value.value)}'
+                    for key, label in self.schema.items()
+                    for value in label.values]
+            self._label_columns = self.columns.intersection(cols)
+        return self._label_columns
+
+    @property
+    def document_columns(self) -> set[str]:
+        if self._document_columns is None:
+            self._document_columns = self.columns.intersection(Document.model_fields.keys())
+        return self._document_columns
+
     def safe_col(self, col: str):
         if col not in self.columns:
             raise ValueError(f'Invalid column name: {col}')
@@ -112,7 +84,7 @@ class Dataset:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        pass#self.con.close()
+        self.con.close()
 
 
 class DatasetCache:
@@ -161,4 +133,4 @@ class DatasetCache:
 datasets = DatasetCache(base_path=Path(settings.DATASETS_FOLDER))
 datasets.reload()
 
-__all__ = ['datasets', 'Dataset', 'DatasetInfo']
+__all__ = ['datasets', 'Dataset']
