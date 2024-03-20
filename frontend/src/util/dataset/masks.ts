@@ -3,6 +3,7 @@ import { and, Bitmask } from "@/util/dataset/bitmask.ts";
 import { colKey, Mask } from "@/util/dataset/maskBase.ts";
 import { request } from "@/util/api.ts";
 import { ReadonlyRef } from "@/util/types";
+import { hslToHex } from "@/util";
 
 const DEFAULT_THRESHOLD = 0.5;
 
@@ -12,12 +13,21 @@ export class LabelValueMask extends Mask {
   public readonly key: string;
   public readonly value: number | boolean;
   public readonly column: string;
+  public readonly colourHSL: [number, number, number];
+  public readonly colourHex: string;
 
   protected readonly _threshold: Ref<number>;
   public readonly threshold: ReadonlyRef<number>;
   protected _mask: Bitmask | null;
 
-  constructor(dataset: string, name: string, key: string, value: number | boolean, mask: Bitmask) {
+  constructor(
+    dataset: string,
+    name: string,
+    key: string,
+    value: number | boolean,
+    colour: [number, number, number],
+    mask: Bitmask,
+  ) {
     super();
     this._threshold = ref(DEFAULT_THRESHOLD);
     this.threshold = readonly(this._threshold);
@@ -26,6 +36,8 @@ export class LabelValueMask extends Mask {
     this.key = key;
     this.value = value;
     this.column = colKey(key, value);
+    this.colourHSL = colour;
+    this.colourHex = hslToHex(...colour);
 
     this._mask = mask;
 
@@ -38,10 +50,16 @@ export class LabelValueMask extends Mask {
     return this._mask;
   }
 
-  static async loadMask(dataset: string, name: string, key: string, value: number | boolean) {
+  static async loadMask(
+    dataset: string,
+    name: string,
+    key: string,
+    value: number | boolean,
+    colour: [number, number, number],
+  ) {
     const col = colKey(key, value);
     const mask = await loadMask(dataset, col, DEFAULT_THRESHOLD);
-    return new LabelValueMask(dataset, name, key, value, mask);
+    return new LabelValueMask(dataset, name, key, value, colour, mask);
   }
 
   async setThreshold(threshold: number | null = null) {

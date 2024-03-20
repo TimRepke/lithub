@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { useDatasetStore } from "@/stores/datasetstore.ts";
-import { computed, PropType } from "vue";
+import { computed } from "vue";
 import InclusiveIcon from "@/components/InclusiveIcon.vue";
 
 const uniq = crypto.randomUUID();
 const pickedColour = defineModel("pickedColour");
 const props = defineProps({
   maskKey: { type: String, required: true },
-  colours: { type: Object as PropType<Record<number, string>>, required: true },
 });
 
 const dataStore = useDatasetStore();
@@ -16,12 +15,10 @@ const maskGroup = dataStore.dataset!.labelMaskGroups[props.maskKey];
 
 const styleColours = computed(() =>
   Object.fromEntries(
-    Object.entries(props.colours).map(([mKey, col]) => {
-      return [
-        mKey,
-        maskGroup.masks[mKey].active ? { backgroundColor: col, borderColor: col } : { borderColor: col },
-      ]
-    }),
+    Object.values(maskGroup.masks).map((mask) => [
+      mask.value,
+      mask.active ? { backgroundColor: mask.colourHex, borderColor: mask.colourHex } : { borderColor: mask.colourHex },
+    ]),
   ),
 );
 </script>

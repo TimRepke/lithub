@@ -210,8 +210,15 @@ export function useResults(): Results {
     return Math.ceil((total ?? 0) / limit.value);
   });
   const pages = computed(() => {
+    if (numPages.value <= MAX_PAGES) {
+      return [...Array(numPages.value).keys()];
+    }
+    if (page.value + MAX_PAGES / 2 > numPages.value) {
+      const firstPage = Math.max(0, numPages.value - MAX_PAGES);
+      return [...Array(MAX_PAGES).keys()].map((p) => p + firstPage);
+    }
     const firstPage = Math.max(0, page.value - MAX_PAGES / 2);
-    return [...Array(Math.min(MAX_PAGES, numPages.value)).keys()].map((p) => p + firstPage);
+    return [...Array(Math.min(MAX_PAGES)).keys()].map((p) => p + firstPage);
   });
 
   return {
@@ -251,7 +258,9 @@ export async function loadDataset(params: {
               type: label.type,
               masks: [],
             };
-          maskBuffer[key].masks.push(await LabelValueMask.loadMask(params.dataset, value.name, key, value.value));
+          maskBuffer[key].masks.push(
+            await LabelValueMask.loadMask(params.dataset, value.name, key, value.value, value.colour),
+          );
           params.maskCallback(++numLoadedMasks);
         }),
       );

@@ -5,6 +5,7 @@ import { Type } from "apache-arrow/enum";
 export interface SchemeLabelValue {
   name: string;
   value: boolean | number;
+  colour: [number, number, number];
 }
 
 export type SchemeLabelType = "single" | "bool" | "multi";

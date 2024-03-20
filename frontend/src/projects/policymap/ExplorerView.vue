@@ -8,35 +8,6 @@ import { useResults } from "@/util/dataset.ts";
 import DocumentCard from "@/components/DocumentCard.vue";
 import PaginationNav from "@/components/PaginationNav.vue";
 
-// https://colorkit.co/palettes/8-colors/
-// ["#f0b6ad","#dc8864","#ba4848","#c75a1b","#f7c435","#818b2e","#0b5227","#85a993"]
-const colourScheme = {
-  ins: {
-    //
-    0: "#f0b6ad",
-    1: "#dc8864",
-    2: "#ba4848",
-    3: "#c75a1b",
-    4: "#f7c435",
-  },
-  gov: {
-    //
-    0: "#f0b6ad",
-    1: "#dc8864",
-    2: "#ba4848",
-  },
-  sec: {
-    //
-    0: "#f0b6ad",
-    1: "#dc8864",
-    2: "#ba4848",
-    3: "#c75a1b",
-    4: "#f7c435",
-    5: "#818b2e",
-    6: "#0b5227",
-  },
-};
-
 const dataStore = useDatasetStore();
 console.log(dataStore.dataset);
 const documents = ref(useResults());
@@ -77,9 +48,9 @@ const pickedColour = ref("ins");
           <InclusiveIcon v-model:inclusive="dataStore.dataset!.inclusive" class="ms-auto" />
         </div>
 
-        <SidebarLabelFilter mask-key="ins" v-model:picked-colour="pickedColour" :colours="colourScheme['ins']" />
-        <SidebarLabelFilter mask-key="gov" v-model:picked-colour="pickedColour" :colours="colourScheme['gov']" />
-        <SidebarLabelFilter mask-key="sec" v-model:picked-colour="pickedColour" :colours="colourScheme['sec']" />
+        <SidebarLabelFilter mask-key="ins" v-model:picked-colour="pickedColour" />
+        <SidebarLabelFilter mask-key="gov" v-model:picked-colour="pickedColour" />
+        <SidebarLabelFilter mask-key="sec" v-model:picked-colour="pickedColour" />
         <SidebarSearchFilter />
 
         <ul>
