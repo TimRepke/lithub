@@ -25,10 +25,34 @@ const mask = dataStore.dataset!.searchMask;
         </label>
       </div>
     </div>
-    <div>{{ mask.counts.countFiltered.toLocaleString() }} / {{ mask.counts.countTotal.toLocaleString() }}</div>
-    <div>
-      <input type="text" v-model="mask.search" />
-      <font-awesome-icon icon="search" @click="mask.trigger()" />
+    <div class="d-flex flex-row mb-1">
+      <div>{{ mask.counts.countFiltered.toLocaleString() }} / {{ mask.counts.countTotal.toLocaleString() }}</div>
+      <div class="ms-auto">
+        <span class="icon-toggle">
+          <input type="checkbox" :id="`field-title-${uniq}`" value="title" v-model="mask.fields" />
+          <label :for="`field-title-${uniq}`" class="icon">
+            <font-awesome-icon icon="heading" />
+          </label>
+        </span>
+        <span class="icon-toggle">
+          <input type="checkbox" :id="`field-abs-${uniq}`" value="abstract" v-model="mask.fields" />
+          <label :for="`field-abs-${uniq}`" class="icon">
+            <font-awesome-icon icon="align-left" />
+          </label>
+        </span>
+        <span class="icon-toggle">
+          <input type="checkbox" :id="`field-author-${uniq}`" value="authors" v-model="mask.fields" />
+          <label :for="`field-author-${uniq}`" class="icon">
+            <font-awesome-icon icon="user-pen" />
+          </label>
+        </span>
+      </div>
+    </div>
+    <div class="input-group input-group-sm">
+      <input type="text" class="form-control" placeholder="Search..." v-model="mask.search" />
+      <button class="btn btn-outline-secondary" type="button" @click="mask.trigger()">
+        <font-awesome-icon icon="search" />
+      </button>
     </div>
   </div>
 </template>

@@ -1,5 +1,5 @@
 import { useApiStore } from "../stores/apistore.ts";
-import { isArray } from "@/util/index.ts";
+import { isArray, isNone } from "@/util/index.ts";
 
 export const API_BASE = import.meta.env.VITE_LITHUB_API_URL;
 export const DATA_BASE = import.meta.env.VITE_LITHUB_DATA_URL;
@@ -18,6 +18,7 @@ export function getUrl(path: string, params: URLParams | null = null) {
       "?" +
       Object.entries(params)
         .flatMap(([key, values]) => {
+          if (isNone(values)) return [];
           if (isArray<string | number>(values)) return values.map((value) => `${key}=${encodeURIComponent(value)}`);
           return [`${key}=${encodeURIComponent(values)}`];
         })

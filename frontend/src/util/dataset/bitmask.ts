@@ -122,6 +122,15 @@ export class Bitmask {
     const mask = new Uint32Array(buffer.buffer);
     return new Bitmask(mask.length * 32, mask);
   }
+
+  toBase64(): string {
+    const bytes = new Uint8Array(this._mask.buffer);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  }
 }
 
 export function or(...sets: (Bitmask | null)[]) {

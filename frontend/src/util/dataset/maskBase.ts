@@ -10,10 +10,10 @@ export interface MaskBufferEntry {
   masks: LabelValueMask[];
 }
 
-export interface Counts {
+export type Counts = {
   countTotal: number;
   countFiltered: number;
-}
+};
 
 export abstract class MaskBase {
   public readonly active: Ref<boolean>; // true, iff items shall be included, false for exclusion

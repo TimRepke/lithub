@@ -4,6 +4,9 @@ import { useDatasetStore } from "@/stores/datasetstore.ts";
 import SidebarLabelFilter from "@/components/SidebarLabelFilter.vue";
 import SidebarSearchFilter from "@/components/SidebarSearchFilter.vue";
 import InclusiveIcon from "@/components/InclusiveIcon.vue";
+import { useResults } from "@/util/dataset.ts";
+import DocumentCard from "@/components/DocumentCard.vue";
+import PaginationNav from "@/components/PaginationNav.vue";
 
 // https://colorkit.co/palettes/8-colors/
 // ["#f0b6ad","#dc8864","#ba4848","#c75a1b","#f7c435","#818b2e","#0b5227","#85a993"]
@@ -35,7 +38,8 @@ const colourScheme = {
 };
 
 const dataStore = useDatasetStore();
-console.log(dataStore.dataset)
+console.log(dataStore.dataset);
+const documents = ref(useResults());
 
 const pickedColour = ref("ins");
 
@@ -67,7 +71,7 @@ const pickedColour = ref("ins");
       <div class="filter-sidebar-container">
         <div class="filter-top">
           <div>
-            Number of items: {{ dataStore.dataset!.counts.countFiltered.toLocaleString() }} /
+            Number of documents: {{ dataStore.dataset!.counts.countFiltered.toLocaleString() }} /
             {{ dataStore.dataset!.counts.countTotal.toLocaleString() }}
           </div>
           <InclusiveIcon v-model:inclusive="dataStore.dataset!.inclusive" class="ms-auto" />
@@ -99,25 +103,10 @@ const pickedColour = ref("ins");
         Results
       </div>
       <div class="results-column-results">
-        <div>Result</div>
-        <div>Result</div>
-        <div>Result</div>
-        <div>Result</div>
-        <div>Result</div>
-        <div>Result</div>
-        <div>Result</div>
-        <div>Result</div>
-        <div>Result</div>
-        <div>Result</div>
-        <div>Result</div>
+        <DocumentCard v-for="doc in documents.documents" :key="doc.idx" :doc="doc" class="m-2" />
       </div>
       <div class="results-column-pagination">
-        <span>&lt;</span>
-        <span>1</span>
-        <span>2</span>
-        <span>3</span>
-        <span>4</span>
-        <span>&gt;</span>
+        <PaginationNav :results="documents" />
       </div>
     </div>
   </div>
@@ -196,22 +185,21 @@ const pickedColour = ref("ins");
     overflow-y: auto;
     flex: 1 1 auto;
     height: 0;
+    font-size: 0.85em;
   }
 
   &-pagination {
     display: flex;
     flex-direction: row;
-    height: 1.5rem;
-    justify-content: space-between;
-    padding: {
-      left: 2ch;
-      right: 2ch;
-    }
+    /*height: 1.5rem;*/
+    justify-content: center;
+    padding: 0.25em 2ch;
   }
 }
 
 .filter-top {
   display: flex;
   flex-direction: row;
+  padding: 0.5em 1ch 0 1ch;
 }
 </style>

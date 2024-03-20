@@ -51,3 +51,20 @@ export interface ArrowSchema extends TypeMap {
 }
 
 export type ReadonlyRef<T> = DeepReadonly<Ref<T>>;
+
+export interface Document {
+  idx: number;
+  title?: string | null;
+  abstract?: string | null;
+  publication_year?: number | null;
+  openalex_id?: string | null;
+  nacsos_id?: string | null;
+  doi?: string | null;
+  authors?: string | null;
+  institutions?: string | null;
+}
+
+export interface AnnotatedDocument extends Document {
+  manual: boolean;
+  labels: Record<string, number>;
+}
