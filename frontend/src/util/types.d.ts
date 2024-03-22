@@ -69,3 +69,5 @@ export interface AnnotatedDocument extends Document {
   manual: boolean;
   labels: Record<string, number>;
 }
+
+export type HSLColour = [number, number, number];

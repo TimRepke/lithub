@@ -1,23 +1,22 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { useDatasetStore } from "@/stores/datasetstore.ts";
 import { computed } from "vue";
 import InclusiveIcon from "@/components/InclusiveIcon.vue";
+import { LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
 
 const uniq = crypto.randomUUID();
+const groupMask = defineModel<LabelMaskGroup>("groupMask", { required: true });
 const pickedColour = defineModel("pickedColour");
-const props = defineProps({
-  maskKey: { type: String, required: true },
-});
 
-const dataStore = useDatasetStore();
-const maskGroup = dataStore.dataset!.labelMaskGroups[props.maskKey];
+const { name, masks, inclusive, active, key: maskKey } = groupMask.value;
 
 const styleColours = computed(() =>
   Object.fromEntries(
-    Object.values(maskGroup.masks).map((mask) => [
+    Object.values(masks).map((mask) => [
       mask.value,
-      mask.active ? { backgroundColor: mask.colourHex, borderColor: mask.colourHex } : { borderColor: mask.colourHex },
+      mask.active.value
+        ? { backgroundColor: mask.colourHex, borderColor: mask.colourHex }
+        : { borderColor: mask.colourHex },
     ]),
   ),
 );
@@ -26,9 +25,9 @@ const styleColours = computed(() =>
 <template>
   <div class="filter">
     <div class="filter-head">
-      <div>{{ maskGroup.name }}</div>
+      <div>{{ name }}</div>
       <div>
-        <InclusiveIcon v-model:inclusive="maskGroup.inclusive" />
+        <InclusiveIcon v-model:inclusive="inclusive" />
 
         <input
           type="radio"
@@ -41,20 +40,20 @@ const styleColours = computed(() =>
           <font-awesome-icon icon="palette" />
         </label>
 
-        <input type="checkbox" :id="`active-${maskKey}-${uniq}`" v-model="maskGroup.active" />
+        <input type="checkbox" :id="`active-${maskKey}-${uniq}`" v-model="active" />
         <label :for="`active-${maskKey}-${uniq}`" class="icon">
           <font-awesome-icon icon="filter" />
         </label>
       </div>
     </div>
     <div class="filter-masks">
-      <template v-for="(mask, mKey) in maskGroup.masks" :key="mKey">
-        <input type="checkbox" :id="`active-${maskKey}-${mKey}-${uniq}`" v-model="mask.active" />
+      <template v-for="(mask, mKey) in masks" :key="mKey">
+        <input type="checkbox" :id="`active-${maskKey}-${mKey}-${uniq}`" v-model="mask.active.value" />
         <label :for="`active-${maskKey}-${mKey}-${uniq}`" :style="styleColours[mKey]">
           <span class="counts">
             <span>
-              {{ mask.counts.countFiltered.toLocaleString() }} /
-              {{ mask.counts.countTotal.toLocaleString() }}
+              {{ mask.counts.value.countFiltered.toLocaleString() }} /
+              {{ mask.counts.value.countTotal.toLocaleString() }}
             </span>
           </span>
           <span>

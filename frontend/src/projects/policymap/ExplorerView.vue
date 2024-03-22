@@ -7,10 +7,13 @@ import InclusiveIcon from "@/components/InclusiveIcon.vue";
 import { useResults } from "@/util/dataset.ts";
 import DocumentCard from "@/components/DocumentCard.vue";
 import PaginationNav from "@/components/PaginationNav.vue";
+import HistogramFilter from "@/components/HistogramFilter.vue";
 
 const dataStore = useDatasetStore();
-console.log(dataStore.dataset);
-const documents = ref(useResults());
+const results = useResults();
+
+const { counts: globalCounts, inclusive, labelMaskGroups, pyMask, searchMask } = dataStore.dataset!;
+const { documents } = results;
 
 const pickedColour = ref("ins");
 
@@ -36,25 +39,23 @@ const pickedColour = ref("ins");
 <template>
   <div class="explorer-container">
     <div class="filter-sidebar">
-      <div class="column-head">
-        Filters
-      </div>
+      <div class="column-head">Filters</div>
       <div class="filter-sidebar-container">
         <div class="filter-top">
           <div>
-            Number of documents: {{ dataStore.dataset!.counts.countFiltered.toLocaleString() }} /
-            {{ dataStore.dataset!.counts.countTotal.toLocaleString() }}
+            Number of documents: {{ globalCounts.countFiltered.toLocaleString() }} /
+            {{ globalCounts.countTotal.toLocaleString() }}
           </div>
-          <InclusiveIcon v-model:inclusive="dataStore.dataset!.inclusive" class="ms-auto" />
+          <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
         </div>
-
-        <SidebarLabelFilter mask-key="ins" v-model:picked-colour="pickedColour" />
-        <SidebarLabelFilter mask-key="gov" v-model:picked-colour="pickedColour" />
-        <SidebarLabelFilter mask-key="sec" v-model:picked-colour="pickedColour" />
-        <SidebarSearchFilter />
+        <HistogramFilter v-model:mask="pyMask"/>
+        <SidebarLabelFilter v-model:group-mask="labelMaskGroups['ins']" v-model:picked-colour="pickedColour" />
+        <SidebarLabelFilter v-model:group-mask="labelMaskGroups['gov']" v-model:picked-colour="pickedColour" />
+        <SidebarLabelFilter v-model:group-mask="labelMaskGroups['sec']" v-model:picked-colour="pickedColour" />
+        <SidebarSearchFilter  v-model:mask="searchMask" />
 
         <ul>
-          <template v-for="(mask, key) in dataStore.dataset!.labelMaskGroups" :key="key">
+          <template v-for="(mask, key) in labelMaskGroups" :key="key">
             <li v-for="(lmask, lkey) in mask.masks" :key="lkey">
               {{ key }}={{ lkey }}: {{ lmask.counts }} ({{ lmask.active }} / {{ lmask.version }})
             </li>
@@ -64,20 +65,16 @@ const pickedColour = ref("ins");
     </div>
 
     <div class="scatter-column">
-      <div class="column-head">
-        Scatterplot
-      </div>
+      <div class="column-head">Scatterplot</div>
     </div>
 
     <div class="results-column">
-      <div class="column-head">
-        Results
-      </div>
+      <div class="column-head">Results</div>
       <div class="results-column-results">
-        <DocumentCard v-for="doc in documents.documents" :key="doc.idx" :doc="doc" class="m-2" />
+        <DocumentCard v-for="doc in documents" :key="doc.idx" :doc="doc" class="m-2" />
       </div>
       <div class="results-column-pagination">
-        <PaginationNav :results="documents" />
+        <PaginationNav v-model:results="results" />
       </div>
     </div>
   </div>

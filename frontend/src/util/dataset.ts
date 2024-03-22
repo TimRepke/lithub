@@ -1,126 +1,117 @@
-import { AnnotatedDocument, ArrowSchema, DatasetInfo, type ReadonlyRef, Scheme } from "@/util/types";
-import { and, Bitmask, or } from "@/util/dataset/bitmask.ts";
+import { type ReadonlyRef, AnnotatedDocument, ArrowSchema, DatasetInfo, Scheme } from "@/util/types";
+import { type Bitmask, and, or } from "@/util/dataset/masks/bitmask.ts";
 import { DATA_BASE, GETWithProgress, POST } from "@/util/api.ts";
-import { computed, ComputedRef, readonly, Ref, ref, watch } from "vue";
-import { Table, tableFromIPC } from "apache-arrow";
-import { Counts, MaskBufferEntry } from "@/util/dataset/maskBase.ts";
-import { LabelValueMask } from "@/util/dataset/masks.ts";
-import { HistogramMask, IndexMask, LabelMaskGroup, SearchMask } from "@/util/dataset/groupMasks.ts";
+import { type Ref, type ComputedRef, readonly, ref, toRef, watch, computed } from "vue";
+import { type Table, tableFromIPC } from "apache-arrow";
 import { useDatasetStore } from "@/stores/datasetstore.ts";
+import { type HistogramMask, useHistogramMask } from "@/util/dataset/masks/histogram.ts";
+import { useDelay } from "@/util/index.ts";
+import { type IndexMask, useIndexMask } from "@/util/dataset/masks/ids.ts";
+import {
+  type LabelMaskGroup,
+  type LabelValueMask,
+  type MaskBufferEntry,
+  loadLabelValueMask,
+  useLabelMaskGroup,
+} from "@/util/dataset/masks/labels.ts";
+import { SearchMask, useSearchMask } from "@/util/dataset/masks/search.ts";
+import { Counts } from "@/util/dataset/masks/base.ts";
 
 // get filtered array from mask (like np.array([1,2,3,4])[[True, True, False, True]]
 // Array.prototype.maskFilter = function(mask) {
 //   return this.filter((item, i) => mask[i]);
 // }
+export type AnyMask = IndexMask | HistogramMask | LabelMaskGroup | SearchMask;
 
-export class Dataset {
-  public readonly info: DatasetInfo;
-  public readonly name: string;
-  public readonly scheme: Scheme;
+export interface Dataset {
+  info: DatasetInfo;
+  name: string;
+  scheme: Scheme;
+  arrow: Table<ArrowSchema>;
+  counts: ReadonlyRef<Counts>;
+  version: ReadonlyRef<number>;
 
-  public readonly arrow: Table<ArrowSchema>;
+  labelMaskGroups: Record<string, LabelMaskGroup>; // masks for all the annotations
+  pyMask: HistogramMask; // masks for publication years
+  indexMask: IndexMask; // mask for document ids (esp. for scatterplot)
+  searchMask: SearchMask; // mask for title/abstract search (server-side filtering)
+  // doiMask: SearchMask;// mask for DOI search (server-side filtering)
 
-  public readonly counts: ReadonlyRef<Counts>;
-  protected readonly _counts: Ref<Counts>;
+  get mask(): Bitmask | null; // aggregate global mask
 
-  public readonly version: ReadonlyRef<number>;
-  protected readonly _version: Ref<number>;
-  public readonly v: Ref<{ version: number }>;
-  // masks for all the annotations
-  public readonly labelMaskGroups: Record<string, LabelMaskGroup>;
-  // masks for publication years
-  public readonly pyMask: HistogramMask;
-  // mask for document ids (esp. for scatterplot)
-  public readonly indexMask: IndexMask;
-  // mask for title/abstract search (server-side filtering)
-  public searchMask: SearchMask;
-  // mask for DOI search (server-side filtering)
-  // public readonly doiMask: SearchMask;
-  // aggregate global mask
-  private _mask: Bitmask | null;
-  public readonly inclusive: Ref<boolean>; // when true, use OR for combination, else AND
+  _mask: { value: Bitmask | null }; // aggregate global mask
+  inclusive: Ref<boolean>; // when true, use OR for combination, else AND
 
-  constructor(params: {
-    info: DatasetInfo;
-    name: string;
-    scheme: Scheme;
-    labelMasks: Record<string, LabelMaskGroup>;
-    arrow: Table<ArrowSchema>;
-    startYear: number;
-    endYear: number;
-  }) {
-    this.info = params.info;
-    this.name = params.name;
-    this.scheme = params.scheme;
+  masks(): Generator<AnyMask, void, any>;
 
-    this._counts = ref({
-      countFiltered: params.arrow.numRows,
-      countTotal: params.arrow.numRows,
-    });
-    this.counts = readonly(this._counts);
+  activeMasks(): Generator<AnyMask, void, any>;
 
-    this._version = ref(0);
-    this.v = ref({ version: 0 });
-    this.version = readonly(this._version);
+  activeLabelMasks(): Generator<LabelValueMask, void, any>;
 
-    this.arrow = params.arrow;
-    const pyYears = this.arrow.getChild("publication_year");
-    if (!pyYears) throw new Error("Missing publication_years column in arrow file!");
-    // @ts-ignore
-    this.pyMask = new HistogramMask(params.startYear, params.endYear, pyYears);
-    this.searchMask = new SearchMask(params.name);
-    this.indexMask = new IndexMask(this.arrow.numRows);
-    this.labelMaskGroups = params.labelMasks;
+  activeBitmasks(): Generator<Bitmask | null, void, any>;
 
-    this.inclusive = ref(true);
+  activeLabelMaskColumns(): Generator<string, void, any>;
 
-    this._mask = null;
+  documents(dparams: { ids?: string[] | null; page?: number; limit?: number }): Promise<AnnotatedDocument[]>;
+}
 
-    // TODO start fetching keywords file
+export function useDataset(params: {
+  info: DatasetInfo;
+  name: string;
+  scheme: Scheme;
+  labelMasks: Record<string, LabelMaskGroup>;
+  arrow: Table<ArrowSchema>;
+  startYear: number;
+  endYear: number;
+}): Dataset {
+  const inclusive = ref(true);
+  const _counts = ref({
+    countFiltered: params.arrow.numRows,
+    countTotal: params.arrow.numRows,
+  });
+  const counts = readonly(_counts);
+  const _version = ref(0);
+  const version = readonly(_version);
 
-    // set up watchers so we can bubble up changes
-    watch(
-      [...this.masks()].map((mask) => mask.version),
-      () => this.update(),
-    );
-    watch(this.inclusive, () => this.update());
-  }
+  const pyYears = params.arrow.getChild("publication_year");
+  if (!pyYears) throw new Error("Missing publication_years column in arrow file!");
+  // @ts-ignore
+  const pyMask = useHistogramMask(params.startYear, params.endYear, pyYears);
+  const searchMask = useSearchMask(params.name);
+  const indexMask = useIndexMask(params.arrow.numRows);
 
-  get mask(): Bitmask | null {
-    return this._mask;
-  }
+  const _mask = { value: null } as { value: Bitmask | null };
 
-  get hasActiveMask(): boolean {
-    return [...this.activeMasks()].length > 0;
-  }
-
-  * masks() {
-    for (const mask of Object.values(this.labelMaskGroups)) yield mask;
-    yield this.searchMask;
-    yield this.pyMask;
-    yield this.indexMask;
-  }
-
-  * activeMasks() {
-    for (const mask of this.masks()) if (mask.active.value ?? mask.active) yield mask;
-  }
-
-  * activeBitmasks() {
-    for (const mask of this.activeMasks()) if (mask.mask) yield mask.mask;
-  }
-
-  private update() {
-    this._mask = this.inclusive.value ? or(...this.activeBitmasks()) : and(...this.activeBitmasks());
-    for (const mask of this.masks()) {
-      mask.updateCounts(this._mask);
+  function update() {
+    _mask.value = inclusive.value ? or(...activeBitmasks()) : and(...activeBitmasks());
+    for (const mask of masks()) {
+      mask.updateCounts(hasActiveMask() ? _mask.value : null);
     }
-    this._counts.value.countFiltered = this._mask?.count ?? this._counts.value.countTotal;
-    this._version.value += 1;
-    this.v.value.version += 1;
+    _counts.value.countFiltered = _mask.value?.count ?? _counts.value.countTotal;
+    _version.value += 1;
   }
 
-  * activeLabelMasks() {
-    for (const mask of Object.values(this.labelMaskGroups)) {
+  function hasActiveMask(): boolean {
+    return [...activeMasks()].length > 0;
+  }
+
+  function* masks() {
+    for (const mask of Object.values(params.labelMasks)) yield mask;
+    yield searchMask;
+    yield pyMask;
+    yield indexMask;
+  }
+
+  function* activeMasks() {
+    for (const mask of masks()) if (mask.active.value ?? mask.active) yield mask;
+  }
+
+  function* activeBitmasks() {
+    for (const mask of activeMasks()) if (mask.mask) yield mask.mask;
+  }
+
+  function* activeLabelMasks() {
+    for (const mask of Object.values(params.labelMasks)) {
       if (mask.active.value) {
         for (const labelMask of Object.values(mask.masks)) {
           if (labelMask.active.value) {
@@ -131,26 +122,61 @@ export class Dataset {
     }
   }
 
-  * activeLabelMaskColumns() {
-    for (const mask of this.activeLabelMasks()) yield mask.column;
+  function* activeLabelMaskColumns() {
+    for (const mask of activeLabelMasks()) yield mask.column;
   }
 
-  async documents(params: { ids?: string[] | null; page?: number; limit?: number }): Promise<AnnotatedDocument[]> {
-    const orderBy = [...this.activeLabelMaskColumns()];
-    const mask = (!params.ids || params.ids.length === 0) && this.hasActiveMask ? this.mask?.toBase64() : undefined;
+  async function documents(dparams: {
+    ids?: string[] | null;
+    page?: number;
+    limit?: number;
+  }): Promise<AnnotatedDocument[]> {
+    const orderBy = [...activeLabelMaskColumns()];
+    const mask = (!dparams.ids || dparams.ids.length === 0) && hasActiveMask() ? _mask.value?.toBase64() : undefined;
     return await POST<AnnotatedDocument[]>({
-      path: `/basic/documents/${this.name}`,
+      path: `/basic/documents/${params.name}`,
       params: {
-        limit: params.limit ?? 10,
-        page: params.page ?? 0,
+        limit: dparams.limit ?? 10,
+        page: dparams.page ?? 0,
       },
       payload: {
-        ids: params.ids,
+        ids: dparams.ids,
         bitmask: mask,
         order_by: orderBy,
       },
     });
   }
+
+  // set up watchers so we can bubble up changes
+  watch(
+    [...masks()].map((mask) => mask.version),
+    update,
+  );
+  watch(inclusive, update);
+
+  return {
+    info: params.info,
+    name: params.name,
+    scheme: params.scheme,
+    arrow: params.arrow,
+    counts: toRef(counts),
+    version: toRef(version),
+    inclusive: toRef(inclusive),
+    pyMask,
+    searchMask,
+    indexMask,
+    labelMaskGroups: params.labelMasks,
+    _mask,
+    get mask() {
+      return _mask.value;
+    },
+    masks,
+    activeMasks,
+    activeBitmasks,
+    activeLabelMasks,
+    activeLabelMaskColumns,
+    documents,
+  };
 }
 
 export interface Results {
@@ -170,19 +196,14 @@ export function useResults(): Results {
   const REQUEST_DELAY = 250;
   const MAX_PAGES = 8;
 
-  let delay: number | null = null;
   const page = ref(0);
   const limit = ref(10);
   const documents = ref<AnnotatedDocument[]>([]);
 
-  watch(dataStore.dataset!.v, () => delayedUpdate());
-  watch([page, limit], update);
-
-  async function update() {
-    if (delay !== null) clearTimeout(delay);
+  const { call: update, delayedCall: delayedUpdate } = useDelay(async () => {
     documents.value = await dataStore.dataset!.documents({ page: page.value, limit: limit.value });
     return documents.value;
-  }
+  }, REQUEST_DELAY);
 
   const hasNext = computed(() => page.value < numPages.value - 1);
 
@@ -196,17 +217,8 @@ export function useResults(): Results {
     if (hasPrev.value) page.value -= 1;
   }
 
-  function delayedUpdate() {
-    if (delay !== null) clearTimeout(delay);
-    // @ts-ignore
-    delay = setTimeout(async () => {
-      page.value = 0;
-      await update();
-    }, REQUEST_DELAY);
-  }
-
   const numPages = computed(() => {
-    const total = dataStore.dataset?.counts.countFiltered;
+    const total = dataStore.dataset?.counts.value.countFiltered;
     return Math.ceil((total ?? 0) / limit.value);
   });
   const pages = computed(() => {
@@ -221,16 +233,19 @@ export function useResults(): Results {
     return [...Array(Math.min(MAX_PAGES)).keys()].map((p) => p + firstPage);
   });
 
+  watch(dataStore.dataset!.version, delayedUpdate);
+  watch([page, limit], update);
+
   return {
-    documents,
-    page,
-    limit,
-    numPages,
-    pages,
+    documents: toRef(documents),
+    page: toRef(page),
+    limit: toRef(limit),
+    numPages: toRef(numPages),
+    pages: toRef(pages),
+    hasPrev: toRef(hasPrev),
+    hasNext: toRef(hasNext),
     next,
     prev,
-    hasPrev,
-    hasNext,
   };
 }
 
@@ -259,7 +274,13 @@ export async function loadDataset(params: {
               masks: [],
             };
           maskBuffer[key].masks.push(
-            await LabelValueMask.loadMask(params.dataset, value.name, key, value.value, value.colour),
+            await loadLabelValueMask({
+              dataset: params.dataset,
+              name: value.name,
+              key,
+              value: value.value,
+              colour: value.colour,
+            }),
           );
           params.maskCallback(++numLoadedMasks);
         }),
@@ -277,12 +298,21 @@ export async function loadDataset(params: {
       .then(() => {
         const groupedLabelMasks = Object.fromEntries(
           Object.entries(maskBuffer).map(([key, entry]) => {
-            return [key, new LabelMaskGroup(params.dataset, entry.key, entry.name, entry.type, entry.masks)];
+            return [
+              key,
+              useLabelMaskGroup({
+                dataset: params.dataset,
+                key: entry.key,
+                name: entry.name,
+                type: entry.type,
+                masks: entry.masks,
+              }),
+            ];
           }),
         );
 
         resolve(
-          new Dataset({
+          useDataset({
             info: params.info,
             name: params.dataset,
             scheme: params.scheme,

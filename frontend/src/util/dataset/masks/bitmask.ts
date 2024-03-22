@@ -141,7 +141,6 @@ export function or(...sets: (Bitmask | null)[]) {
   if (filtered.length == 1) {
     return filtered[0];
   }
-
   const out = new Bitmask(filtered[0].length, new Uint32Array(filtered[0].mask)); // copy of first set
   for (let i = 1; i < sets.length; i++) {
     out.or(filtered[i]);

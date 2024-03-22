@@ -1,16 +1,18 @@
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { computed, ref, toRef } from "vue";
 import { Dataset, loadDataset } from "@/util/dataset.ts";
 import { DatasetInfo } from "@/util/types";
 
 type LoadInfo = { progressCols: number; progressArrow: number };
 export const useDatasetStore = defineStore("dataset", () => {
   const isLoading = ref(false);
+  const isLoaded = ref(false);
   const loadingProgress = ref<LoadInfo>({
     progressCols: 0,
     progressArrow: 0,
   });
-  const dataset = ref<Dataset | null>(null);
+  const _dataset = { value: null } as { value: Dataset | null };
+
   // let dataset: Dataset | null = null;
 
   async function load(info: DatasetInfo) {
@@ -24,7 +26,7 @@ export const useDatasetStore = defineStore("dataset", () => {
       progressArrow: 0,
     };
 
-    dataset.value = await loadDataset({
+    _dataset.value = await loadDataset({
       info: info,
       dataset: info.key,
       scheme: info.scheme,
@@ -39,8 +41,17 @@ export const useDatasetStore = defineStore("dataset", () => {
 
     // Stop loading counter
     isLoading.value = false;
+    isLoaded.value = true;
   }
 
-  const isLoaded = computed(() => dataset.value !== null);
-  return { dataset, load, loadingProgress, isLoading, isLoaded };
+  const dataset = computed(() => _dataset.value);
+
+  return {
+    dataset,
+    load,
+    _dataset,
+    loadingProgress: toRef(loadingProgress),
+    isLoading: toRef(isLoading),
+    isLoaded: toRef(isLoaded),
+  };
 });

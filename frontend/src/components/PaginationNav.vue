@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { PropType } from "vue";
 import { Results } from "@/util/dataset.ts";
 
-defineProps({
-  results: { type: Object as PropType<Results>, required: true },
-});
+const results = defineModel<Results>("results", { required: true });
+const { page: currentPage, pages, hasPrev, hasNext, prev, next } = results.value;
 </script>
 
 <template>
@@ -14,15 +12,15 @@ defineProps({
         <button
           class="page-link"
           aria-label="Previous"
-          :disabled="!results.hasPrev"
-          :class="{ disabled: !results.hasPrev }"
-          @click="results.prev"
+          :disabled="!hasPrev"
+          :class="{ disabled: !hasPrev }"
+          @click="prev"
         >
           &laquo;
         </button>
       </li>
-      <li class="page-item" v-for="page in results.pages" :key="page">
-        <button class="page-link" :class="{ active: page == results.page }" @click="results.page = page">
+      <li class="page-item" v-for="page in pages" :key="page">
+        <button class="page-link" :class="{ active: currentPage == page }" @click="currentPage = page">
           {{ page + 1 }}
         </button>
       </li>
@@ -30,9 +28,9 @@ defineProps({
         <button
           class="page-link"
           aria-label="Next"
-          :disabled="!results.hasNext"
-          :class="{ disabled: !results.hasNext }"
-          @click="results.next"
+          :disabled="!hasNext"
+          :class="{ disabled: !hasNext }"
+          @click="next"
         >
           &raquo;
         </button>
