@@ -1,7 +1,8 @@
 import type { ReadonlyRef } from "@/util/types";
-import type { Ref } from "vue";
+import { type  Ref } from "vue";
 import { readonly, ref, toRef, watch } from "vue";
-import { and, or, type Bitmask } from "@/util/dataset/masks/bitmask.ts";
+import { and, or, type Bitmask, isNew } from "@/util/dataset/masks/bitmask.ts";
+import { None } from "@/util";
 
 export type Counts = {
   countTotal: number;
@@ -10,7 +11,7 @@ export type Counts = {
 
 export interface BaseParams {
   active?: boolean;
-  mask?: Bitmask | null;
+  bitmask?: Bitmask | null;
 }
 
 export interface MaskBase {
@@ -18,9 +19,7 @@ export interface MaskBase {
   active: Ref<boolean>;
   version: ReadonlyRef<number>;
   counts: ReadonlyRef<Counts>;
-  _mask: { value: Bitmask | null };
-
-  get mask(): Bitmask | null;
+  bitmask: Ref<Bitmask | None>;
 
   setFilterCount(c: number): void;
 
@@ -34,7 +33,7 @@ export interface MaskBase {
 
   update(): void;
 
-  updateCounts(globalMask: Bitmask | null): void;
+  updateCounts(globalMask: Bitmask | None): void;
 }
 
 export interface GroupBaseParams<K extends string | number | symbol, M extends MaskBase> extends BaseParams {
@@ -46,7 +45,7 @@ export interface GroupMaskBase<K extends string | number | symbol, M extends Mas
   inclusive: Ref<boolean>;
   masks: Record<K, M>;
 
-  getCombinedMasks(): Bitmask | null;
+  getCombinedMasks(): Bitmask | None;
 }
 
 export function useBase(params: BaseParams): MaskBase {
@@ -55,13 +54,14 @@ export function useBase(params: BaseParams): MaskBase {
   const _version = ref(0);
   const version = readonly(_version);
 
-  const initCount = params.mask?.count ?? 0;
+  const initCount = params.bitmask?.count ?? 0;
   const _counts = ref({
     countFiltered: initCount,
     countTotal: initCount,
   });
   const counts = readonly(_counts);
-  const _mask = { value: params.mask ?? null };
+  const bitmask = ref<Bitmask | None>();
+  if (params.bitmask) bitmask.value = params.bitmask;
 
   function update() {
     _version.value += 1;
@@ -84,7 +84,7 @@ export function useBase(params: BaseParams): MaskBase {
   }
 
   function updateCounts(globalMask: Bitmask) {
-    if (params.mask) _counts.value.countFiltered = and(globalMask, params.mask)?.count ?? _counts.value.countTotal;
+    if (bitmask.value) _counts.value.countFiltered = and(globalMask, bitmask.value)?.count ?? _counts.value.countTotal;
   }
 
   function clear() {
@@ -98,10 +98,7 @@ export function useBase(params: BaseParams): MaskBase {
     active: toRef(active),
     version: toRef(version),
     counts: toRef(counts),
-    _mask,
-    get mask() {
-      return _mask.value;
-    },
+    bitmask: toRef(bitmask),
     setTotalCount,
     setFilterCount,
     clear,
@@ -116,25 +113,28 @@ export function useGroupBase<K extends string | number | symbol, M extends MaskB
   params: GroupBaseParams<K, M>,
 ): GroupMaskBase<K, M> {
   const base = useBase(params);
-  const { _mask } = base;
+  const { bitmask } = base;
   const inclusive = ref(params.inclusive ?? true);
-  _mask.value = getCombinedMasks();
+  bitmask.value = getCombinedMasks();
 
-  function updateCounts(globalMask: Bitmask | null) {
+  function updateCounts(globalMask: Bitmask | None) {
     Object.values<MaskBase>(params.masks).forEach((mask) => {
       mask.updateCounts(globalMask);
     });
   }
 
   function getCombinedMasks() {
-    const bitmasks = Object.values<M>(params.masks).map((mask) => (mask.active.value ? mask.mask : null));
+    const bitmasks = Object.values<M>(params.masks).map((mask) => (mask.active.value ? mask.bitmask.value : null));
     if (inclusive.value) return or(...bitmasks);
     return and(...bitmasks);
   }
 
   function update() {
-    base._mask.value = getCombinedMasks();
-    base.update();
+    const newMask = getCombinedMasks();
+    if (isNew(bitmask.value, newMask)) {
+      bitmask.value = newMask;
+      base.update();
+    }
   }
 
   function clear() {
@@ -152,9 +152,6 @@ export function useGroupBase<K extends string | number | symbol, M extends MaskB
     ...base,
     inclusive: toRef(inclusive),
     masks: params.masks,
-    get mask() {
-      return base._mask.value;
-    },
     updateCounts,
     getCombinedMasks,
     update,

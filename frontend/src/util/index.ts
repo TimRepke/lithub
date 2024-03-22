@@ -70,13 +70,15 @@ export function isOnRoute(loc: RouteLocationNormalized, name: string): boolean {
   return loc.matched.findIndex((match: RouteRecordNormalized) => match.name === name) >= 0;
 }
 
-export function is<T>(obj: T | null | undefined): obj is T {
+export function is<T>(obj: T | None): obj is T {
   return obj !== null && obj !== undefined;
 }
 
-export function isNone(obj: unknown | null | undefined): obj is null | undefined {
+export function isNone(obj: unknown | None): obj is None {
   return obj === null || obj === undefined;
 }
+
+export type None = null | undefined;
 
 export function notNone(obj: unknown | null | undefined): obj is unknown {
   return obj !== undefined && obj !== null;

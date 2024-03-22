@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import { useDatasetStore } from "@/stores/datasetstore.ts";
 import SidebarLabelFilter from "@/components/SidebarLabelFilter.vue";
 import SidebarSearchFilter from "@/components/SidebarSearchFilter.vue";
@@ -8,32 +8,24 @@ import { useResults } from "@/util/dataset.ts";
 import DocumentCard from "@/components/DocumentCard.vue";
 import PaginationNav from "@/components/PaginationNav.vue";
 import HistogramFilter from "@/components/HistogramFilter.vue";
+import ScatterLandscape from "@/components/ScatterLandscape.vue";
 
 const dataStore = useDatasetStore();
 const results = useResults();
 
-const { counts: globalCounts, inclusive, labelMaskGroups, pyMask, searchMask } = dataStore.dataset!;
+const {
+  arrow,
+  counts: globalCounts,
+  inclusive,
+  bitmask: globalMask,
+  labelMaskGroups,
+  pyMask,
+  searchMask,
+  indexMask
+} = dataStore.dataset!;
 const { documents } = results;
 
 const pickedColour = ref("ins");
-
-// props.dataset.labelMaskGroups["reg"].toggleActive();
-// props.dataset.labelMaskGroups["edu"].toggleActive();
-// props.dataset.labelMaskGroups["gov"].toggleActive();
-//
-// setTimeout(() => props.dataset.labelMaskGroups["sec"].setActive(true), 1000);
-// setTimeout(() => props.dataset.labelMaskGroups["sec"].masks[0].toggleActive(), 2000);
-// setTimeout(() => props.dataset.labelMaskGroups["sec"].masks[1].toggleActive(), 3000);
-// setTimeout(() => props.dataset.labelMaskGroups["sec"].masks[0].toggleActive(), 4000);
-// setTimeout(() => props.dataset.labelMaskGroups["sec"].masks[1].toggleActive(), 5000);
-
-// props.dataset.labelMaskGroups['gov'].active.value = true;
-// props.dataset.labelMaskGroups['gov'].active.value = false;
-// props.dataset.labelMaskGroups["sec"].setActive(true)
-// props.dataset.labelMaskGroups["gov"].toggleActive()
-// props.dataset.labelMaskGroups["sec"].toggleActive()
-// props.dataset.labelMaskGroups["sec"].active.value=true;
-// props.dataset.labelMaskGroups["sec"].active.value=false;
 </script>
 
 <template>
@@ -43,29 +35,31 @@ const pickedColour = ref("ins");
       <div class="filter-sidebar-container">
         <div class="filter-top">
           <div>
-            Number of documents: {{ globalCounts.countFiltered.toLocaleString() }} /
+            Number of documents:
+            {{ globalCounts.countFiltered.toLocaleString() }} /
             {{ globalCounts.countTotal.toLocaleString() }}
           </div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
         </div>
-        <HistogramFilter v-model:mask="pyMask"/>
+        <HistogramFilter v-model:mask="pyMask" />
         <SidebarLabelFilter v-model:group-mask="labelMaskGroups['ins']" v-model:picked-colour="pickedColour" />
         <SidebarLabelFilter v-model:group-mask="labelMaskGroups['gov']" v-model:picked-colour="pickedColour" />
         <SidebarLabelFilter v-model:group-mask="labelMaskGroups['sec']" v-model:picked-colour="pickedColour" />
-        <SidebarSearchFilter  v-model:mask="searchMask" />
+        <SidebarSearchFilter v-model:mask="searchMask" />
 
-        <ul>
-          <template v-for="(mask, key) in labelMaskGroups" :key="key">
-            <li v-for="(lmask, lkey) in mask.masks" :key="lkey">
-              {{ key }}={{ lkey }}: {{ lmask.counts }} ({{ lmask.active }} / {{ lmask.version }})
-            </li>
-          </template>
-        </ul>
+        <!--        <ul>-->
+        <!--          <template v-for="(mask, key) in labelMaskGroups" :key="key">-->
+        <!--            <li v-for="(lmask, lkey) in mask.masks" :key="lkey">-->
+        <!--              {{ key }}={{ lkey }}: {{ lmask.counts }} ({{ lmask.active }} / {{ lmask.version }})-->
+        <!--            </li>-->
+        <!--          </template>-->
+        <!--        </ul>-->
       </div>
     </div>
 
     <div class="scatter-column">
       <div class="column-head">Scatterplot</div>
+      <ScatterLandscape :arrow="arrow" v-model:global-mask="globalMask" v-model:mask="indexMask" />
     </div>
 
     <div class="results-column">
@@ -136,6 +130,8 @@ const pickedColour = ref("ins");
   max-width: 80vw;
   border-right: 1px solid var(--socdr-grey);
   width: 35vw;
+  display: flex;
+  flex-direction: column;
 }
 
 .results-column {

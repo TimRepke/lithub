@@ -1,11 +1,11 @@
 import { type ReadonlyRef, AnnotatedDocument, ArrowSchema, DatasetInfo, Scheme } from "@/util/types";
-import { type Bitmask, and, or } from "@/util/dataset/masks/bitmask.ts";
+import { type Bitmask, and, or, isNew } from "@/util/dataset/masks/bitmask.ts";
 import { DATA_BASE, GETWithProgress, POST } from "@/util/api.ts";
 import { type Ref, type ComputedRef, readonly, ref, toRef, watch, computed } from "vue";
 import { type Table, tableFromIPC } from "apache-arrow";
 import { useDatasetStore } from "@/stores/datasetstore.ts";
 import { type HistogramMask, useHistogramMask } from "@/util/dataset/masks/histogram.ts";
-import { useDelay } from "@/util/index.ts";
+import { None, useDelay } from "@/util/index.ts";
 import { type IndexMask, useIndexMask } from "@/util/dataset/masks/ids.ts";
 import {
   type LabelMaskGroup,
@@ -37,9 +37,7 @@ export interface Dataset {
   searchMask: SearchMask; // mask for title/abstract search (server-side filtering)
   // doiMask: SearchMask;// mask for DOI search (server-side filtering)
 
-  get mask(): Bitmask | null; // aggregate global mask
-
-  _mask: { value: Bitmask | null }; // aggregate global mask
+  bitmask: Ref<Bitmask | None>; // aggregate global mask
   inclusive: Ref<boolean>; // when true, use OR for combination, else AND
 
   masks(): Generator<AnyMask, void, any>;
@@ -48,7 +46,7 @@ export interface Dataset {
 
   activeLabelMasks(): Generator<LabelValueMask, void, any>;
 
-  activeBitmasks(): Generator<Bitmask | null, void, any>;
+  activeBitmasks(): Generator<Bitmask | None, void, any>;
 
   activeLabelMaskColumns(): Generator<string, void, any>;
 
@@ -80,15 +78,18 @@ export function useDataset(params: {
   const searchMask = useSearchMask(params.name);
   const indexMask = useIndexMask(params.arrow.numRows);
 
-  const _mask = { value: null } as { value: Bitmask | null };
+  const bitmask = ref<Bitmask | None>();
 
   function update() {
-    _mask.value = inclusive.value ? or(...activeBitmasks()) : and(...activeBitmasks());
-    for (const mask of masks()) {
-      mask.updateCounts(hasActiveMask() ? _mask.value : null);
+    const newMask = inclusive.value ? or(...activeBitmasks()) : and(...activeBitmasks());
+    if (isNew(bitmask.value, newMask)) {
+      bitmask.value = newMask;
+      for (const mask of masks()) {
+        mask.updateCounts(hasActiveMask() ? bitmask.value : null);
+      }
+      _counts.value.countFiltered = bitmask.value?.count ?? _counts.value.countTotal;
+      _version.value += 1;
     }
-    _counts.value.countFiltered = _mask.value?.count ?? _counts.value.countTotal;
-    _version.value += 1;
   }
 
   function hasActiveMask(): boolean {
@@ -107,7 +108,7 @@ export function useDataset(params: {
   }
 
   function* activeBitmasks() {
-    for (const mask of activeMasks()) if (mask.mask) yield mask.mask;
+    for (const mask of activeMasks()) if (mask.bitmask.value) yield mask.bitmask.value;
   }
 
   function* activeLabelMasks() {
@@ -132,7 +133,7 @@ export function useDataset(params: {
     limit?: number;
   }): Promise<AnnotatedDocument[]> {
     const orderBy = [...activeLabelMaskColumns()];
-    const mask = (!dparams.ids || dparams.ids.length === 0) && hasActiveMask() ? _mask.value?.toBase64() : undefined;
+    const mask = (!dparams.ids || dparams.ids.length === 0) && hasActiveMask() ? bitmask.value?.toBase64() : undefined;
     return await POST<AnnotatedDocument[]>({
       path: `/basic/documents/${params.name}`,
       params: {
@@ -166,10 +167,7 @@ export function useDataset(params: {
     searchMask,
     indexMask,
     labelMaskGroups: params.labelMasks,
-    _mask,
-    get mask() {
-      return _mask.value;
-    },
+    bitmask: toRef(bitmask),
     masks,
     activeMasks,
     activeBitmasks,

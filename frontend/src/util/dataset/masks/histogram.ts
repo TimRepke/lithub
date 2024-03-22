@@ -5,6 +5,7 @@ import { Vector } from "apache-arrow/vector";
 import { DataType } from "apache-arrow/type";
 import { Type } from "apache-arrow/enum";
 import { useGroupBase } from "@/util/dataset/masks/base";
+import { None } from "@/util";
 
 export interface HistogramMask extends GroupMaskBase<number, HistogramValueMask> {
   years: number[];
@@ -21,11 +22,11 @@ export interface HistogramValueMask extends MaskBase {
 }
 
 export function useHistogramValueMask(initMask: Bitmask, year: number | null = null): HistogramValueMask {
-  const base = useBase({ mask: initMask, active: true });
-  const { active, counts, mask } = base;
+  const base = useBase({ bitmask: initMask, active: true });
+  const { active, counts, bitmask } = base;
 
-  function updateCounts(globalMask: Bitmask | null) {
-    base.setFilterCount(active.value ? and(globalMask, mask)?.count ?? counts.value.countTotal : 0);
+  function updateCounts(globalMask: Bitmask | None) {
+    base.setFilterCount(active.value ? and(globalMask, bitmask.value)?.count ?? counts.value.countTotal : 0);
   }
 
   function clear() {
@@ -68,7 +69,7 @@ export function useHistogramMask(
     base.update();
   }
 
-  function updateCounts(globalMask: Bitmask | null) {
+  function updateCounts(globalMask: Bitmask | None) {
     base.updateCounts(globalMask);
     restMask.updateCounts(globalMask);
   }
@@ -79,8 +80,8 @@ export function useHistogramMask(
     // [begin, end] = [Math.floor(begin), Math.ceil(end)];
     Object.entries(masks).forEach(([yr, mask]) => mask.setActive(+yr >= begin && +yr <= end));
     restMask.setActive(false);
-    active.value = true;
-    base.update();
+    if (!active.value) active.value = true;
+    else base.update();
   }
 
   function selectYears(years: number[]) {
@@ -97,8 +98,5 @@ export function useHistogramMask(
     selectYears,
     clear,
     updateCounts,
-    get mask() {
-      return base._mask.value;
-    },
   };
 }

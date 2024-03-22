@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TopLevelSpec as VegaLiteSpec } from "vega-lite/build/src/spec";
-import { onMounted, Ref, ref, toRef, toRefs, UnwrapRef, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import embed, { Result } from "vega-embed";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { useDelay } from "@/util";
@@ -8,7 +8,7 @@ import { SignalValue } from "vega";
 import { HistogramMask } from "@/util/dataset/masks/histogram.ts";
 
 const mask = defineModel<HistogramMask>("mask", { required: true });
-const { masks, active, version, years, clear, selectRange } = mask.value;
+const { masks, active, years, clear, selectRange } = mask.value;
 
 const spec = {
   $schema: "https://vega.github.io/schema/vega-lite/v5.json",
@@ -165,8 +165,5 @@ watch(
 .filter {
   display: flex;
   flex-direction: column;
-}
-
-.hist {
 }
 </style>

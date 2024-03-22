@@ -2,7 +2,7 @@ import type { Ref } from "vue";
 import { ref, toRef } from "vue";
 import { request } from "@/util/api.ts";
 import { MaskBase, useBase } from "@/util/dataset/masks/base.ts";
-import { useDelay } from "@/util";
+import { is, None, useDelay } from "@/util";
 import { and, Bitmask } from "@/util/dataset/masks/bitmask.ts";
 
 const SEARCH_DELAY = 1000;
@@ -19,7 +19,7 @@ export interface SearchMask extends MaskBase {
 
 export function useSearchMask(dataset: string): SearchMask {
   const base = useBase({});
-  const { _mask, active, counts } = base;
+  const { bitmask, active, counts } = base;
   const fields = ref(["title", "abstract"]);
   const search = ref("");
 
@@ -34,21 +34,21 @@ export function useSearchMask(dataset: string): SearchMask {
       path: `/basic/search/bitmask/${dataset}`,
       params: { query: search.value, fields: fields.value },
     });
-    _mask.value = Bitmask.fromBase64(await rawMask.text());
+    bitmask.value = Bitmask.fromBase64(await rawMask.text());
     base.update();
   }, SEARCH_DELAY);
 
   function clear() {
-    active.value = false;
     search.value = "";
     fields.value = ["title", "abstract"];
-    base.update();
+    if (active.value) active.value = false;
+    else base.update();
   }
 
-  function updateCounts(globalMask: Bitmask | null): void {
-    if (base.mask !== null) {
-      base.setTotalCount(base.mask.count);
-      base.setFilterCount(and(globalMask, base.mask)?.count ?? counts.value.countTotal);
+  function updateCounts(globalMask: Bitmask | None): void {
+    if (is<Bitmask>(bitmask.value)) {
+      base.setTotalCount(bitmask.value.count);
+      base.setFilterCount(and(globalMask, bitmask.value)?.count ?? counts.value.countTotal);
     }
   }
 
@@ -64,9 +64,5 @@ export function useSearchMask(dataset: string): SearchMask {
     delayedFetch,
     clear,
     updateCounts,
-    get mask() {
-      if (!active.value) return null;
-      return _mask.value;
-    },
   };
 }

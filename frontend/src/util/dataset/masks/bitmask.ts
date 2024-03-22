@@ -1,4 +1,4 @@
-import { is } from "@/util";
+import { is, isNone, None } from "@/util";
 
 export class Bitmask {
   public readonly length: number;
@@ -57,7 +57,7 @@ export class Bitmask {
       .filter((e): e is number => e !== null);
   }
 
-  or(other: Bitmask | null) {
+  or(other: Bitmask | None) {
     /**
      * Merge another bitmask with bitwise OR into this bitmask
      */
@@ -68,7 +68,7 @@ export class Bitmask {
     }
   }
 
-  and(other: Bitmask | null) {
+  and(other: Bitmask | None) {
     /**
      * Merge another bitmask with bitwise AND into this bitmask
      */
@@ -77,6 +77,14 @@ export class Bitmask {
         this._mask[i] = this._mask[i] & other.mask[i];
       }
     }
+  }
+
+  isSame(other: Bitmask | None): boolean | null {
+    if (!other) return null;
+    for (let i = 0; i < this._mask.length; i++) {
+      if (this._mask[i] ^ other.mask[i]) return false;
+    }
+    return true;
   }
 
   get count(): number {
@@ -101,7 +109,7 @@ export class Bitmask {
     return ret;
   }
 
-  * [Symbol.iterator]() {
+  *[Symbol.iterator]() {
     /**
      * Iterates over all bits in the mask.
      */
@@ -133,7 +141,7 @@ export class Bitmask {
   }
 }
 
-export function or(...sets: (Bitmask | null)[]) {
+export function or(...sets: (Bitmask | None)[]) {
   const filtered = sets.filter((m): m is Bitmask => is<Bitmask>(m));
   if (filtered.length == 0) {
     return null;
@@ -148,7 +156,7 @@ export function or(...sets: (Bitmask | null)[]) {
   return out;
 }
 
-export function and(...sets: (Bitmask | null)[]) {
+export function and(...sets: (Bitmask | None)[]) {
   const filtered = sets.filter((m): m is Bitmask => is<Bitmask>(m));
   if (filtered.length == 0) {
     return null;
@@ -162,4 +170,10 @@ export function and(...sets: (Bitmask | null)[]) {
     out.and(filtered[i]);
   }
   return out;
+}
+
+export function isNew(oldMask: Bitmask | None, newMask: Bitmask | None): boolean {
+  if (isNone(oldMask) && isNone(newMask)) return false;
+  if (is<Bitmask>(oldMask) && is<Bitmask>(newMask)) return !!newMask.isSame(newMask);
+  return true;
 }
