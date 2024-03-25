@@ -22,7 +22,6 @@ export type Scheme = Record<string, SchemeLabel>;
 export interface DatasetInfo {
   name: string;
   teaser: string;
-  description: string;
 
   total: number;
   key: string;

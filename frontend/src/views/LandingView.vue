@@ -1,6 +1,20 @@
 <script setup lang="ts">
-import { default as PolicyInfoCard } from "@/projects/policymap/InfoCard.vue";
-import { default as CarbonPricingInfoCard } from "@/projects/carbonpricing/InfoCard.vue";
+import { computed, onMounted, ref } from "vue";
+import { DATA_BASE, GET } from "@/util/api.ts";
+import { DatasetInfo } from "@/util/types";
+
+const datasets = ref<DatasetInfo[]>([]);
+onMounted(async () => {
+  datasets.value = await GET<DatasetInfo[]>({ path: "/basic/info/" });
+});
+
+const sortedDatasets = computed(() =>
+  datasets.value.toSorted((a, b) => {
+    if (a.last_update < b.last_update) return 1;
+    if (a.last_update > b.last_update) return -1;
+    return 0;
+  }),
+);
 </script>
 
 <template>
@@ -10,11 +24,31 @@ import { default as CarbonPricingInfoCard } from "@/projects/carbonpricing/InfoC
     <h3>Explore datasets</h3>
 
     <div class="infocards">
-      <div class="card">
-        <PolicyInfoCard class="g-0" />
-      </div>
-      <div class="card">
-        <CarbonPricingInfoCard class="row g-0" />
+      <div class="card g-0" v-for="dataset in sortedDatasets" :key="dataset.key">
+        <div class="row flex-grow-1 g-0">
+          <div class="col-md-4" v-if="dataset.figure">
+            <router-link :to="`/project/${dataset.key}`" style="color: inherit; text-decoration: none">
+              <img
+                :src="`${DATA_BASE}/${dataset.key}/${dataset.figure}`"
+                class="img-fluid rounded-start"
+                style="object-fit: cover; height: 100%"
+                :alt="dataset.name"
+              />
+            </router-link>
+          </div>
+          <div :class="dataset.figure ? 'col-md-8' : 'col'">
+            <div class="card-body">
+              <h5 class="card-title">
+                <router-link :to="`/project/${dataset.key}`" style="color: inherit; text-decoration: none">
+                  {{ dataset.name }}
+                </router-link>
+                <!-- <span v-if="props.isNew" class="ribbon">NEW</span>-->
+              </h5>
+              <p class="card-text" v-html="dataset.teaser" />
+              <p class="update-note">Last update: {{ dataset.last_update }}</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -25,5 +59,12 @@ import { default as CarbonPricingInfoCard } from "@/projects/carbonpricing/InfoC
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   grid-gap: 1rem;
+
+  .update-note {
+    font-style: italic;
+    font-size: 0.875em;
+    color: var(--bs-secondary-color) !important;
+    text-align: right;
+  }
 }
 </style>
