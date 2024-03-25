@@ -7,9 +7,7 @@ import { type None, useDelay } from "@/util";
 import type { Bitmask } from "@/util/dataset/masks/bitmask.ts";
 import { scaleLinear, scaleLog } from "d3-scale";
 import createScatterplot from "regl-scatterplot";
-import { Row } from "falcon-vis/build/iterator";
-import { Struct } from "apache-arrow/type";
-import { Data } from "apache-arrow/data";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 type Point = [number, number, number, number];
 const globalMask = defineModel<Bitmask | None>("globalMask", { required: true });
@@ -18,7 +16,7 @@ const props = defineProps({
   arrow: { type: Object as PropType<Table<ArrowSchema>>, required: true },
 });
 
-const { selectIds, clear: clearSelection } = mask.value;
+const { selectIds, clear: clearSelection, active, counts } = mask.value;
 
 const canvasContainerElement = ref<HTMLDivElement | null>(null);
 const canvasElement = ref<HTMLCanvasElement | null>(null);
@@ -162,24 +160,50 @@ onMounted(async () => {
       //
     }, 100);
     watch(globalMask, delayedRedraw);
+
+    const containerObserver = new ResizeObserver((r) => {
+      console.log(r[0].contentRect.width, r[0].contentRect.height);
+    });
+    containerObserver.observe(canvasContainer);
   }
 });
+const uniq = crypto.randomUUID();
 </script>
 
 <template>
-  <div ref="canvasContainerElement" class="scatter-wrapper">
-    <canvas ref="canvasElement" />
+  <div class="scatter-container">
+    <div class="ms-auto">
+      <span>{{ counts.countFiltered.toLocaleString() }} / {{ counts.countTotal.toLocaleString() }}</span>
+      <span class="icon-toggle">
+        <input type="checkbox" :id="`active-scatter-${uniq}`" v-model="active" />
+        <label :for="`active-scatter-${uniq}`" class="icon">
+          <font-awesome-icon icon="filter" />
+        </label>
+      </span>
+    </div>
+    <div ref="canvasContainerElement" class="scatter-wrapper">
+      <canvas ref="canvasElement" />
+    </div>
   </div>
 </template>
 
 <style scoped>
-.scatter-wrapper {
+.scatter-container {
   display: flex;
-  position: relative;
+  flex-direction: column;
   flex-grow: 1;
+  font-size: 0.85em;
 
-  canvas {
-    /*background-color: #0a58ca;*/
+  .scatter-wrapper {
+    display: flex;
+    flex-grow: 1;
+    position: relative;
+    overflow: hidden;
+    height: 0;
+
+    canvas {
+      /*background-color: #0a58ca;*/
+    }
   }
 }
 </style>

@@ -121,7 +121,7 @@ html, body {
       flex-wrap: wrap;
     }
 
-  @include icon-toggle;
+    @include icon-toggle;
 
     & > :first-child {
       margin-right: auto;

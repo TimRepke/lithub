@@ -2,8 +2,7 @@
 import route from "./route.ts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
-import { onMounted, ref } from "vue";
-import { Dataset, loadDataset } from "@/util/dataset.ts";
+import { onMounted } from "vue";
 import { GET } from "@/util/api.ts";
 import { DatasetInfo } from "@/util/types";
 import { useDatasetStore } from "@/stores/datasetstore.ts";
@@ -13,11 +12,6 @@ const dataStore = useDatasetStore();
 onMounted(async () => {
   const info = await GET<DatasetInfo>({ path: "/basic/info/policymap" });
   await dataStore.load(info);
-  // dataset.labelMaskGroups['gov'].active.value = true;
-  // dataset.labelMaskGroups['gov'].active.value = false;
-  // dataset.labelMaskGroups['gov'].setActive(false)
-  // dataset.labelMaskGroups['gov'].setActive(true)
-  // dataset.labelMaskGroups['gov'].toggleActive()
 });
 </script>
 

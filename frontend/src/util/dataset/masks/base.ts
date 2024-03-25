@@ -1,5 +1,5 @@
 import type { ReadonlyRef } from "@/util/types";
-import { type  Ref } from "vue";
+import { type Ref } from "vue";
 import { readonly, ref, toRef, watch } from "vue";
 import { and, or, type Bitmask, isNew } from "@/util/dataset/masks/bitmask.ts";
 import { None } from "@/util";
@@ -88,7 +88,8 @@ export function useBase(params: BaseParams): MaskBase {
   }
 
   function clear() {
-    active.value = false;
+    if (active.value) active.value = false;
+    else update();
   }
 
   watch(active, update);
@@ -118,7 +119,7 @@ export function useGroupBase<K extends string | number | symbol, M extends MaskB
   bitmask.value = getCombinedMasks();
 
   function updateCounts(globalMask: Bitmask | None) {
-    Object.values<MaskBase>(params.masks).forEach((mask) => {
+    Object.values<M>(params.masks).forEach((mask) => {
       mask.updateCounts(globalMask);
     });
   }
@@ -138,7 +139,7 @@ export function useGroupBase<K extends string | number | symbol, M extends MaskB
   }
 
   function clear() {
-    Object.values<MaskBase>(params.masks).forEach((mask) => mask.clear());
+    Object.values<M>(params.masks).forEach((mask) => mask.clear());
     base.clear();
   }
 

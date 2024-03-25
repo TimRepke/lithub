@@ -41,8 +41,7 @@ export function useSearchMask(dataset: string): SearchMask {
   function clear() {
     search.value = "";
     fields.value = ["title", "abstract"];
-    if (active.value) active.value = false;
-    else base.update();
+    base.clear();
   }
 
   function updateCounts(globalMask: Bitmask | None): void {

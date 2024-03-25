@@ -1,12 +1,22 @@
 import { ReadonlyRef } from "@/util/types";
 import { readonly, ref, toRef } from "vue";
-import { MaskBase, useBase } from "@/util/dataset/masks/base.ts";
+import { GroupMaskBase, MaskBase, useBase, useGroupBase } from "@/util/dataset/masks/base.ts";
 import { and, Bitmask } from "@/util/dataset/masks/bitmask.ts";
 import { None } from "@/util";
+
+export type Indexes = "scatter";
 
 export interface IndexMask extends MaskBase {
   ids: ReadonlyRef<number[]>;
   selectIds: (ids: number[]) => void;
+}
+
+export interface IndexMasks<K extends Indexes> extends GroupMaskBase<K, IndexMask> {
+  masks: Record<K, IndexMask>;
+
+  registerMask(key: K): void;
+
+  unregisterMask(key: K): void;
 }
 
 export function useIndexMask(length: number): IndexMask {
@@ -43,5 +53,26 @@ export function useIndexMask(length: number): IndexMask {
     updateCounts,
     clear,
     selectIds,
+  };
+}
+
+export function useIndexMasks<K extends Indexes>(length: number): IndexMasks<K> {
+  const masks = { scatter: useIndexMask(length) } as Record<K, IndexMask>;
+  const base = useGroupBase<K, IndexMask>({ masks, inclusive: false, active: true });
+
+  function registerMask(key: K) {
+    masks[key] = useIndexMask(length);
+    // we need no update here (effectively nothing changed to counts anyway)
+  }
+
+  function unregisterMask(key: K) {
+    delete masks[key];
+    base.update();
+  }
+
+  return {
+    ...base,
+    registerMask,
+    unregisterMask,
   };
 }

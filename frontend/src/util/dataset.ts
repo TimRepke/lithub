@@ -3,10 +3,9 @@ import { type Bitmask, and, or, isNew } from "@/util/dataset/masks/bitmask.ts";
 import { DATA_BASE, GETWithProgress, POST } from "@/util/api.ts";
 import { type Ref, type ComputedRef, readonly, ref, toRef, watch, computed } from "vue";
 import { type Table, tableFromIPC } from "apache-arrow";
-import { useDatasetStore } from "@/stores/datasetstore.ts";
 import { type HistogramMask, useHistogramMask } from "@/util/dataset/masks/histogram.ts";
 import { None, useDelay } from "@/util/index.ts";
-import { type IndexMask, useIndexMask } from "@/util/dataset/masks/ids.ts";
+import { Indexes, type IndexMask, IndexMasks, useIndexMasks } from "@/util/dataset/masks/ids.ts";
 import {
   type LabelMaskGroup,
   type LabelValueMask,
@@ -23,7 +22,7 @@ import { Counts } from "@/util/dataset/masks/base.ts";
 // }
 export type AnyMask = IndexMask | HistogramMask | LabelMaskGroup | SearchMask;
 
-export interface Dataset {
+export interface Dataset<K extends Indexes> {
   info: DatasetInfo;
   name: string;
   scheme: Scheme;
@@ -33,7 +32,7 @@ export interface Dataset {
 
   labelMaskGroups: Record<string, LabelMaskGroup>; // masks for all the annotations
   pyMask: HistogramMask; // masks for publication years
-  indexMask: IndexMask; // mask for document ids (esp. for scatterplot)
+  indexMasks: IndexMasks<K>; // masks for document ids (esp. for scatterplot)
   searchMask: SearchMask; // mask for title/abstract search (server-side filtering)
   // doiMask: SearchMask;// mask for DOI search (server-side filtering)
 
@@ -53,7 +52,7 @@ export interface Dataset {
   documents(dparams: { ids?: string[] | null; page?: number; limit?: number }): Promise<AnnotatedDocument[]>;
 }
 
-export function useDataset(params: {
+export function useDataset<K extends Indexes>(params: {
   info: DatasetInfo;
   name: string;
   scheme: Scheme;
@@ -61,7 +60,7 @@ export function useDataset(params: {
   arrow: Table<ArrowSchema>;
   startYear: number;
   endYear: number;
-}): Dataset {
+}): Dataset<K> {
   const inclusive = ref(true);
   const _counts = ref({
     countFiltered: params.arrow.numRows,
@@ -76,7 +75,7 @@ export function useDataset(params: {
   // @ts-ignore
   const pyMask = useHistogramMask(params.startYear, params.endYear, pyYears);
   const searchMask = useSearchMask(params.name);
-  const indexMask = useIndexMask(params.arrow.numRows);
+  const indexMasks = useIndexMasks(params.arrow.numRows);
 
   const bitmask = ref<Bitmask | None>();
 
@@ -85,6 +84,7 @@ export function useDataset(params: {
     if (isNew(bitmask.value, newMask)) {
       bitmask.value = newMask;
       for (const mask of masks()) {
+        console.log(mask);
         mask.updateCounts(hasActiveMask() ? bitmask.value : null);
       }
       _counts.value.countFiltered = bitmask.value?.count ?? _counts.value.countTotal;
@@ -98,17 +98,17 @@ export function useDataset(params: {
 
   function* masks() {
     for (const mask of Object.values(params.labelMasks)) yield mask;
+    for (const mask of Object.values(indexMasks.masks)) yield mask;
     yield searchMask;
     yield pyMask;
-    yield indexMask;
   }
 
   function* activeMasks() {
-    for (const mask of masks()) if (mask.active.value ?? mask.active) yield mask;
+    for (const mask of masks()) if (mask.active?.value ?? mask.active) yield mask;
   }
 
   function* activeBitmasks() {
-    for (const mask of activeMasks()) if (mask.bitmask.value) yield mask.bitmask.value;
+    for (const mask of activeMasks()) if (mask.bitmask?.value) yield mask.bitmask.value;
   }
 
   function* activeLabelMasks() {
@@ -165,7 +165,7 @@ export function useDataset(params: {
     inclusive: toRef(inclusive),
     pyMask,
     searchMask,
-    indexMask,
+    indexMasks,
     labelMaskGroups: params.labelMasks,
     bitmask: toRef(bitmask),
     masks,
@@ -189,8 +189,8 @@ export interface Results {
   hasNext: ComputedRef<boolean>;
 }
 
-export function useResults(): Results {
-  const dataStore = useDatasetStore();
+export function useResults<K extends Indexes>(dataset: Dataset<K>): Results {
+  // const dataStore = useDatasetStore();
   const REQUEST_DELAY = 250;
   const MAX_PAGES = 8;
 
@@ -199,7 +199,7 @@ export function useResults(): Results {
   const documents = ref<AnnotatedDocument[]>([]);
 
   const { call: update, delayedCall: delayedUpdate } = useDelay(async () => {
-    documents.value = await dataStore.dataset!.documents({ page: page.value, limit: limit.value });
+    documents.value = await dataset.documents({ page: page.value, limit: limit.value });
     return documents.value;
   }, REQUEST_DELAY);
 
@@ -216,7 +216,7 @@ export function useResults(): Results {
   }
 
   const numPages = computed(() => {
-    const total = dataStore.dataset?.counts.value.countFiltered;
+    const total = dataset.counts.value.countFiltered;
     return Math.ceil((total ?? 0) / limit.value);
   });
   const pages = computed(() => {
@@ -231,7 +231,7 @@ export function useResults(): Results {
     return [...Array(Math.min(MAX_PAGES)).keys()].map((p) => p + firstPage);
   });
 
-  watch(dataStore.dataset!.version, delayedUpdate);
+  watch(dataset.version, delayedUpdate);
   watch([page, limit], update);
 
   return {
@@ -247,7 +247,7 @@ export function useResults(): Results {
   };
 }
 
-export async function loadDataset(params: {
+export async function loadDataset<K extends Indexes>(params: {
   info: DatasetInfo;
   dataset: string;
   scheme: Scheme;
@@ -256,8 +256,8 @@ export async function loadDataset(params: {
   dataCallback: (bytesLoaded: number) => void;
   startYear: number;
   endYear: number;
-}): Promise<Dataset> {
-  return new Promise(async (resolve: (res: Dataset) => void, reject) => {
+}): Promise<Dataset<K>> {
+  return new Promise(async (resolve: (res: Dataset<K>) => void, reject) => {
     // request all masks
     let numLoadedMasks = 0;
     const maskBuffer: Record<string, MaskBufferEntry> = {};
@@ -310,7 +310,7 @@ export async function loadDataset(params: {
         );
 
         resolve(
-          useDataset({
+          useDataset<K>({
             info: params.info,
             name: params.dataset,
             scheme: params.scheme,

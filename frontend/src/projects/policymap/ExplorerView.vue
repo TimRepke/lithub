@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import { useDatasetStore } from "@/stores/datasetstore.ts";
 import SidebarLabelFilter from "@/components/SidebarLabelFilter.vue";
 import SidebarSearchFilter from "@/components/SidebarSearchFilter.vue";
@@ -10,21 +10,24 @@ import PaginationNav from "@/components/PaginationNav.vue";
 import HistogramFilter from "@/components/HistogramFilter.vue";
 import ScatterLandscape from "@/components/ScatterLandscape.vue";
 
-const dataStore = useDatasetStore();
-const results = useResults();
+type IndexKeys = "scatter";
+const dataStore = useDatasetStore<IndexKeys>();
+const results = useResults(dataStore.dataset!);
 
 const {
+  //
   arrow,
   counts: globalCounts,
   inclusive,
   bitmask: globalMask,
   labelMaskGroups,
+  indexMasks,
   pyMask,
   searchMask,
-  indexMask
 } = dataStore.dataset!;
-const { documents } = results;
 
+const { scatter: scatterMask } = indexMasks.masks;
+const { documents } = results;
 const pickedColour = ref("ins");
 </script>
 
@@ -59,7 +62,7 @@ const pickedColour = ref("ins");
 
     <div class="scatter-column">
       <div class="column-head">Scatterplot</div>
-      <ScatterLandscape :arrow="arrow" v-model:global-mask="globalMask" v-model:mask="indexMask" />
+      <ScatterLandscape :arrow="arrow" v-model:global-mask="globalMask" v-model:mask="scatterMask" />
     </div>
 
     <div class="results-column">
