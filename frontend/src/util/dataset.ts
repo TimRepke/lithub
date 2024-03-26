@@ -1,6 +1,14 @@
-import { type ReadonlyRef, AnnotatedDocument, ArrowSchema, DatasetInfo, Scheme } from "@/util/types";
+import {
+  type ReadonlyRef,
+  AnnotatedDocument,
+  ArrowSchema,
+  DatasetInfo,
+  Scheme,
+  Keyword,
+  KeywordArrowSchema,
+} from "@/util/types";
 import { type Bitmask, and, or, isNew } from "@/util/dataset/masks/bitmask.ts";
-import { DATA_BASE, GETWithProgress, POST } from "@/util/api.ts";
+import { DATA_BASE, GETWithProgress, POST, request } from "@/util/api.ts";
 import { type Ref, type ComputedRef, readonly, ref, toRef, watch, computed } from "vue";
 import { type Table, tableFromIPC } from "apache-arrow";
 import { type HistogramMask, useHistogramMask } from "@/util/dataset/masks/histogram.ts";
@@ -38,6 +46,7 @@ export interface Dataset<K extends Indexes> {
 
   bitmask: Ref<Bitmask | None>; // aggregate global mask
   inclusive: Ref<boolean>; // when true, use OR for combination, else AND
+  keywords: Ref<Keyword[]>;
 
   masks(): Generator<AnyMask, void, any>;
 
@@ -79,12 +88,32 @@ export function useDataset<K extends Indexes>(params: {
 
   const bitmask = ref<Bitmask | None>();
 
+  const keywords = ref<Keyword[]>([]);
+  if (params.info.keywords_filename) {
+    request({ method: "GET", path: `${DATA_BASE}/${params.info.key}/${params.info.keywords_filename}` }).then(
+      async (response) => {
+        const keywordsArrow = await tableFromIPC<KeywordArrowSchema>(response.arrayBuffer());
+        const xs = keywordsArrow.getChild("x")!;
+        const ys = keywordsArrow.getChild("y")!;
+        const levels = keywordsArrow.getChild("level")!;
+        const kws = keywordsArrow.getChild("keyword")!;
+
+        const _keywords: Keyword[] = new Array(keywordsArrow.numRows);
+        for (let i = 0; i < keywordsArrow.numRows; i++) {
+          _keywords[i] = { x: xs.get(i), y: ys.get(i), level: levels.get(i), keyword: kws.get(i) };
+        }
+        // sort by level so later on we can just grab the first N keywords and get from top to bottom
+        _keywords.sort((a, b) => b.level - a.level);
+        keywords.value = _keywords;
+      },
+    );
+  }
+
   function update() {
     const newMask = inclusive.value ? or(...activeBitmasks()) : and(...activeBitmasks());
     if (isNew(bitmask.value, newMask)) {
       bitmask.value = newMask;
       for (const mask of masks()) {
-        console.log(mask);
         mask.updateCounts(hasActiveMask() ? bitmask.value : null);
       }
       _counts.value.countFiltered = bitmask.value?.count ?? _counts.value.countTotal;
@@ -168,6 +197,7 @@ export function useDataset<K extends Indexes>(params: {
     indexMasks,
     labelMaskGroups: params.labelMasks,
     bitmask: toRef(bitmask),
+    keywords: toRef(keywords),
     masks,
     activeMasks,
     activeBitmasks,

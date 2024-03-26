@@ -14,8 +14,8 @@ type IndexKeys = "scatter";
 const dataStore = useDatasetStore<IndexKeys>();
 const results = useResults(dataStore.dataset!);
 
+// eslint-disable-next-line object-curly-newline
 const {
-  //
   arrow,
   counts: globalCounts,
   inclusive,
@@ -24,6 +24,8 @@ const {
   indexMasks,
   pyMask,
   searchMask,
+  keywords,
+  // eslint-disable-next-line object-curly-newline
 } = dataStore.dataset!;
 
 const { scatter: scatterMask } = indexMasks.masks;
@@ -62,7 +64,12 @@ const pickedColour = ref("ins");
 
     <div class="scatter-column">
       <div class="column-head">Scatterplot</div>
-      <ScatterLandscape :arrow="arrow" v-model:global-mask="globalMask" v-model:mask="scatterMask" />
+      <ScatterLandscape
+        :arrow="arrow"
+        v-model:global-mask="globalMask"
+        v-model:mask="scatterMask"
+        v-model:keywords="keywords"
+      />
     </div>
 
     <div class="results-column">

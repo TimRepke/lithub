@@ -2,16 +2,22 @@
 import { IndexMask } from "@/util/dataset/masks/ids.ts";
 import { onMounted, type PropType, ref, watch } from "vue";
 import type { Table } from "apache-arrow";
-import type { ArrowSchema } from "@/util/types";
+import type { ArrowSchema, Keyword, ReglScatterplot } from "@/util/types";
 import { type None, useDelay } from "@/util";
 import type { Bitmask } from "@/util/dataset/masks/bitmask.ts";
-import { scaleLinear, scaleLog } from "d3-scale";
+import { scaleLinear } from "d3-scale";
 import createScatterplot from "regl-scatterplot";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { Scale } from "regl-scatterplot/dist/types";
 
+// type ViewPayload = Pick<Properties, "camera" | "xScale" | "yScale"> & { view: Properties["cameraView"] };
+type ViewBounds = { topRight: [number, number]; bottomLeft: [number, number] };
 type Point = [number, number, number, number];
+
+const uniq = crypto.randomUUID();
 const globalMask = defineModel<Bitmask | None>("globalMask", { required: true });
 const mask = defineModel<IndexMask>("mask", { required: true });
+const keywords = defineModel<Keyword[]>("keywords", { required: true });
 const props = defineProps({
   arrow: { type: Object as PropType<Table<ArrowSchema>>, required: true },
 });
@@ -20,18 +26,18 @@ const { selectIds, clear: clearSelection, active, counts } = mask.value;
 
 const canvasContainerElement = ref<HTMLDivElement | null>(null);
 const canvasElement = ref<HTMLCanvasElement | null>(null);
+const keywordsVisible = ref(true);
 
 let points: Point[];
-let scatterplot;
-const maxPointLabels = 200;
+let scatterplot: ReglScatterplot;
+
+const MAX_KEYWORDS_IN_VIEW = 20;
 const lassoMinDelay = 10;
 const lassoMinDist = 2;
+const pointSize = 1;
 
-let pointSize = 1;
-let selection = [];
 onMounted(async () => {
   console.time("loading points");
-  console.log(props.arrow);
   const x = props.arrow!.getChild("x")!;
   const y = props.arrow!.getChild("y")!;
   const { numRows } = props.arrow!;
@@ -68,10 +74,6 @@ onMounted(async () => {
 
     const overlayFontSize = 12;
     const textOverlayCtx = textOverlayEl.getContext("2d");
-    if (!textOverlayCtx) return;
-
-    textOverlayCtx.font = `${overlayFontSize * window.devicePixelRatio}px sans-serif`;
-    textOverlayCtx.textAlign = "center";
 
     scatterplot = createScatterplot({
       // backgroundColor: "#333333",
@@ -92,88 +94,88 @@ onMounted(async () => {
     console.time("first draw");
     await scatterplot.draw(points);
     console.timeEnd("first draw");
-    await scatterplot.zoomToLocation([0.5, 0.5], 0.5);
 
-    scatterplot.subscribe("select", async ({ points: selectedPoints }) => {
-      console.log("Selected:", selectedPoints);
-      selection = selectedPoints;
-      if (selection.length === 1) {
-        const point = points[selection[0]];
-        console.log(`X: ${point[0]}\nY: ${point[1]}\nCategory: ${point[2]}\nValue: ${point[3]}`);
+    // await scatterplot.zoomToLocation([0.5, 0.5], 0.5);
+
+    function getViewBounds(xScale: Scale, yScale: Scale): ViewBounds {
+      const rect = canvas!.getBoundingClientRect();
+      const topRight: [number, number] = [xScale!.invert(rect.width / window.devicePixelRatio), yScale!.invert(0)];
+      const bottomLeft: [number, number] = [xScale!.invert(0), yScale!.invert(rect.height / window.devicePixelRatio)];
+      return { topRight, bottomLeft };
+    }
+
+    function inBounds(bounds: ViewBounds, x: number, y: number): boolean {
+      const { topRight, bottomLeft } = bounds;
+      return x > bottomLeft[0] && x < topRight[0] && y < topRight[1] && y > bottomLeft[1];
+    }
+
+    function redrawKeywords() {
+      if (textOverlayCtx && canvas && scatterplot) {
+        textOverlayCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const xScale: Scale | null = scatterplot.get("xScale");
+        const yScale: Scale | null = scatterplot.get("yScale");
+
+        if (keywordsVisible.value && xScale && yScale) {
+          textOverlayCtx.font = "1.2em bold, sans-serif";
+          textOverlayCtx.textAlign = "center";
+          textOverlayCtx.lineWidth = 4;
+          textOverlayCtx.miterLimit = 2;
+
+          const viewBounds = getViewBounds(xScale, yScale);
+
+          let cnt = 0;
+          let x;
+          let y;
+          for (const keyword of keywords.value) {
+            if (inBounds(viewBounds, keyword.x, keyword.y)) {
+              cnt += 1;
+              x = xScale(keyword.x) * window.devicePixelRatio;
+              y = yScale(keyword.y) * window.devicePixelRatio - overlayFontSize * 1.2 * window.devicePixelRatio;
+
+              textOverlayCtx.strokeStyle = "white";
+              textOverlayCtx.strokeText(keyword.keyword, x, y);
+              textOverlayCtx.fillStyle = "black";
+              textOverlayCtx.fillText(keyword.keyword, x, y);
+            }
+            if (cnt > MAX_KEYWORDS_IN_VIEW) break;
+          }
+        }
       }
-      selectIds(selectedPoints);
-    });
+    }
 
-    scatterplot.subscribe("deselect", async () => {
-      console.log("Unselected!");
-      clearSelection();
-      // TODO: propagate information
-    });
+    // initial drawing of keywords
+    redrawKeywords();
 
-    const showPointLabels = (pointsInView, xScale, yScale) => {
-      textOverlayCtx.clearRect(0, 0, canvas.width, canvas.height);
-      textOverlayCtx.fillStyle = "rgb(255, 255, 255)";
+    scatterplot.subscribe("view", redrawKeywords);
+    scatterplot.subscribe("select", async ({ points: selectedPoints }) => selectIds(selectedPoints));
+    scatterplot.subscribe("deselect", clearSelection);
 
-      for (let i = 0; i < pointsInView.length; i++) {
-        textOverlayCtx.fillText(
-          pointsInView[i],
-          xScale(points[pointsInView[i]][0]) * window.devicePixelRatio,
-          yScale(points[pointsInView[i]][1]) * window.devicePixelRatio -
-          overlayFontSize * 1.2 * window.devicePixelRatio,
-        );
-      }
-    };
-
-    const hidePointLabels = () => {
-      textOverlayCtx.clearRect(0, 0, canvas.width, canvas.height);
-    };
-
-    scatterplot.subscribe("view", ({ xScale, yScale }) => {
-      const pointsInView = scatterplot.get("pointsInView");
-      if (pointsInView.length <= maxPointLabels) {
-        showPointLabels(pointsInView, xScale, yScale);
-      } else {
-        hidePointLabels();
-      }
-    });
-
-    const getPointSizeRange = (basePointSize) => {
-      const pointSizeScale = scaleLog()
-        .domain([1, 10])
-        .range([basePointSize, basePointSize * 10]);
-
-      return Array(100)
-        .fill()
-        .map((x, i) => pointSizeScale(1 + (i / 99) * 9));
-    };
-
-    const setPointSize = (newPointSize) => {
-      pointSize = newPointSize;
-      scatterplot.set({ pointSize: getPointSizeRange(pointSize) });
-    };
-
-    setPointSize(pointSize);
-
-    console.log(scatterplot)
-    console.log(canvasElement.value)
     const { delayedCall: delayedRedraw } = useDelay(() => {
       //
     }, 100);
-    watch(globalMask, delayedRedraw);
 
-    const containerObserver = new ResizeObserver((r) => {
-      console.log(r[0].contentRect.width, r[0].contentRect.height);
-    });
-    containerObserver.observe(canvasContainer);
+    watch(globalMask, delayedRedraw);
+    watch(keywordsVisible, redrawKeywords);
+
+    // const containerObserver = new ResizeObserver((r) => {
+    //   console.log(r[0].contentRect.width, r[0].contentRect.height);
+    // });
+    // containerObserver.observe(canvasContainer);
   }
 });
-const uniq = crypto.randomUUID();
 </script>
 
 <template>
   <div class="scatter-container">
     <div class="ms-auto">
       <span>{{ counts.countFiltered.toLocaleString() }} / {{ counts.countTotal.toLocaleString() }}</span>
+      <span class="icon-toggle">
+        <input type="checkbox" :id="`kws-scatter-${uniq}`" v-model="keywordsVisible" />
+        <label :for="`kws-scatter-${uniq}`" class="icon">
+          <font-awesome-icon icon="closed-captioning" />
+        </label>
+      </span>
       <span class="icon-toggle">
         <input type="checkbox" :id="`active-scatter-${uniq}`" v-model="active" />
         <label :for="`active-scatter-${uniq}`" class="icon">
