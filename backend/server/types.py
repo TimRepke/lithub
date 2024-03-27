@@ -16,21 +16,23 @@ class SchemeLabel(BaseModel):
     type: Literal['single', 'bool', 'multi']
     values: list[SchemeLabelValue]
 
+    parent_key: str | None = None
+    parent_val: bool | int | None = None
+
 
 class DatasetInfo(BaseModel):
     model_config = ConfigDict(extra='ignore')
 
     name: str
     teaser: str
-    # description: str
 
-    #  authors: list[str] | None = None
-    # contributors: list[str] | None = None
+    authors: list[str] | None = None
+    contributors: list[str] | None = None
 
     created_date: date
     last_update: date
 
-    # figure: str | None = None
+    figure: str | None = None
 
 
 class DatasetInfoFull(DatasetInfo):
@@ -43,6 +45,7 @@ class DatasetInfoFull(DatasetInfo):
     end_year: int = 2024
 
     scheme: dict[str, SchemeLabel]
+    default_colour: str
 
 
 class DatasetInfoWeb(DatasetInfoFull):
