@@ -23,8 +23,7 @@ export interface LabelValueMask extends MaskBase {
   colourHSL: HSLColour;
   colourHex: string;
   threshold: ReadonlyRef<number>;
-
-  setThreshold(threshold?: number | null): void;
+  setThreshold: (threshold?: number | null) => Promise<void>;
 }
 
 export interface LabelMaskGroup extends GroupMaskBase<number, LabelValueMask> {
@@ -35,6 +34,7 @@ export interface LabelMaskGroup extends GroupMaskBase<number, LabelValueMask> {
   hexColours: Ref<string[]>;
   hslColours: Ref<HSLColour[]>;
   type: SchemeLabelType;
+  setThreshold: (threshold?: number | null) => Promise<void>;
 }
 
 export function useLabelValueMask(params: {
@@ -130,6 +130,12 @@ export function useLabelMaskGroup(params: {
     });
   }
 
+  async function setThreshold(threshold: number | null = null) {
+    for (const mask of Object.values(masks)) {
+      await mask.setThreshold(threshold);
+    }
+  }
+
   watch(
     Object.values(masks).map((mask) => mask.active),
     () => (active.value = true),
@@ -144,6 +150,7 @@ export function useLabelMaskGroup(params: {
     hexColours: toRef(hexColours),
     hslColours: toRef(hslColours),
     updateCounts,
+    setThreshold,
   };
 }
 

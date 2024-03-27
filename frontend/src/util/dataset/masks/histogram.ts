@@ -11,10 +11,8 @@ export interface HistogramMask extends GroupMaskBase<number, HistogramValueMask>
   years: number[];
   masks: Record<number, HistogramValueMask>;
   restMask: HistogramValueMask;
-
-  selectRange(begin: number, end: number): void;
-
-  selectYears(years: number[]): void;
+  selectRange: (begin: number, end: number) => void;
+  selectYears: (years: number[]) => void;
 }
 
 export interface HistogramValueMask extends MaskBase {

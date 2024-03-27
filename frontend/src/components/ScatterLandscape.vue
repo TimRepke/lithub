@@ -164,8 +164,6 @@ onMounted(async () => {
       for (let i = 0; i < points.length; i++) {
         points[i][2] = colours[i];
       }
-      console.log(points);
-      console.log(pickedColour);
       scatterplot.set({
         pointColor: groupMasks.value[pickedColour.value].hexColours.value,
       });

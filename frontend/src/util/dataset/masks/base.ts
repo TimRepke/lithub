@@ -20,20 +20,13 @@ export interface MaskBase {
   version: ReadonlyRef<number>;
   counts: ReadonlyRef<Counts>;
   bitmask: Ref<Bitmask | None>;
-
-  setFilterCount(c: number): void;
-
-  setTotalCount(c: number): void;
-
-  setActive(active: boolean): void;
-
-  toggleActive(): void;
-
-  clear(): void;
-
-  update(): void;
-
-  updateCounts(globalMask: Bitmask | None): void;
+  setFilterCount: (c: number) => void;
+  setTotalCount: (c: number) => void;
+  setActive: (active: boolean) => void;
+  toggleActive: () => void;
+  clear: () => void;
+  update: () => void;
+  updateCounts: (globalMask: Bitmask | None) => void;
 }
 
 export interface GroupBaseParams<K extends string | number | symbol, M extends MaskBase> extends BaseParams {
@@ -44,8 +37,7 @@ export interface GroupBaseParams<K extends string | number | symbol, M extends M
 export interface GroupMaskBase<K extends string | number | symbol, M extends MaskBase> extends MaskBase {
   inclusive: Ref<boolean>;
   masks: Record<K, M>;
-
-  getCombinedMasks(): Bitmask | None;
+  getCombinedMasks: () => Bitmask | None;
 }
 
 export function useBase(params: BaseParams): MaskBase {
@@ -83,7 +75,7 @@ export function useBase(params: BaseParams): MaskBase {
     _counts.value.countTotal = c;
   }
 
-  function updateCounts(globalMask: Bitmask) {
+  function updateCounts(globalMask: Bitmask | None) {
     if (bitmask.value) _counts.value.countFiltered = and(globalMask, bitmask.value)?.count ?? _counts.value.countTotal;
   }
 

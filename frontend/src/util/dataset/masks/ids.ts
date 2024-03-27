@@ -13,10 +13,8 @@ export interface IndexMask extends MaskBase {
 
 export interface IndexMasks<K extends Indexes> extends GroupMaskBase<K, IndexMask> {
   masks: Record<K, IndexMask>;
-
-  registerMask(key: K): void;
-
-  unregisterMask(key: K): void;
+  registerMask: (key: K) => void;
+  unregisterMask: (key: K) => void;
 }
 
 export function useIndexMask(length: number): IndexMask {
