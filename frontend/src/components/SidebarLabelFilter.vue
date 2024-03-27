@@ -1,14 +1,18 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import InclusiveIcon from "@/components/InclusiveIcon.vue";
-import { LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
+import { DEFAULT_THRESHOLD, type LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
+import { useDelay } from "@/util";
 
 const uniq = crypto.randomUUID();
 const groupMask = defineModel<LabelMaskGroup>("groupMask", { required: true });
 const pickedColour = defineModel("pickedColour");
 
-const { name, masks, inclusive, active, key: maskKey } = groupMask.value;
+const threshold = ref<number>(DEFAULT_THRESHOLD);
+const editThreshold = ref<boolean>(false);
+
+const { name, masks, inclusive, active, key: maskKey, setThresholds } = groupMask.value;
 
 const styleColours = computed(() =>
   Object.fromEntries(
@@ -20,6 +24,10 @@ const styleColours = computed(() =>
     ]),
   ),
 );
+
+const { delayedCall: delayedSetThresholds } = useDelay(async () => await setThresholds(threshold.value), 250);
+
+watch(threshold, delayedSetThresholds);
 </script>
 
 <template>
@@ -28,6 +36,11 @@ const styleColours = computed(() =>
       <div>{{ name }}</div>
       <div>
         <InclusiveIcon v-model:inclusive="inclusive" />
+
+        <input type="checkbox" :id="`eth-${maskKey}-${uniq}`" v-model="editThreshold" />
+        <label :for="`eth-${maskKey}-${uniq}`" class="icon">
+          <font-awesome-icon icon="sliders" />
+        </label>
 
         <input
           type="radio"
@@ -46,6 +59,20 @@ const styleColours = computed(() =>
         </label>
       </div>
     </div>
+
+    <div v-if="editThreshold">
+      <label :for="`th-${maskKey}-${uniq}`" class="form-label">Threshold >= {{ threshold }}</label>
+      <input
+        type="range"
+        class="form-range"
+        min="0"
+        max="1"
+        step="0.05"
+        v-model="threshold"
+        :id="`th-${maskKey}-${uniq}`"
+      />
+    </div>
+
     <div class="filter-masks">
       <template v-for="(mask, mKey) in masks" :key="mKey">
         <input type="checkbox" :id="`active-${maskKey}-${mKey}-${uniq}`" v-model="mask.active.value" />

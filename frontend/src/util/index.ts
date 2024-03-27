@@ -125,7 +125,7 @@ export function useDelay<T extends Array<any>, U>(fn: (...args: T) => U, delay: 
     return fn(...args);
   }
 
-  function delayedCall(...args: T): Promise<U> {
+  async function delayedCall(...args: T): Promise<U> {
     clear();
     return new Promise((resolve) => {
       // @ts-ignore

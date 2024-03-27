@@ -6,7 +6,7 @@ import { and, Bitmask } from "@/util/dataset/masks/bitmask.ts";
 import type { MaskBase } from "@/util/dataset/masks/base.ts";
 import { colKey, GroupMaskBase, useBase, useGroupBase } from "@/util/dataset/masks/base.ts";
 
-const DEFAULT_THRESHOLD = 0.5;
+export const DEFAULT_THRESHOLD = 0.5;
 
 export interface MaskBufferEntry {
   key: string;
@@ -34,7 +34,7 @@ export interface LabelMaskGroup extends GroupMaskBase<number, LabelValueMask> {
   hexColours: Ref<string[]>;
   hslColours: Ref<HSLColour[]>;
   type: SchemeLabelType;
-  setThreshold: (threshold?: number | null) => Promise<void>;
+  setThresholds: (threshold?: number | null) => Promise<void>;
 }
 
 export function useLabelValueMask(params: {
@@ -46,7 +46,7 @@ export function useLabelValueMask(params: {
   bitmask: Bitmask;
 }): LabelValueMask {
   const base = useBase({ bitmask: params.bitmask, active: false });
-  const { setFilterCount, counts, bitmask } = base;
+  const { setFilterCount, setTotalCount, counts, bitmask } = base;
 
   const _threshold = ref(DEFAULT_THRESHOLD);
   const threshold = readonly(_threshold);
@@ -56,7 +56,12 @@ export function useLabelValueMask(params: {
   async function setThreshold(threshold: number | null = null) {
     if (threshold !== null) _threshold.value = threshold;
     bitmask.value = await loadMask(params.dataset, column, _threshold.value);
-    this.update();
+
+    const newTotal = bitmask.value.count;
+    setTotalCount(newTotal);
+    setFilterCount(newTotal);
+
+    base.update();
   }
 
   function updateCounts(globalMask: Bitmask | None) {
@@ -130,7 +135,7 @@ export function useLabelMaskGroup(params: {
     });
   }
 
-  async function setThreshold(threshold: number | null = null) {
+  async function setThresholds(threshold: number | null = null) {
     for (const mask of Object.values(masks)) {
       await mask.setThreshold(threshold);
     }
@@ -150,7 +155,7 @@ export function useLabelMaskGroup(params: {
     hexColours: toRef(hexColours),
     hslColours: toRef(hslColours),
     updateCounts,
-    setThreshold,
+    setThresholds,
   };
 }
 
