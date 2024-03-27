@@ -3,22 +3,25 @@ import { IndexMask } from "@/util/dataset/masks/ids.ts";
 import { onMounted, type PropType, ref, watch } from "vue";
 import type { Table } from "apache-arrow";
 import type { ArrowSchema, Keyword, ReglScatterplot } from "@/util/types";
-import { type None, useDelay } from "@/util";
+import { type None } from "@/util";
 import type { Bitmask } from "@/util/dataset/masks/bitmask.ts";
 import { scaleLinear } from "d3-scale";
 import createScatterplot from "regl-scatterplot";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { Scale } from "regl-scatterplot/dist/types";
+import { LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
 
 // type ViewPayload = Pick<Properties, "camera" | "xScale" | "yScale"> & { view: Properties["cameraView"] };
 type ViewBounds = { topRight: [number, number]; bottomLeft: [number, number] };
 type Point = [number, number, number, number];
 
 const uniq = crypto.randomUUID();
-const globalMask = defineModel<Bitmask | None>("globalMask", { required: true });
 const mask = defineModel<IndexMask>("mask", { required: true });
+const globalMask = defineModel<Bitmask | None>("globalMask", { required: true });
+const pickedColour = defineModel<string>("pickedColour", { required: true });
+const groupMasks = defineModel<Record<string, LabelMaskGroup>>("groupMasks", { required: true });
 const keywords = defineModel<Keyword[]>("keywords", { required: true });
-const props = defineProps({
+const { arrow } = defineProps({
   arrow: { type: Object as PropType<Table<ArrowSchema>>, required: true },
 });
 
@@ -32,15 +35,20 @@ let points: Point[];
 let scatterplot: ReglScatterplot;
 
 const MAX_KEYWORDS_IN_VIEW = 20;
+
+const OPACITY_DEFAULT = 1;
+const OPACITY_HIDDEN = 0.2;
+const POINT_SIZE_DEFAULT = 1.5;
+const POINT_SIZE_HIDDEN = 0.8;
+
 const lassoMinDelay = 10;
 const lassoMinDist = 2;
-const pointSize = 1;
 
 onMounted(async () => {
   console.time("loading points");
-  const x = props.arrow!.getChild("x")!;
-  const y = props.arrow!.getChild("y")!;
-  const { numRows } = props.arrow!;
+  const x = arrow.getChild("x")!;
+  const y = arrow.getChild("y")!;
+  const { numRows } = arrow;
   points = new Array(numRows);
   for (let i = 0; i < numRows; i++) {
     points[i] = [x.get(i), y.get(i), 1, 1];
@@ -76,20 +84,23 @@ onMounted(async () => {
     const textOverlayCtx = textOverlayEl.getContext("2d");
 
     scatterplot = createScatterplot({
-      // backgroundColor: "#333333",
       canvas: canvas,
       lassoMinDelay,
       lassoMinDist,
-      pointSize,
       showReticle: true,
       reticleColor: [1, 1, 0.878431373, 0.0],
       xScale: scaleLinear().domain([0, 1]),
       yScale: scaleLinear().domain([0, 1]),
-      pointColor: "#6a4480",
-      // opacityBy: 'valueA',
-      opacity: 1,
-      //opacityBy: "density",
+      opacity: [OPACITY_HIDDEN, OPACITY_DEFAULT],
+      pointSize: [POINT_SIZE_HIDDEN, POINT_SIZE_DEFAULT],
       lassoInitiator: true,
+      // opacityBy: "density",
+      // backgroundColor: "#333333",
+    });
+    scatterplot.set({
+      colorBy: "valueA",
+      opacityBy: "valueB",
+      sizeBy: "valueB",
     });
     console.time("first draw");
     await scatterplot.draw(points);
@@ -144,20 +155,41 @@ onMounted(async () => {
       }
     }
 
-    // initial drawing of keywords
-    redrawKeywords();
-
     scatterplot.subscribe("view", redrawKeywords);
     scatterplot.subscribe("select", async ({ points: selectedPoints }) => selectIds(selectedPoints));
     scatterplot.subscribe("deselect", clearSelection);
 
-    const { delayedCall: delayedRedraw } = useDelay(() => {
-      //
-    }, 100);
+    async function redrawColour() {
+      const colours = groupMasks.value[pickedColour.value].colours.value;
+      for (let i = 0; i < points.length; i++) {
+        points[i][2] = colours[i];
+      }
+      console.log(points);
+      console.log(pickedColour);
+      scatterplot.set({
+        pointColor: groupMasks.value[pickedColour.value].hexColours.value,
+      });
+      await scatterplot.draw(points);
+    }
 
-    watch(globalMask, delayedRedraw);
+    async function redrawMask() {
+      for (let i = 0; i < points.length; i++) {
+        points[i][3] = globalMask.value?.get(i) ?? true ? 1 : 0;
+      }
+      await scatterplot.draw(points);
+    }
+
+    // initial drawing of keywords (possible redundant to the watch, but make exta sure...)
+    redrawKeywords();
+    await redrawColour();
+
+    watch(keywords, redrawKeywords);
     watch(keywordsVisible, redrawKeywords);
+    watch(pickedColour, redrawColour);
+    watch(globalMask, redrawMask);
 
+    // In case resizing becomes an issue again:
+    // https://github.com/flekschas/regl-scatterplot?tab=readme-ov-file#resizing-the-scatterplot
     // const containerObserver = new ResizeObserver((r) => {
     //   console.log(r[0].contentRect.width, r[0].contentRect.height);
     // });
@@ -202,10 +234,11 @@ onMounted(async () => {
     position: relative;
     overflow: hidden;
     height: 0;
-
-    canvas {
-      /*background-color: #0a58ca;*/
-    }
+    /*
+        canvas {
+          background-color: #0a58ca;
+        }
+    */
   }
 }
 </style>

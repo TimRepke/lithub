@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { useDatasetStore } from "@/stores/datasetstore.ts";
 import SidebarLabelFilter from "@/components/SidebarLabelFilter.vue";
 import SidebarSearchFilter from "@/components/SidebarSearchFilter.vue";
@@ -9,12 +8,13 @@ import DocumentCard from "@/components/DocumentCard.vue";
 import PaginationNav from "@/components/PaginationNav.vue";
 import HistogramFilter from "@/components/HistogramFilter.vue";
 import ScatterLandscape from "@/components/ScatterLandscape.vue";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { ref } from "vue";
 
 type IndexKeys = "scatter";
 const dataStore = useDatasetStore<IndexKeys>();
 const results = useResults(dataStore.dataset!);
 
-// eslint-disable-next-line object-curly-newline
 const {
   arrow,
   counts: globalCounts,
@@ -25,12 +25,13 @@ const {
   pyMask,
   searchMask,
   keywords,
-  // eslint-disable-next-line object-curly-newline
+  pickedColour,
 } = dataStore.dataset!;
 
 const { scatter: scatterMask } = indexMasks.masks;
 const { documents } = results;
-const pickedColour = ref("ins");
+const labels = ref(["ins", "gov", "sec", "econ"]);
+
 </script>
 
 <template>
@@ -47,9 +48,9 @@ const pickedColour = ref("ins");
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
         </div>
         <HistogramFilter v-model:mask="pyMask" />
-        <SidebarLabelFilter v-model:group-mask="labelMaskGroups['ins']" v-model:picked-colour="pickedColour" />
-        <SidebarLabelFilter v-model:group-mask="labelMaskGroups['gov']" v-model:picked-colour="pickedColour" />
-        <SidebarLabelFilter v-model:group-mask="labelMaskGroups['sec']" v-model:picked-colour="pickedColour" />
+        <template v-for="label in labels" :key="label">
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups[label]" v-model:picked-colour="pickedColour" />
+        </template>
         <SidebarSearchFilter v-model:mask="searchMask" />
 
         <!--        <ul>-->
@@ -65,20 +66,35 @@ const pickedColour = ref("ins");
     <div class="scatter-column">
       <div class="column-head">Scatterplot</div>
       <ScatterLandscape
-        :arrow="arrow"
-        v-model:global-mask="globalMask"
         v-model:mask="scatterMask"
+        v-model:global-mask="globalMask"
+        v-model:group-masks="labelMaskGroups"
+        :arrow="arrow"
         v-model:keywords="keywords"
+        v-model:picked-colour="pickedColour"
       />
     </div>
 
     <div class="results-column">
       <div class="column-head">Results</div>
-      <div class="results-column-results">
-        <DocumentCard v-for="doc in documents" :key="doc.idx" :doc="doc" class="m-2" />
-      </div>
-      <div class="results-column-pagination">
-        <PaginationNav v-model:results="results" />
+      <template v-if="documents.length > 0">
+        <div class="results-column-results">
+          <DocumentCard v-for="doc in documents" :key="doc.idx" :doc="doc" class="m-2" />
+        </div>
+        <div class="results-column-pagination">
+          <PaginationNav v-model:results="results" />
+        </div>
+      </template>
+      <div v-else>
+        <div class="m-2 d-flex flex-row">
+          <div class="d-flex align-items-center me-2 fs-2">
+            <font-awesome-icon icon="file-lines" class="text-muted" />
+          </div>
+          <div>
+            No results, yet. <br />
+            Start applying filters to discover relevant documents.
+          </div>
+        </div>
       </div>
     </div>
   </div>

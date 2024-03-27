@@ -16,6 +16,9 @@ export interface SchemeLabel {
   key: string;
   type: SchemeLabelType;
   values: SchemeLabelValue[];
+
+  parent_key?: string | null;
+  parent_val?: boolean | number | null;
 }
 
 export type Scheme = Record<string, SchemeLabel>;
@@ -41,7 +44,7 @@ export interface DatasetInfo {
   arrow_filename: string;
   keywords_filename?: string | null;
   figure?: string | null;
-
+  default_colour: string;
   scheme: Scheme;
 }
 
@@ -95,8 +98,7 @@ export interface ReglScatterplot {
   draw: (newPoints: rspt.Points, options?: rspt.ScatterplotMethodOptions["draw"]) => Promise<void>;
   filter: (pointIdxs: number | number[], { preventEvent }?: rspt.ScatterplotMethodOptions["filter"]) => Promise<any>;
   get: <
-    Key extends
-      | "canvas"
+    Key extends | "canvas"
       | "points"
       | "camera"
       | "regl"
@@ -164,8 +166,7 @@ export interface ReglScatterplot {
   set: (properties: Partial<rspt.Settable>) => void;
   export: () => ImageData;
   subscribe: <
-    EventName extends
-      | "view"
+    EventName extends | "view"
       | "select"
       | "focus"
       | "destroy"

@@ -1,5 +1,5 @@
-import {
-  type ReadonlyRef,
+import type {
+  ReadonlyRef,
   AnnotatedDocument,
   ArrowSchema,
   DatasetInfo,
@@ -47,6 +47,7 @@ export interface Dataset<K extends Indexes> {
   bitmask: Ref<Bitmask | None>; // aggregate global mask
   inclusive: Ref<boolean>; // when true, use OR for combination, else AND
   keywords: Ref<Keyword[]>;
+  pickedColour: Ref<string>;
 
   masks(): Generator<AnyMask, void, any>;
 
@@ -63,13 +64,18 @@ export interface Dataset<K extends Indexes> {
 
 export function useDataset<K extends Indexes>(params: {
   info: DatasetInfo;
-  name: string;
-  scheme: Scheme;
   labelMasks: Record<string, LabelMaskGroup>;
   arrow: Table<ArrowSchema>;
-  startYear: number;
-  endYear: number;
 }): Dataset<K> {
+  const {
+    scheme,
+    start_year: startYear,
+    end_year: endYear,
+    key: name,
+    default_colour: defaultColour,
+    keywords_filename,
+  } = params.info;
+
   const inclusive = ref(true);
   const _counts = ref({
     countFiltered: params.arrow.numRows,
@@ -82,32 +88,32 @@ export function useDataset<K extends Indexes>(params: {
   const pyYears = params.arrow.getChild("publication_year");
   if (!pyYears) throw new Error("Missing publication_years column in arrow file!");
   // @ts-ignore
-  const pyMask = useHistogramMask(params.startYear, params.endYear, pyYears);
-  const searchMask = useSearchMask(params.name);
+  const pyMask = useHistogramMask(startYear, endYear, pyYears);
+  const searchMask = useSearchMask(name);
   const indexMasks = useIndexMasks(params.arrow.numRows);
 
   const bitmask = ref<Bitmask | None>();
 
   const keywords = ref<Keyword[]>([]);
   if (params.info.keywords_filename) {
-    request({ method: "GET", path: `${DATA_BASE}/${params.info.key}/${params.info.keywords_filename}` }).then(
-      async (response) => {
-        const keywordsArrow = await tableFromIPC<KeywordArrowSchema>(response.arrayBuffer());
-        const xs = keywordsArrow.getChild("x")!;
-        const ys = keywordsArrow.getChild("y")!;
-        const levels = keywordsArrow.getChild("level")!;
-        const kws = keywordsArrow.getChild("keyword")!;
+    request({ method: "GET", path: `${DATA_BASE}/${name}/${keywords_filename}` }).then(async (response) => {
+      const keywordsArrow = await tableFromIPC<KeywordArrowSchema>(response.arrayBuffer());
+      const xs = keywordsArrow.getChild("x")!;
+      const ys = keywordsArrow.getChild("y")!;
+      const levels = keywordsArrow.getChild("level")!;
+      const kws = keywordsArrow.getChild("keyword")!;
 
-        const _keywords: Keyword[] = new Array(keywordsArrow.numRows);
-        for (let i = 0; i < keywordsArrow.numRows; i++) {
-          _keywords[i] = { x: xs.get(i), y: ys.get(i), level: levels.get(i), keyword: kws.get(i) };
-        }
-        // sort by level so later on we can just grab the first N keywords and get from top to bottom
-        _keywords.sort((a, b) => b.level - a.level);
-        keywords.value = _keywords;
-      },
-    );
+      const _keywords: Keyword[] = new Array(keywordsArrow.numRows);
+      for (let i = 0; i < keywordsArrow.numRows; i++) {
+        _keywords[i] = { x: xs.get(i), y: ys.get(i), level: levels.get(i), keyword: kws.get(i) };
+      }
+      // sort by level so later on we can just grab the first N keywords and get from top to bottom
+      _keywords.sort((a, b) => b.level - a.level);
+      keywords.value = _keywords;
+    });
   }
+
+  const pickedColour = ref(defaultColour);
 
   function update() {
     const newMask = inclusive.value ? or(...activeBitmasks()) : and(...activeBitmasks());
@@ -164,7 +170,7 @@ export function useDataset<K extends Indexes>(params: {
     const orderBy = [...activeLabelMaskColumns()];
     const mask = (!dparams.ids || dparams.ids.length === 0) && hasActiveMask() ? bitmask.value?.toBase64() : undefined;
     return await POST<AnnotatedDocument[]>({
-      path: `/basic/documents/${params.name}`,
+      path: `/basic/documents/${name}`,
       params: {
         limit: dparams.limit ?? 10,
         page: dparams.page ?? 0,
@@ -186,12 +192,13 @@ export function useDataset<K extends Indexes>(params: {
 
   return {
     info: params.info,
-    name: params.name,
-    scheme: params.scheme,
+    name: name,
+    scheme: scheme,
     arrow: params.arrow,
     counts: toRef(counts),
     version: toRef(version),
     inclusive: toRef(inclusive),
+    pickedColour: toRef(pickedColour),
     pyMask,
     searchMask,
     indexMasks,
@@ -279,19 +286,16 @@ export function useResults<K extends Indexes>(dataset: Dataset<K>): Results {
 
 export async function loadDataset<K extends Indexes>(params: {
   info: DatasetInfo;
-  dataset: string;
-  scheme: Scheme;
-  arrowFile: string;
   maskCallback: (colsLoaded: number) => void;
   dataCallback: (bytesLoaded: number) => void;
-  startYear: number;
-  endYear: number;
 }): Promise<Dataset<K>> {
+  const { scheme, key: dataset, arrow_filename: arrowFile } = params.info;
+
   return new Promise(async (resolve: (res: Dataset<K>) => void, reject) => {
     // request all masks
     let numLoadedMasks = 0;
     const maskBuffer: Record<string, MaskBufferEntry> = {};
-    const maskPromises = Object.entries(params.scheme) //
+    const maskPromises = Object.entries(scheme) //
       .flatMap(([key, label]) =>
         label.values.map(async (value) => {
           if (!(key in maskBuffer))
@@ -303,7 +307,7 @@ export async function loadDataset<K extends Indexes>(params: {
             };
           maskBuffer[key].masks.push(
             await loadLabelValueMask({
-              dataset: params.dataset,
+              dataset: dataset,
               name: value.name,
               key,
               value: value.value,
@@ -316,7 +320,7 @@ export async function loadDataset<K extends Indexes>(params: {
 
     // request arrow base
     const arrowRaw = await GETWithProgress({
-      path: DATA_BASE + `/${params.dataset}/${params.arrowFile}`,
+      path: DATA_BASE + `/${dataset}/${arrowFile}`,
       progressCallback: params.dataCallback,
     });
     const arrow = tableFromIPC<ArrowSchema>(arrowRaw);
@@ -329,7 +333,7 @@ export async function loadDataset<K extends Indexes>(params: {
             return [
               key,
               useLabelMaskGroup({
-                dataset: params.dataset,
+                dataset: dataset,
                 key: entry.key,
                 name: entry.name,
                 type: entry.type,
@@ -342,12 +346,8 @@ export async function loadDataset<K extends Indexes>(params: {
         resolve(
           useDataset<K>({
             info: params.info,
-            name: params.dataset,
-            scheme: params.scheme,
             labelMasks: groupedLabelMasks,
             arrow,
-            startYear: params.startYear,
-            endYear: params.endYear,
           }),
         );
       })

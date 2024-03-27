@@ -24,7 +24,7 @@ module.exports = {
       {
         // maximum length of lines
         code: 140,
-        ignorePattern: '(d|style)="[^"]*"', // do this to ignore long lines for svg paths and long styles
+        ignorePattern: "(d|style)=\"[^\"]*\"", // do this to ignore long lines for svg paths and long styles
         ignoreStrings: true,
         ignoreTrailingComments: true, // allow comments to be longer than max. line length
       },
@@ -35,12 +35,13 @@ module.exports = {
     //   },
     //   allowChildren: false,
     // }],
-    "object-curly-newline": [
-      "error",
-      {
-        ObjectPattern: "never",
-      },
-    ],
+    "object-curly-newline": "off",
+    //   [
+    //   "error",
+    //   {
+    //     ObjectPattern: "never",
+    //   },
+    // ],
     "class-methods-use-this": "off",
     "prefer-promise-reject-errors": "off",
     "vuejs-accessibility/click-events-have-key-events": "off",

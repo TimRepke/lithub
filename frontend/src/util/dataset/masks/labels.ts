@@ -1,5 +1,5 @@
 import { request } from "@/util/api.ts";
-import { readonly, ref, toRef, watch } from "vue";
+import { computed, readonly, Ref, ref, toRef, watch } from "vue";
 import type { HSLColour, ReadonlyRef, SchemeLabelType } from "@/util/types";
 import { hslToHex, None } from "@/util";
 import { and, Bitmask } from "@/util/dataset/masks/bitmask.ts";
@@ -30,6 +30,10 @@ export interface LabelValueMask extends MaskBase {
 export interface LabelMaskGroup extends GroupMaskBase<number, LabelValueMask> {
   name: string;
   key: string;
+
+  colours: Ref<number[]>;
+  hexColours: Ref<string[]>;
+  hslColours: Ref<HSLColour[]>;
   type: SchemeLabelType;
 }
 
@@ -98,6 +102,28 @@ export function useLabelMaskGroup(params: {
   const base = useGroupBase({ masks });
   const { active } = base;
 
+  // prepend new colour for "undefined"
+  const hslColours = computed<HSLColour[]>(() =>
+    [[165, 3.0, 77.0] as HSLColour].concat(Object.values(masks).map((mask) => mask.colourHSL)),
+  );
+  const hexColours = computed<string[]>(() => hslColours.value.map((col) => hslToHex(...col)));
+  const colours = computed<number[]>(() => {
+    function first(row: number): number {
+      for (let j = 0; j < bitmasks.length; j++) {
+        if (bitmasks[j].get(row)) return j + 1;
+      }
+      return 0;
+    }
+
+    const bitmasks = Object.values(masks).map((mask) => mask.bitmask.value!);
+    const len = bitmasks[0].length;
+    const ret: number[] = new Array(len);
+    for (let i = 0; i < len; i++) {
+      ret[i] = first(i);
+    }
+    return ret;
+  });
+
   function updateCounts(globalMask: Bitmask | None) {
     Object.values(masks).forEach((mask) => {
       mask.updateCounts(globalMask);
@@ -114,6 +140,9 @@ export function useLabelMaskGroup(params: {
     type: params.type,
     key: params.key,
     name: params.name,
+    colours: toRef(colours),
+    hexColours: toRef(hexColours),
+    hslColours: toRef(hslColours),
     updateCounts,
   };
 }

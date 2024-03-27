@@ -17,7 +17,7 @@ onMounted(async () => {
 
 <template>
   <div class="d-flex flex-row">
-    <h1>Climate policy instruments</h1>
+    <h2 class="m-0 ms-1 mt-1">Climate policy instruments</h2>
     <ul class="nav nav-underline ms-auto me-4">
       <li class="nav-item">
         <router-link :to="{ name: route.children![0].name }" class="nav-link" exact-active-class="active">

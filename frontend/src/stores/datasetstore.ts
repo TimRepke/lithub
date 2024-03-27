@@ -31,15 +31,10 @@ export function useDatasetStore<K extends Indexes>() {
 
       _dataset.value = await loadDataset<K>({
         info: info,
-        dataset: info.key,
-        scheme: info.scheme,
-        arrowFile: info.arrow_filename,
         maskCallback: (colsLoaded) => {
           (loadingProgress.value as LoadInfo).progressCols = colsLoaded;
         },
         dataCallback: (bytesLoaded) => ((loadingProgress.value as LoadInfo).progressArrow = bytesLoaded),
-        startYear: info.start_year,
-        endYear: info.end_year,
       });
 
       // Stop loading counter
