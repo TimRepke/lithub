@@ -10,6 +10,9 @@ import HistogramFilter from "@/components/HistogramFilter.vue";
 import ScatterLandscape from "@/components/ScatterLandscape.vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { ref } from "vue";
+import GeoMap from "@/components/GeoMap.vue";
+import ToggleIcon from "@/components/ToggleIcon.vue";
+import ScatterIcon from "@/components/icons/ScatterIcon.vue";
 
 type IndexKeys = "scatter";
 const dataStore = useDatasetStore<IndexKeys>();
@@ -32,6 +35,8 @@ const { scatter: scatterMask } = indexMasks.masks;
 const { documents } = results;
 const labels = ref(["ins", "gov", "sec", "econ"]);
 
+type MiddleColumns = "Scatterplot" | "World Map" | "Evidence Gaps";
+const middleColumn = ref<MiddleColumns>("World Map");
 </script>
 
 <template>
@@ -63,16 +68,38 @@ const labels = ref(["ins", "gov", "sec", "econ"]);
       </div>
     </div>
 
-    <div class="scatter-column">
-      <div class="column-head">Scatterplot</div>
-      <ScatterLandscape
-        v-model:mask="scatterMask"
-        v-model:global-mask="globalMask"
-        v-model:group-masks="labelMaskGroups"
-        :arrow="arrow"
-        v-model:keywords="keywords"
-        v-model:picked-colour="pickedColour"
-      />
+    <div class="middle-column">
+      <div class="column-head d-flex flex-row">
+        <div> {{ middleColumn }}</div>
+        <div class="d-flex flex-row ms-auto p-1" style="height: 1em; font-size: 0.75em">
+          <ToggleIcon name="mid-col-tab" v-model:model="middleColumn" value="Scatterplot">
+            <template #iconTrue>
+              <ScatterIcon />
+            </template>
+          </ToggleIcon>
+          <ToggleIcon name="mid-col-tab" v-model:model="middleColumn" icon="earth-africa" value="World Map" />
+          <ToggleIcon name="mid-col-tab" v-model:model="middleColumn" icon="chart-gantt" value="Evidence Gaps" />
+        </div>
+      </div>
+
+      <template v-if="middleColumn === 'Scatterplot'">
+        <ScatterLandscape
+          v-model:mask="scatterMask"
+          v-model:global-mask="globalMask"
+          v-model:group-masks="labelMaskGroups"
+          :arrow="arrow"
+          v-model:keywords="keywords"
+          v-model:picked-colour="pickedColour"
+        />
+      </template>
+
+      <template v-if="middleColumn === 'World Map'">
+        <GeoMap class="flex-grow-1" />
+      </template>
+
+      <template v-if="middleColumn === 'Evidence Gaps'">
+        Coming soon.
+      </template>
     </div>
 
     <div class="results-column">
@@ -149,7 +176,7 @@ const labels = ref(["ins", "gov", "sec", "econ"]);
   }
 }
 
-.scatter-column {
+.middle-column {
   grid-area: col2;
   resize: horizontal;
   min-width: 150px;
