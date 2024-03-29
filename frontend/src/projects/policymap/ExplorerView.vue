@@ -33,7 +33,7 @@ const {
 
 const { scatter: scatterMask } = indexMasks.masks;
 const { documents } = results;
-const labels = ref(["ins", "gov", "sec", "econ"]);
+const labels = ref(["sec", "ins", "gov", "econ"]);
 
 type MiddleColumns = "Scatterplot" | "World Map" | "Evidence Gaps";
 const middleColumn = ref<MiddleColumns>("World Map");
@@ -43,15 +43,16 @@ const middleColumn = ref<MiddleColumns>("World Map");
   <div class="explorer-container">
     <div class="filter-sidebar">
       <div class="column-head">Filters</div>
-      <div class="filter-sidebar-container">
-        <div class="filter-top">
-          <div>
-            Number of documents:
-            {{ globalCounts.countFiltered.toLocaleString() }} /
-            {{ globalCounts.countTotal.toLocaleString() }}
-          </div>
-          <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
+      <div class="filter-top">
+        <div>
+          Number of documents:
+          {{ globalCounts.countFiltered.toLocaleString() }} /
+          {{ globalCounts.countTotal.toLocaleString() }}
         </div>
+        <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
+      </div>
+      <div class="filter-sidebar-container">
+
         <HistogramFilter v-model:mask="pyMask" />
         <template v-for="label in labels" :key="label">
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups[label]" v-model:picked-colour="pickedColour" />
@@ -165,6 +166,10 @@ const middleColumn = ref<MiddleColumns>("World Map");
   display: flex;
   flex-direction: column !important;
 
+  .filter:first-child {
+    border-top: 0;
+  }
+
   &-container {
     display: flex;
     flex-direction: column !important;
@@ -218,5 +223,6 @@ const middleColumn = ref<MiddleColumns>("World Map");
   display: flex;
   flex-direction: row;
   padding: 0.5em 1ch 0 1ch;
+  border-bottom: 1px solid var(--socdr-grey);
 }
 </style>
