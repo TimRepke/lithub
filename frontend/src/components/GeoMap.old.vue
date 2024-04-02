@@ -154,7 +154,7 @@ let vegaContainer: Result;
 
 onMounted(async () => {
   if (mapElement.value) {
-    const req = await request({ method: "GET", path: `${DATA_BASE}/policymap/geocodes.minimal.arrow` });
+    const req = await request({ method: "GET", path: `${DATA_BASE}/policymap/geocodes.minimal.arrow`, keepPath: true });
     const places = await tableFromIPC<PlacesSchema>(req.arrayBuffer());
     // const idxs = places.getChild("idx")!;
     const countries = places.getChild("country_num")!;

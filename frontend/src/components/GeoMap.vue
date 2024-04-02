@@ -24,7 +24,7 @@ const mapElement = ref<HTMLDivElement | null>(null);
 
 onMounted(async () => {
   if (mapElement.value) {
-    const req = await request({ method: "GET", path: `${DATA_BASE}/policymap/geocodes.minimal.arrow` });
+    const req = await request({ method: "GET", path: `${DATA_BASE}/policymap/geocodes.minimal.arrow`, keepPath: true });
     const world = await GET<WorldAtlas>({ path: "countries-50m.json", keepPath: true }); //world-110m-named.json
     const places = await tableFromIPC<PlacesSchema>(req.arrayBuffer());
 
@@ -82,18 +82,20 @@ onMounted(async () => {
     }
 
     function mouseClickCountry(event, d: Feature<GeometryObject, CountryProp>) {
-      console.log(zoomTransform(this))
-      console.log(d3.select(this))
-      // console.log(d)
-      // var t = d3.geoTransform(d3.select(this).attr("transform")),
-      // x = t.translate[0],
-      // y = t.translate[1];
+      const rect = event.target.getBoundingClientRect();
+      const scale = zoomTransform(this);
+      console.log(rect, scale);
+      g.transition()
+        .duration(250)
+        .call(
+          zoom
+            .translateExtent([
+              [rect.x, rect.y],
+              [rect.x + rect.width, rect.y + rect.height],
+            ])
+        )
 
-      var scale = 10;
-
-      g.transition().duration(3000)
-        .call(zoom.translate([((x * -scale) + (svgWidth / 2)), ((y * -scale) + svgHeight / 2)])
-          .scale(scale).event);
+      // [rect.x + (rect.width / 2), rect.y + (rect.height / 2)]
       // console.log(event)
       // console.log(d)
     }
@@ -106,7 +108,6 @@ onMounted(async () => {
         [width, height],
       ])
       .on("zoom", (event) => g.attr("transform", event.transform));
-
 
     svg.call(zoom);
     mapElement.value.appendChild(svg.node()!);

@@ -96,21 +96,23 @@ export function useDataset<K extends Indexes>(params: {
 
   const keywords = ref<Keyword[]>([]);
   if (params.info.keywords_filename) {
-    request({ method: "GET", path: `${DATA_BASE}/${name}/${keywords_filename}` }).then(async (response) => {
-      const keywordsArrow = await tableFromIPC<KeywordArrowSchema>(response.arrayBuffer());
-      const xs = keywordsArrow.getChild("x")!;
-      const ys = keywordsArrow.getChild("y")!;
-      const levels = keywordsArrow.getChild("level")!;
-      const kws = keywordsArrow.getChild("keyword")!;
+    request({ method: "GET", path: `${DATA_BASE}/${name}/${keywords_filename}`, keepPath: true }).then(
+      async (response) => {
+        const keywordsArrow = await tableFromIPC<KeywordArrowSchema>(response.arrayBuffer());
+        const xs = keywordsArrow.getChild("x")!;
+        const ys = keywordsArrow.getChild("y")!;
+        const levels = keywordsArrow.getChild("level")!;
+        const kws = keywordsArrow.getChild("keyword")!;
 
-      const _keywords: Keyword[] = new Array(keywordsArrow.numRows);
-      for (let i = 0; i < keywordsArrow.numRows; i++) {
-        _keywords[i] = { x: xs.get(i), y: ys.get(i), level: levels.get(i), keyword: kws.get(i) };
-      }
-      // sort by level so later on we can just grab the first N keywords and get from top to bottom
-      _keywords.sort((a, b) => b.level - a.level);
-      keywords.value = _keywords;
-    });
+        const _keywords: Keyword[] = new Array(keywordsArrow.numRows);
+        for (let i = 0; i < keywordsArrow.numRows; i++) {
+          _keywords[i] = { x: xs.get(i), y: ys.get(i), level: levels.get(i), keyword: kws.get(i) };
+        }
+        // sort by level so later on we can just grab the first N keywords and get from top to bottom
+        _keywords.sort((a, b) => b.level - a.level);
+        keywords.value = _keywords;
+      },
+    );
   }
 
   const pickedColour = ref(defaultColour);
@@ -322,6 +324,7 @@ export async function loadDataset<K extends Indexes>(params: {
     const arrowRaw = await GETWithProgress({
       path: DATA_BASE + `/${dataset}/${arrowFile}`,
       progressCallback: params.dataCallback,
+      keepPath: true,
     });
     const arrow = tableFromIPC<ArrowSchema>(arrowRaw);
 

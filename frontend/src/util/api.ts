@@ -12,7 +12,7 @@ export function d2s(d: Date) {
 export type URLParams = Record<string, string | number | string[] | number[]>;
 
 export function getUrl(path: string, params: URLParams | null = null, keepPath: boolean = false) {
-  let url = path.startsWith("http") || keepPath ? path : API_BASE + path;
+  let url = keepPath ? path : API_BASE + path;
   if (params) {
     url +=
       "?" +
