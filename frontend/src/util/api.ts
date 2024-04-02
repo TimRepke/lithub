@@ -11,8 +11,8 @@ export function d2s(d: Date) {
 
 export type URLParams = Record<string, string | number | string[] | number[]>;
 
-export function getUrl(path: string, params: URLParams | null = null) {
-  let url = path.startsWith("http") ? path : API_BASE + path;
+export function getUrl(path: string, params: URLParams | null = null, keepPath: boolean = false) {
+  let url = path.startsWith("http") || keepPath ? path : API_BASE + path;
   if (params) {
     url +=
       "?" +
@@ -33,10 +33,11 @@ export function request(params: {
   params?: URLParams | null;
   headers?: HeadersInit;
   body?: BodyInit | null;
+  keepPath?: boolean;
 }): Promise<Response> {
   const apiStore = useApiStore();
   const req = apiStore.startRequest();
-  const url = getUrl(params.path, params.params);
+  const url = getUrl(params.path, params.params, params.keepPath);
   return new Promise((resolve, reject) => {
     fetch(url, {
       method: params.method,
@@ -52,17 +53,34 @@ export function request(params: {
   });
 }
 
-export async function GET<T>(params: { path: string; params?: URLParams; headers?: HeadersInit }): Promise<T> {
-  const response = await request({ method: "GET", path: params.path, params: params.params, headers: params.headers });
+export async function GET<T>(params: {
+  path: string;
+  params?: URLParams;
+  headers?: HeadersInit;
+  keepPath?: boolean;
+}): Promise<T> {
+  const response = await request({
+    method: "GET",
+    path: params.path,
+    params: params.params,
+    headers: params.headers,
+    keepPath: params.keepPath,
+  });
   return response.json();
 }
 
-export async function DELETE<T>(params: { path: string; params?: URLParams; headers?: HeadersInit }): Promise<T> {
+export async function DELETE<T>(params: {
+  path: string;
+  params?: URLParams;
+  headers?: HeadersInit;
+  keepPath?: boolean;
+}): Promise<T> {
   const response = await request({
     method: "DELETE",
     path: params.path,
     params: params.params,
     headers: params.headers,
+    keepPath: params.keepPath,
   });
   return response.json();
 }
@@ -73,6 +91,7 @@ export async function POST<T>(params: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: Record<string, any>;
   headers?: HeadersInit;
+  keepPath?: boolean;
 }): Promise<T> {
   const response = await request({
     method: "POST",
@@ -83,6 +102,7 @@ export async function POST<T>(params: {
       "Content-Type": "application/json; charset=UTF-8",
       ...params.headers,
     },
+    keepPath: params.keepPath,
   });
   return response.json();
 }
@@ -92,10 +112,11 @@ export function GETWithProgress(params: {
   progressCallback: (bytesLoaded: number) => void;
   params?: URLParams;
   headers?: HeadersInit;
+  keepPath?: boolean;
 }): Promise<ArrayBuffer> {
   const apiStore = useApiStore();
   const req = apiStore.startRequest();
-  const url = getUrl(params.path, params.params);
+  const url = getUrl(params.path, params.params, params.keepPath);
   let loaded = 0;
   return new Promise((resolve, reject) => {
     // mostly copied from
