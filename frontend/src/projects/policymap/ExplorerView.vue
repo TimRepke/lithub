@@ -3,7 +3,7 @@ import { useDatasetStore } from "@/stores/datasetstore.ts";
 import SidebarLabelFilter from "@/components/SidebarLabelFilter.vue";
 import SidebarSearchFilter from "@/components/SidebarSearchFilter.vue";
 import InclusiveIcon from "@/components/InclusiveIcon.vue";
-import { useResults } from "@/util/dataset.ts";
+import { useResults } from "@/util/dataset";
 import DocumentCard from "@/components/DocumentCard.vue";
 import PaginationNav from "@/components/PaginationNav.vue";
 import HistogramFilter from "@/components/HistogramFilter.vue";
@@ -14,7 +14,7 @@ import GeoMap from "@/components/GeoMap.vue";
 import ToggleIcon from "@/components/ToggleIcon.vue";
 import ScatterIcon from "@/components/icons/ScatterIcon.vue";
 
-type IndexKeys = "scatter";
+type IndexKeys = "scatter" | "geo";
 const dataStore = useDatasetStore<IndexKeys>();
 const results = useResults(dataStore.dataset!);
 
@@ -31,7 +31,11 @@ const {
   pickedColour,
 } = dataStore.dataset!;
 
-const { scatter: scatterMask } = indexMasks.masks;
+// indexMasks.registerMask("geo");
+
+// indexMasks.masks.geo.selectIds([1, 2, 3]);
+
+const { scatter: scatterMask, geo: geoMask } = indexMasks.masks;
 const { documents } = results;
 const labels = ref(["sec", "ins", "gov", "econ"]);
 
@@ -51,8 +55,8 @@ const middleColumn = ref<MiddleColumns>("World Map");
         </div>
         <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
       </div>
-      <div class="filter-sidebar-container">
 
+      <div class="filter-sidebar-container">
         <HistogramFilter v-model:mask="pyMask" />
         <template v-for="label in labels" :key="label">
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups[label]" v-model:picked-colour="pickedColour" />
@@ -71,7 +75,7 @@ const middleColumn = ref<MiddleColumns>("World Map");
 
     <div class="middle-column">
       <div class="column-head d-flex flex-row">
-        <div> {{ middleColumn }}</div>
+        <div>{{ middleColumn }}</div>
         <div class="d-flex flex-row ms-auto p-1" style="height: 1em; font-size: 0.75em">
           <ToggleIcon name="mid-col-tab" v-model:model="middleColumn" value="Scatterplot">
             <template #iconTrue>
@@ -95,12 +99,10 @@ const middleColumn = ref<MiddleColumns>("World Map");
       </template>
 
       <template v-if="middleColumn === 'World Map'">
-        <GeoMap class="flex-grow-1" />
+        <GeoMap class="flex-grow-1" v-model:mask="geoMask" v-model:global-mask="globalMask" />
       </template>
 
-      <template v-if="middleColumn === 'Evidence Gaps'">
-        Coming soon.
-      </template>
+      <template v-if="middleColumn === 'Evidence Gaps'">Coming soon.</template>
     </div>
 
     <div class="results-column">

@@ -1,10 +1,10 @@
 import { ReadonlyRef } from "@/util/types";
-import { readonly, ref, toRef } from "vue";
+import { readonly, ref, toRef, watch } from "vue";
 import { GroupMaskBase, MaskBase, useBase, useGroupBase } from "@/util/dataset/masks/base.ts";
 import { and, Bitmask } from "@/util/dataset/masks/bitmask.ts";
 import { None } from "@/util";
 
-export type Indexes = "scatter";
+export type Indexes = "scatter" | "geo";
 
 export interface IndexMask extends MaskBase {
   ids: ReadonlyRef<number[]>;
@@ -55,11 +55,13 @@ export function useIndexMask(length: number): IndexMask {
 }
 
 export function useIndexMasks<K extends Indexes>(length: number): IndexMasks<K> {
-  const masks = { scatter: useIndexMask(length) } as Record<K, IndexMask>;
+  const masks = { scatter: useIndexMask(length), geo: useIndexMask(length) } as Record<K, IndexMask>;
   const base = useGroupBase<K, IndexMask>({ masks, inclusive: false, active: true });
 
   function registerMask(key: K) {
     masks[key] = useIndexMask(length);
+    // set up new watcher
+    watch(masks[key].version, base.update);
     // we need no update here (effectively nothing changed to counts anyway)
   }
 

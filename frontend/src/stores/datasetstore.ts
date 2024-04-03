@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref, toRef } from "vue";
-import { Dataset, loadDataset } from "@/util/dataset.ts";
+import { Dataset, loadDataset } from "@/util/dataset";
 import { DatasetInfo } from "@/util/types";
 import { Indexes } from "@/util/dataset/masks/ids.ts";
 

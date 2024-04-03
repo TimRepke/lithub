@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => {
     build: {
       manifest: true,
       sourcemap: true,
+      minify: "esbuild",
     },
     resolve: {
       alias: {

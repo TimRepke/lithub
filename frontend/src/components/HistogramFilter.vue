@@ -10,6 +10,9 @@ import { HistogramMask } from "@/util/dataset/masks/histogram.ts";
 const mask = defineModel<HistogramMask>("mask", { required: true });
 const { masks, active, years, clear, selectRange } = mask.value;
 
+// TODO: Drop Vega
+// alternative in d3: https://observablehq.com/@maritrinez/d3-brushable-timeline
+
 const spec = {
   $schema: "https://vega.github.io/schema/vega-lite/v5.json",
   data: {

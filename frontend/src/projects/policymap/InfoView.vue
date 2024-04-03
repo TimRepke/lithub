@@ -1,6 +1,67 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import * as d3 from "d3";
+import { default as d3lasso } from "@/util/lasso.ts";
+import { onMounted } from "vue";
+
+onMounted(() => {
+  const data = new Array(100).fill(null).map(() => [Math.random(), Math.random()]);
+  const w = 960;
+  const h = 500;
+  const r = 3.5;
+
+  const svg = d3.select("#tmp").append("svg").attr("width", w).attr("height", h);
+
+  const circles = svg
+    .selectAll("circle")
+    .data(data)
+    .enter()
+    .append("circle")
+    .attr("cx", (d) => d[0] * w)
+    .attr("cy", (d) => d[1] * h)
+    .attr("r", r);
+
+  const lasso_start = function () {
+    lasso
+      .items()
+      .attr("r", 3.5) // reset size
+      .classed("not_possible", true)
+      .classed("selected", false);
+  };
+
+  const lasso_draw = function () {
+    // Style the possible dots
+    lasso.possibleItems().classed("not_possible", false).classed("possible", true);
+
+    // Style the not possible dot
+    lasso.notPossibleItems().classed("not_possible", true).classed("possible", false);
+  };
+
+  const lasso_end = function () {
+    // Reset the color of all dots
+    lasso.items().classed("not_possible", false).classed("possible", false);
+
+    // Style the selected dots
+    lasso.selectedItems().classed("selected", true).attr("r", 7);
+
+    // Reset the style of the not selected dots
+    lasso.notSelectedItems().attr("r", 3.5);
+  };
+
+  const lasso = d3lasso()
+    .closePathSelect(true)
+    .closePathDistance(1000)
+    .items(circles)
+    .targetArea(svg)
+    .on("start", lasso_start)
+    .on("draw", lasso_draw)
+    .on("end", lasso_end);
+
+  svg.call(lasso);
+});
+</script>
 
 <template>
+  <div id="tmp"></div>
   <h3>Climate policy map</h3>
   <p class="fst-italic">
     <strong>Authors:</strong>
