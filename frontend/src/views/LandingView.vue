@@ -9,7 +9,7 @@ onMounted(async () => {
 });
 
 const sortedDatasets = computed(() =>
-  datasets.value.toSorted((a, b) => {
+  datasets.value.toSorted((a: DatasetInfo, b: DatasetInfo) => {
     if (a.last_update < b.last_update) return 1;
     if (a.last_update > b.last_update) return -1;
     return 0;

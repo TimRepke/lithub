@@ -5,7 +5,7 @@ import { GET, request } from "@/util/api.ts";
 import { feature, type WorldAtlas } from "topojson";
 import { geoMercator, geoPath } from "d3-geo";
 import type { GeometryCollection } from "topojson-specification";
-import type { Feature, FeatureCollection, GeometryObject } from "geojson";
+import type { FeatureCollection, GeometryObject } from "geojson";
 import { GeoProjection } from "d3";
 
 export interface CountryProp {
@@ -46,8 +46,10 @@ export interface FullEntry {
   feature: number;
 }
 
-export type ProjectedEntry = FullEntry & { xy: [number, number] };
+export type ProjectedEntry = Omit<FullEntry, "idx"> & { xy: [number, number]; count: number; idxs: number[] };
+
 export type ProjectedEntry_ = FullEntry & { xy: [number, number] | null };
+export type ProjectedEntry__ = FullEntry & { xy: [number, number] };
 
 export function translateSlimTable(table: Table<SlimPlacesSchema>): SlimData {
   const idxs = table.getChild("idx")!;
@@ -86,7 +88,8 @@ export function translateFullTable(
 }
 
 export type Countries = FeatureCollection<GeometryObject, CountryProp>;
-export type Country = Feature<GeometryObject, CountryProp>;
+
+// export type Country = Feature<GeometryObject, CountryProp>;
 
 export function useGeodata(slimUrl: string, fullUrl: string) {
   let _world: WorldAtlas | null = null;
@@ -94,6 +97,7 @@ export function useGeodata(slimUrl: string, fullUrl: string) {
 
   let _slim: SlimData | null = null;
   let _full: Record<number, ProjectedEntry_[]> | null = null;
+  const _fullClean: Record<number, ProjectedEntry[]> | null = null;
 
   const projection = geoMercator();
   const path = geoPath().projection(projection);
@@ -136,6 +140,31 @@ export function useGeodata(slimUrl: string, fullUrl: string) {
     return _full;
   }
 
+  async function fullClean(): Promise<Record<number, ProjectedEntry[]>> {
+    if (_fullClean) return Promise.resolve(_fullClean);
+    const full_ = await full();
+
+    function filterCount(entries: ProjectedEntry_[]) {
+      const ret: Record<number, ProjectedEntry> = {};
+      for (const entry of entries) {
+        if (!!entry.xy) {
+          if (entry.geonameid in ret) {
+            ret[entry.geonameid].count += 1;
+            ret[entry.geonameid].idxs.push(entry.idx);
+          } else
+            ret[entry.geonameid] = {
+              ...(entry as ProjectedEntry__),
+              count: 1,
+              idxs: [entry.idx],
+            };
+        }
+      }
+      return Object.values(ret);
+    }
+
+    return Object.fromEntries(Object.entries(full_).map((entry) => [entry[0], filterCount(entry[1])]));
+  }
+
   return {
     world,
     topo,
@@ -145,700 +174,702 @@ export function useGeodata(slimUrl: string, fullUrl: string) {
 
     slim,
     full,
+    fullClean,
   };
 }
 
 /*
 http://www.geonames.org/export/codes.html
 Mapping of classes/codes to numeric `feature` column
-
-0 A.
-1 A.ADM1
-2 A.ADM1H
-3 A.ADM2
-4 A.ADM2H
-5 A.ADM3
-6 A.ADM3H
-7 A.ADM4
-8 A.ADM4H
-9 A.ADM5
-10 A.ADM5H
-11 A.ADMD
-12 A.ADMDH
-13 A.LTER
-14 A.PCL
-15 A.PCLD
-16 A.PCLF
-17 A.PCLH
-18 A.PCLI
-19 A.PCLIX
-20 A.PCLS
-21 A.PRSH
-22 A.TERR
-23 A.ZN
-24 A.ZNB
-25 H.
-26 H.AIRS
-27 H.ANCH
-28 H.BAY
-29 H.BAYS
-30 H.BGHT
-31 H.BNK
-32 H.BNKR
-33 H.BNKX
-34 H.BOG
-35 H.CAPG
-36 H.CHN
-37 H.CHNL
-38 H.CHNM
-39 H.CHNN
-40 H.CNFL
-41 H.CNL
-42 H.CNLA
-43 H.CNLB
-44 H.CNLD
-45 H.CNLI
-46 H.CNLN
-47 H.CNLQ
-48 H.CNLSB
-49 H.CNLX
-50 H.COVE
-51 H.CRKT
-52 H.CRNT
-53 H.CUTF
-54 H.DCK
-55 H.DCKB
-56 H.DOMG
-57 H.DPRG
-58 H.DTCH
-59 H.DTCHD
-60 H.DTCHI
-61 H.DTCHM
-62 H.ESTY
-63 H.FISH
-64 H.FJD
-65 H.FJDS
-66 H.FLLS
-67 H.FLLSX
-68 H.FLTM
-69 H.FLTT
-70 H.GLCR
-71 H.GULF
-72 H.GYSR
-73 H.HBR
-74 H.HBRX
-75 H.INLT
-76 H.INLTQ
-77 H.LBED
-78 H.LGN
-79 H.LGNS
-80 H.LGNX
-81 H.LK
-82 H.LKC
-83 H.LKI
-84 H.LKN
-85 H.LKNI
-86 H.LKO
-87 H.LKOI
-88 H.LKS
-89 H.LKSB
-90 H.LKSC
-91 H.LKSI
-92 H.LKSN
-93 H.LKSNI
-94 H.LKX
-95 H.MFGN
-96 H.MGV
-97 H.MOOR
-98 H.MRSH
-99 H.MRSHN
-100 H.NRWS
-101 H.OCN
-102 H.OVF
-103 H.PND
-104 H.PNDI
-105 H.PNDN
-106 H.PNDNI
-107 H.PNDS
-108 H.PNDSF
-109 H.PNDSI
-110 H.PNDSN
-111 H.POOL
-112 H.POOLI
-113 H.RCH
-114 H.RDGG
-115 H.RDST
-116 H.RF
-117 H.RFC
-118 H.RFX
-119 H.RPDS
-120 H.RSV
-121 H.RSVI
-122 H.RSVT
-123 H.RVN
-124 H.SBKH
-125 H.SD
-126 H.SEA
-127 H.SHOL
-128 H.SILL
-129 H.SPNG
-130 H.SPNS
-131 H.SPNT
-132 H.STM
-133 H.STMA
-134 H.STMB
-135 H.STMC
-136 H.STMD
-137 H.STMH
-138 H.STMI
-139 H.STMIX
-140 H.STMM
-141 H.STMQ
-142 H.STMS
-143 H.STMSB
-144 H.STMX
-145 H.STRT
-146 H.SWMP
-147 H.SYSI
-148 H.TNLC
-149 H.WAD
-150 H.WADB
-151 H.WADJ
-152 H.WADM
-153 H.WADS
-154 H.WADX
-155 H.WHRL
-156 H.WLL
-157 H.WLLQ
-158 H.WLLS
-159 H.WTLD
-160 H.WTLDI
-161 H.WTRC
-162 H.WTRH
-163 L.
-164 L.AGRC
-165 L.AMUS
-166 L.AREA
-167 L.BSND
-168 L.BSNP
-169 L.BTL
-170 L.CLG
-171 L.CMN
-172 L.CNS
-173 L.COLF
-174 L.CONT
-175 L.CST
-176 L.CTRB
-177 L.DEVH
-178 L.FLD
-179 L.FLDI
-180 L.GASF
-181 L.GRAZ
-182 L.GVL
-183 L.INDS
-184 L.LAND
-185 L.LCTY
-186 L.MILB
-187 L.MNA
-188 L.MVA
-189 L.NVB
-190 L.OAS
-191 L.OILF
-192 L.PEAT
-193 L.PRK
-194 L.PRT
-195 L.QCKS
-196 L.RES
-197 L.RESA
-198 L.RESF
-199 L.RESH
-200 L.RESN
-201 L.RESP
-202 L.RESV
-203 L.RESW
-204 L.RGN
-205 L.RGNE
-206 L.RGNH
-207 L.RGNL
-208 L.RNGA
-209 L.SALT
-210 L.SNOW
-211 L.TRB
-212 P.
-213 P.PPL
-214 P.PPLA
-215 P.PPLA2
-216 P.PPLA3
-217 P.PPLA4
-218 P.PPLA5
-219 P.PPLC
-220 P.PPLCH
-221 P.PPLF
-222 P.PPLG
-223 P.PPLH
-224 P.PPLL
-225 P.PPLQ
-226 P.PPLR
-227 P.PPLS
-228 P.PPLW
-229 P.PPLX
-230 P.STLMT
-231 R.
-232 R.CSWY
-233 R.OILP
-234 R.PRMN
-235 R.PTGE
-236 R.RD
-237 R.RDA
-238 R.RDB
-239 R.RDCUT
-240 R.RDJCT
-241 R.RJCT
-242 R.RR
-243 R.RRQ
-244 R.RTE
-245 R.RYD
-246 R.ST
-247 R.STKR
-248 R.TNL
-249 R.TNLN
-250 R.TNLRD
-251 R.TNLRR
-252 R.TNLS
-253 R.TRL
-254 S.
-255 S.ADMF
-256 S.AGRF
-257 S.AIRB
-258 S.AIRF
-259 S.AIRH
-260 S.AIRP
-261 S.AIRQ
-262 S.AIRT
-263 S.AMTH
-264 S.ANS
-265 S.AQC
-266 S.ARCH
-267 S.ARCHV
-268 S.ART
-269 S.ASTR
-270 S.ASYL
-271 S.ATHF
-272 S.ATM
-273 S.BANK
-274 S.BCN
-275 S.BDG
-276 S.BDGQ
-277 S.BLDA
-278 S.BLDG
-279 S.BLDO
-280 S.BP
-281 S.BRKS
-282 S.BRKW
-283 S.BSTN
-284 S.BTYD
-285 S.BUR
-286 S.BUSTN
-287 S.BUSTP
-288 S.CARN
-289 S.CAVE
-290 S.CH
-291 S.CMP
-292 S.CMPL
-293 S.CMPLA
-294 S.CMPMN
-295 S.CMPO
-296 S.CMPQ
-297 S.CMPRF
-298 S.CMTY
-299 S.COMC
-300 S.CRRL
-301 S.CSNO
-302 S.CSTL
-303 S.CSTM
-304 S.CTHSE
-305 S.CTRA
-306 S.CTRCM
-307 S.CTRF
-308 S.CTRM
-309 S.CTRR
-310 S.CTRS
-311 S.CVNT
-312 S.DAM
-313 S.DAMQ
-314 S.DAMSB
-315 S.DARY
-316 S.DCKD
-317 S.DCKY
-318 S.DIKE
-319 S.DIP
-320 S.DPOF
-321 S.EST
-322 S.ESTO
-323 S.ESTR
-324 S.ESTSG
-325 S.ESTT
-326 S.ESTX
-327 S.FCL
-328 S.FNDY
-329 S.FRM
-330 S.FRMQ
-331 S.FRMS
-332 S.FRMT
-333 S.FT
-334 S.FY
-335 S.FYT
-336 S.GATE
-337 S.GDN
-338 S.GHAT
-339 S.GHSE
-340 S.GOSP
-341 S.GOVL
-342 S.GRVE
-343 S.HERM
-344 S.HLT
-345 S.HMSD
-346 S.HSE
-347 S.HSEC
-348 S.HSP
-349 S.HSPC
-350 S.HSPD
-351 S.HSPL
-352 S.HSTS
-353 S.HTL
-354 S.HUT
-355 S.HUTS
-356 S.INSM
-357 S.ITTR
-358 S.JTY
-359 S.LDNG
-360 S.LEPC
-361 S.LIBR
-362 S.LNDF
-363 S.LOCK
-364 S.LTHSE
-365 S.MALL
-366 S.MAR
-367 S.MFG
-368 S.MFGB
-369 S.MFGC
-370 S.MFGCU
-371 S.MFGLM
-372 S.MFGM
-373 S.MFGPH
-374 S.MFGQ
-375 S.MFGSG
-376 S.MKT
-377 S.ML
-378 S.MLM
-379 S.MLO
-380 S.MLSG
-381 S.MLSGQ
-382 S.MLSW
-383 S.MLWND
-384 S.MLWTR
-385 S.MN
-386 S.MNAU
-387 S.MNC
-388 S.MNCR
-389 S.MNCU
-390 S.MNFE
-391 S.MNMT
-392 S.MNN
-393 S.MNQ
-394 S.MNQR
-395 S.MOLE
-396 S.MSQE
-397 S.MSSN
-398 S.MSSNQ
-399 S.MSTY
-400 S.MTRO
-401 S.MUS
-402 S.NOV
-403 S.NSY
-404 S.OBPT
-405 S.OBS
-406 S.OBSR
-407 S.OILJ
-408 S.OILQ
-409 S.OILR
-410 S.OILT
-411 S.OILW
-412 S.OPRA
-413 S.PAL
-414 S.PGDA
-415 S.PIER
-416 S.PKLT
-417 S.PMPO
-418 S.PMPW
-419 S.PO
-420 S.PP
-421 S.PPQ
-422 S.PRKGT
-423 S.PRKHQ
-424 S.PRN
-425 S.PRNJ
-426 S.PRNQ
-427 S.PS
-428 S.PSH
-429 S.PSN
-430 S.PSTB
-431 S.PSTC
-432 S.PSTP
-433 S.PYR
-434 S.PYRS
-435 S.QUAY
-436 S.RDCR
-437 S.RDIN
-438 S.RECG
-439 S.RECR
-440 S.REST
-441 S.RET
-442 S.RHSE
-443 S.RKRY
-444 S.RLG
-445 S.RLGR
-446 S.RNCH
-447 S.RSD
-448 S.RSGNL
-449 S.RSRT
-450 S.RSTN
-451 S.RSTNQ
-452 S.RSTP
-453 S.RSTPQ
-454 S.RUIN
-455 S.SCH
-456 S.SCHA
-457 S.SCHC
-458 S.SCHL
-459 S.SCHM
-460 S.SCHN
-461 S.SCHT
-462 S.SECP
-463 S.SHPF
-464 S.SHRN
-465 S.SHSE
-466 S.SLCE
-467 S.SNTR
-468 S.SPA
-469 S.SPLY
-470 S.SQR
-471 S.STBL
-472 S.STDM
-473 S.STNB
-474 S.STNC
-475 S.STNE
-476 S.STNF
-477 S.STNI
-478 S.STNM
-479 S.STNR
-480 S.STNS
-481 S.STNW
-482 S.STPS
-483 S.SWT
-484 S.SYG
-485 S.THTR
-486 S.TMB
-487 S.TMPL
-488 S.TNKD
-489 S.TOLL
-490 S.TOWR
-491 S.TRAM
-492 S.TRANT
-493 S.TRIG
-494 S.TRMO
-495 S.TWO
-496 S.UNIP
-497 S.UNIV
-498 S.USGE
-499 S.VETF
-500 S.WALL
-501 S.WALLA
-502 S.WEIR
-503 S.WHRF
-504 S.WRCK
-505 S.WTRW
-506 S.ZNF
-507 S.ZOO
-508 T.
-509 T.ASPH
-510 T.ATOL
-511 T.BAR
-512 T.BCH
-513 T.BCHS
-514 T.BDLD
-515 T.BLDR
-516 T.BLHL
-517 T.BLOW
-518 T.BNCH
-519 T.BUTE
-520 T.CAPE
-521 T.CFT
-522 T.CLDA
-523 T.CLF
-524 T.CNYN
-525 T.CONE
-526 T.CRDR
-527 T.CRQ
-528 T.CRQS
-529 T.CRTR
-530 T.CUET
-531 T.DLTA
-532 T.DPR
-533 T.DSRT
-534 T.DUNE
-535 T.DVD
-536 T.ERG
-537 T.FAN
-538 T.FORD
-539 T.FSR
-540 T.GAP
-541 T.GRGE
-542 T.HDLD
-543 T.HLL
-544 T.HLLS
-545 T.HMCK
-546 T.HMDA
-547 T.INTF
-548 T.ISL
-549 T.ISLET
-550 T.ISLF
-551 T.ISLM
-552 T.ISLS
-553 T.ISLT
-554 T.ISLX
-555 T.ISTH
-556 T.KRST
-557 T.LAVA
-558 T.LEV
-559 T.MESA
-560 T.MND
-561 T.MRN
-562 T.MT
-563 T.MTS
-564 T.NKM
-565 T.NTK
-566 T.NTKS
-567 T.PAN
-568 T.PANS
-569 T.PASS
-570 T.PEN
-571 T.PENX
-572 T.PK
-573 T.PKS
-574 T.PLAT
-575 T.PLATX
-576 T.PLDR
-577 T.PLN
-578 T.PLNX
-579 T.PROM
-580 T.PT
-581 T.PTS
-582 T.RDGB
-583 T.RDGE
-584 T.REG
-585 T.RK
-586 T.RKFL
-587 T.RKS
-588 T.SAND
-589 T.SBED
-590 T.SCRP
-591 T.SDL
-592 T.SHOR
-593 T.SINK
-594 T.SLID
-595 T.SLP
-596 T.SPIT
-597 T.SPUR
-598 T.TAL
-599 T.TRGD
-600 T.TRR
-601 T.UPLD
-602 T.VAL
-603 T.VALG
-604 T.VALS
-605 T.VALX
-606 T.VLC
-607 U.
-608 U.APNU
-609 U.ARCU
-610 U.ARRU
-611 U.BDLU
-612 U.BKSU
-613 U.BNKU
-614 U.BSNU
-615 U.CDAU
-616 U.CNSU
-617 U.CNYU
-618 U.CRSU
-619 U.DEPU
-620 U.EDGU
-621 U.ESCU
-622 U.FANU
-623 U.FLTU
-624 U.FRZU
-625 U.FURU
-626 U.GAPU
-627 U.GLYU
-628 U.HLLU
-629 U.HLSU
-630 U.HOLU
-631 U.KNLU
-632 U.KNSU
-633 U.LDGU
-634 U.LEVU
-635 U.MESU
-636 U.MNDU
-637 U.MOTU
-638 U.MTU
-639 U.PKSU
-640 U.PKU
-641 U.PLNU
-642 U.PLTU
-643 U.PNLU
-644 U.PRVU
-645 U.RDGU
-646 U.RDSU
-647 U.RFSU
-648 U.RFU
-649 U.RISU
-650 U.SCNU
-651 U.SCSU
-652 U.SDLU
-653 U.SHFU
-654 U.SHLU
-655 U.SHSU
-656 U.SHVU
-657 U.SILU
-658 U.SLPU
-659 U.SMSU
-660 U.SMU
-661 U.SPRU
-662 U.TERU
-663 U.TMSU
-664 U.TMTU
-665 U.TNGU
-666 U.TRGU
-667 U.TRNU
-668 U.VALU
-669 U.VLSU
-670 V.
-671 V.BUSH
-672 V.CULT
-673 V.FRST
-674 V.FRSTF
-675 V.GROVE
-676 V.GRSLD
-677 V.GRVC
-678 V.GRVO
-679 V.GRVP
-680 V.GRVPN
-681 V.HTH
-682 V.MDW
-683 V.OCH
-684 V.SCRB
-685 V.TREE
-686 V.TUND
-687 V.VIN
-688 V.VINS
+{
+  "A.": 0,
+  "A.ADM1": 1,
+  "A.ADM1H": 2,
+  "A.ADM2": 3,
+  "A.ADM2H": 4,
+  "A.ADM3": 5,
+  "A.ADM3H": 6,
+  "A.ADM4": 7,
+  "A.ADM4H": 8,
+  "A.ADM5": 9,
+  "A.ADM5H": 10,
+  "A.ADMD": 11,
+  "A.ADMDH": 12,
+  "A.LTER": 13,
+  "A.PCL": 14,
+  "A.PCLD": 15,
+  "A.PCLF": 16,
+  "A.PCLH": 17,
+  "A.PCLI": 18,
+  "A.PCLIX": 19,
+  "A.PCLS": 20,
+  "A.PRSH": 21,
+  "A.TERR": 22,
+  "A.ZN": 23,
+  "A.ZNB": 24,
+  "H.": 25,
+  "H.AIRS": 26,
+  "H.ANCH": 27,
+  "H.BAY": 28,
+  "H.BAYS": 29,
+  "H.BGHT": 30,
+  "H.BNK": 31,
+  "H.BNKR": 32,
+  "H.BNKX": 33,
+  "H.BOG": 34,
+  "H.CAPG": 35,
+  "H.CHN": 36,
+  "H.CHNL": 37,
+  "H.CHNM": 38,
+  "H.CHNN": 39,
+  "H.CNFL": 40,
+  "H.CNL": 41,
+  "H.CNLA": 42,
+  "H.CNLB": 43,
+  "H.CNLD": 44,
+  "H.CNLI": 45,
+  "H.CNLN": 46,
+  "H.CNLQ": 47,
+  "H.CNLSB": 48,
+  "H.CNLX": 49,
+  "H.COVE": 50,
+  "H.CRKT": 51,
+  "H.CRNT": 52,
+  "H.CUTF": 53,
+  "H.DCK": 54,
+  "H.DCKB": 55,
+  "H.DOMG": 56,
+  "H.DPRG": 57,
+  "H.DTCH": 58,
+  "H.DTCHD": 59,
+  "H.DTCHI": 60,
+  "H.DTCHM": 61,
+  "H.ESTY": 62,
+  "H.FISH": 63,
+  "H.FJD": 64,
+  "H.FJDS": 65,
+  "H.FLLS": 66,
+  "H.FLLSX": 67,
+  "H.FLTM": 68,
+  "H.FLTT": 69,
+  "H.GLCR": 70,
+  "H.GULF": 71,
+  "H.GYSR": 72,
+  "H.HBR": 73,
+  "H.HBRX": 74,
+  "H.INLT": 75,
+  "H.INLTQ": 76,
+  "H.LBED": 77,
+  "H.LGN": 78,
+  "H.LGNS": 79,
+  "H.LGNX": 80,
+  "H.LK": 81,
+  "H.LKC": 82,
+  "H.LKI": 83,
+  "H.LKN": 84,
+  "H.LKNI": 85,
+  "H.LKO": 86,
+  "H.LKOI": 87,
+  "H.LKS": 88,
+  "H.LKSB": 89,
+  "H.LKSC": 90,
+  "H.LKSI": 91,
+  "H.LKSN": 92,
+  "H.LKSNI": 93,
+  "H.LKX": 94,
+  "H.MFGN": 95,
+  "H.MGV": 96,
+  "H.MOOR": 97,
+  "H.MRSH": 98,
+  "H.MRSHN": 99,
+  "H.NRWS": 100,
+  "H.OCN": 101,
+  "H.OVF": 102,
+  "H.PND": 103,
+  "H.PNDI": 104,
+  "H.PNDN": 105,
+  "H.PNDNI": 106,
+  "H.PNDS": 107,
+  "H.PNDSF": 108,
+  "H.PNDSI": 109,
+  "H.PNDSN": 110,
+  "H.POOL": 111,
+  "H.POOLI": 112,
+  "H.RCH": 113,
+  "H.RDGG": 114,
+  "H.RDST": 115,
+  "H.RF": 116,
+  "H.RFC": 117,
+  "H.RFX": 118,
+  "H.RPDS": 119,
+  "H.RSV": 120,
+  "H.RSVI": 121,
+  "H.RSVT": 122,
+  "H.RVN": 123,
+  "H.SBKH": 124,
+  "H.SD": 125,
+  "H.SEA": 126,
+  "H.SHOL": 127,
+  "H.SILL": 128,
+  "H.SPNG": 129,
+  "H.SPNS": 130,
+  "H.SPNT": 131,
+  "H.STM": 132,
+  "H.STMA": 133,
+  "H.STMB": 134,
+  "H.STMC": 135,
+  "H.STMD": 136,
+  "H.STMH": 137,
+  "H.STMI": 138,
+  "H.STMIX": 139,
+  "H.STMM": 140,
+  "H.STMQ": 141,
+  "H.STMS": 142,
+  "H.STMSB": 143,
+  "H.STMX": 144,
+  "H.STRT": 145,
+  "H.SWMP": 146,
+  "H.SYSI": 147,
+  "H.TNLC": 148,
+  "H.WAD": 149,
+  "H.WADB": 150,
+  "H.WADJ": 151,
+  "H.WADM": 152,
+  "H.WADS": 153,
+  "H.WADX": 154,
+  "H.WHRL": 155,
+  "H.WLL": 156,
+  "H.WLLQ": 157,
+  "H.WLLS": 158,
+  "H.WTLD": 159,
+  "H.WTLDI": 160,
+  "H.WTRC": 161,
+  "H.WTRH": 162,
+  "L.": 163,
+  "L.AGRC": 164,
+  "L.AMUS": 165,
+  "L.AREA": 166,
+  "L.BSND": 167,
+  "L.BSNP": 168,
+  "L.BTL": 169,
+  "L.CLG": 170,
+  "L.CMN": 171,
+  "L.CNS": 172,
+  "L.COLF": 173,
+  "L.CONT": 174,
+  "L.CST": 175,
+  "L.CTRB": 176,
+  "L.DEVH": 177,
+  "L.FLD": 178,
+  "L.FLDI": 179,
+  "L.GASF": 180,
+  "L.GRAZ": 181,
+  "L.GVL": 182,
+  "L.INDS": 183,
+  "L.LAND": 184,
+  "L.LCTY": 185,
+  "L.MILB": 186,
+  "L.MNA": 187,
+  "L.MVA": 188,
+  "L.NVB": 189,
+  "L.OAS": 190,
+  "L.OILF": 191,
+  "L.PEAT": 192,
+  "L.PRK": 193,
+  "L.PRT": 194,
+  "L.QCKS": 195,
+  "L.RES": 196,
+  "L.RESA": 197,
+  "L.RESF": 198,
+  "L.RESH": 199,
+  "L.RESN": 200,
+  "L.RESP": 201,
+  "L.RESV": 202,
+  "L.RESW": 203,
+  "L.RGN": 204,
+  "L.RGNE": 205,
+  "L.RGNH": 206,
+  "L.RGNL": 207,
+  "L.RNGA": 208,
+  "L.SALT": 209,
+  "L.SNOW": 210,
+  "L.TRB": 211,
+  "P.": 212,
+  "P.PPL": 213,
+  "P.PPLA": 214,
+  "P.PPLA2": 215,
+  "P.PPLA3": 216,
+  "P.PPLA4": 217,
+  "P.PPLA5": 218,
+  "P.PPLC": 219,
+  "P.PPLCH": 220,
+  "P.PPLF": 221,
+  "P.PPLG": 222,
+  "P.PPLH": 223,
+  "P.PPLL": 224,
+  "P.PPLQ": 225,
+  "P.PPLR": 226,
+  "P.PPLS": 227,
+  "P.PPLW": 228,
+  "P.PPLX": 229,
+  "P.STLMT": 230,
+  "R.": 231,
+  "R.CSWY": 232,
+  "R.OILP": 233,
+  "R.PRMN": 234,
+  "R.PTGE": 235,
+  "R.RD": 236,
+  "R.RDA": 237,
+  "R.RDB": 238,
+  "R.RDCUT": 239,
+  "R.RDJCT": 240,
+  "R.RJCT": 241,
+  "R.RR": 242,
+  "R.RRQ": 243,
+  "R.RTE": 244,
+  "R.RYD": 245,
+  "R.ST": 246,
+  "R.STKR": 247,
+  "R.TNL": 248,
+  "R.TNLN": 249,
+  "R.TNLRD": 250,
+  "R.TNLRR": 251,
+  "R.TNLS": 252,
+  "R.TRL": 253,
+  "S.": 254,
+  "S.ADMF": 255,
+  "S.AGRF": 256,
+  "S.AIRB": 257,
+  "S.AIRF": 258,
+  "S.AIRH": 259,
+  "S.AIRP": 260,
+  "S.AIRQ": 261,
+  "S.AIRT": 262,
+  "S.AMTH": 263,
+  "S.ANS": 264,
+  "S.AQC": 265,
+  "S.ARCH": 266,
+  "S.ARCHV": 267,
+  "S.ART": 268,
+  "S.ASTR": 269,
+  "S.ASYL": 270,
+  "S.ATHF": 271,
+  "S.ATM": 272,
+  "S.BANK": 273,
+  "S.BCN": 274,
+  "S.BDG": 275,
+  "S.BDGQ": 276,
+  "S.BLDA": 277,
+  "S.BLDG": 278,
+  "S.BLDO": 279,
+  "S.BP": 280,
+  "S.BRKS": 281,
+  "S.BRKW": 282,
+  "S.BSTN": 283,
+  "S.BTYD": 284,
+  "S.BUR": 285,
+  "S.BUSTN": 286,
+  "S.BUSTP": 287,
+  "S.CARN": 288,
+  "S.CAVE": 289,
+  "S.CH": 290,
+  "S.CMP": 291,
+  "S.CMPL": 292,
+  "S.CMPLA": 293,
+  "S.CMPMN": 294,
+  "S.CMPO": 295,
+  "S.CMPQ": 296,
+  "S.CMPRF": 297,
+  "S.CMTY": 298,
+  "S.COMC": 299,
+  "S.CRRL": 300,
+  "S.CSNO": 301,
+  "S.CSTL": 302,
+  "S.CSTM": 303,
+  "S.CTHSE": 304,
+  "S.CTRA": 305,
+  "S.CTRCM": 306,
+  "S.CTRF": 307,
+  "S.CTRM": 308,
+  "S.CTRR": 309,
+  "S.CTRS": 310,
+  "S.CVNT": 311,
+  "S.DAM": 312,
+  "S.DAMQ": 313,
+  "S.DAMSB": 314,
+  "S.DARY": 315,
+  "S.DCKD": 316,
+  "S.DCKY": 317,
+  "S.DIKE": 318,
+  "S.DIP": 319,
+  "S.DPOF": 320,
+  "S.EST": 321,
+  "S.ESTO": 322,
+  "S.ESTR": 323,
+  "S.ESTSG": 324,
+  "S.ESTT": 325,
+  "S.ESTX": 326,
+  "S.FCL": 327,
+  "S.FNDY": 328,
+  "S.FRM": 329,
+  "S.FRMQ": 330,
+  "S.FRMS": 331,
+  "S.FRMT": 332,
+  "S.FT": 333,
+  "S.FY": 334,
+  "S.FYT": 335,
+  "S.GATE": 336,
+  "S.GDN": 337,
+  "S.GHAT": 338,
+  "S.GHSE": 339,
+  "S.GOSP": 340,
+  "S.GOVL": 341,
+  "S.GRVE": 342,
+  "S.HERM": 343,
+  "S.HLT": 344,
+  "S.HMSD": 345,
+  "S.HSE": 346,
+  "S.HSEC": 347,
+  "S.HSP": 348,
+  "S.HSPC": 349,
+  "S.HSPD": 350,
+  "S.HSPL": 351,
+  "S.HSTS": 352,
+  "S.HTL": 353,
+  "S.HUT": 354,
+  "S.HUTS": 355,
+  "S.INSM": 356,
+  "S.ITTR": 357,
+  "S.JTY": 358,
+  "S.LDNG": 359,
+  "S.LEPC": 360,
+  "S.LIBR": 361,
+  "S.LNDF": 362,
+  "S.LOCK": 363,
+  "S.LTHSE": 364,
+  "S.MALL": 365,
+  "S.MAR": 366,
+  "S.MFG": 367,
+  "S.MFGB": 368,
+  "S.MFGC": 369,
+  "S.MFGCU": 370,
+  "S.MFGLM": 371,
+  "S.MFGM": 372,
+  "S.MFGPH": 373,
+  "S.MFGQ": 374,
+  "S.MFGSG": 375,
+  "S.MKT": 376,
+  "S.ML": 377,
+  "S.MLM": 378,
+  "S.MLO": 379,
+  "S.MLSG": 380,
+  "S.MLSGQ": 381,
+  "S.MLSW": 382,
+  "S.MLWND": 383,
+  "S.MLWTR": 384,
+  "S.MN": 385,
+  "S.MNAU": 386,
+  "S.MNC": 387,
+  "S.MNCR": 388,
+  "S.MNCU": 389,
+  "S.MNFE": 390,
+  "S.MNMT": 391,
+  "S.MNN": 392,
+  "S.MNQ": 393,
+  "S.MNQR": 394,
+  "S.MOLE": 395,
+  "S.MSQE": 396,
+  "S.MSSN": 397,
+  "S.MSSNQ": 398,
+  "S.MSTY": 399,
+  "S.MTRO": 400,
+  "S.MUS": 401,
+  "S.NOV": 402,
+  "S.NSY": 403,
+  "S.OBPT": 404,
+  "S.OBS": 405,
+  "S.OBSR": 406,
+  "S.OILJ": 407,
+  "S.OILQ": 408,
+  "S.OILR": 409,
+  "S.OILT": 410,
+  "S.OILW": 411,
+  "S.OPRA": 412,
+  "S.PAL": 413,
+  "S.PGDA": 414,
+  "S.PIER": 415,
+  "S.PKLT": 416,
+  "S.PMPO": 417,
+  "S.PMPW": 418,
+  "S.PO": 419,
+  "S.PP": 420,
+  "S.PPQ": 421,
+  "S.PRKGT": 422,
+  "S.PRKHQ": 423,
+  "S.PRN": 424,
+  "S.PRNJ": 425,
+  "S.PRNQ": 426,
+  "S.PS": 427,
+  "S.PSH": 428,
+  "S.PSN": 429,
+  "S.PSTB": 430,
+  "S.PSTC": 431,
+  "S.PSTP": 432,
+  "S.PYR": 433,
+  "S.PYRS": 434,
+  "S.QUAY": 435,
+  "S.RDCR": 436,
+  "S.RDIN": 437,
+  "S.RECG": 438,
+  "S.RECR": 439,
+  "S.REST": 440,
+  "S.RET": 441,
+  "S.RHSE": 442,
+  "S.RKRY": 443,
+  "S.RLG": 444,
+  "S.RLGR": 445,
+  "S.RNCH": 446,
+  "S.RSD": 447,
+  "S.RSGNL": 448,
+  "S.RSRT": 449,
+  "S.RSTN": 450,
+  "S.RSTNQ": 451,
+  "S.RSTP": 452,
+  "S.RSTPQ": 453,
+  "S.RUIN": 454,
+  "S.SCH": 455,
+  "S.SCHA": 456,
+  "S.SCHC": 457,
+  "S.SCHL": 458,
+  "S.SCHM": 459,
+  "S.SCHN": 460,
+  "S.SCHT": 461,
+  "S.SECP": 462,
+  "S.SHPF": 463,
+  "S.SHRN": 464,
+  "S.SHSE": 465,
+  "S.SLCE": 466,
+  "S.SNTR": 467,
+  "S.SPA": 468,
+  "S.SPLY": 469,
+  "S.SQR": 470,
+  "S.STBL": 471,
+  "S.STDM": 472,
+  "S.STNB": 473,
+  "S.STNC": 474,
+  "S.STNE": 475,
+  "S.STNF": 476,
+  "S.STNI": 477,
+  "S.STNM": 478,
+  "S.STNR": 479,
+  "S.STNS": 480,
+  "S.STNW": 481,
+  "S.STPS": 482,
+  "S.SWT": 483,
+  "S.SYG": 484,
+  "S.THTR": 485,
+  "S.TMB": 486,
+  "S.TMPL": 487,
+  "S.TNKD": 488,
+  "S.TOLL": 489,
+  "S.TOWR": 490,
+  "S.TRAM": 491,
+  "S.TRANT": 492,
+  "S.TRIG": 493,
+  "S.TRMO": 494,
+  "S.TWO": 495,
+  "S.UNIP": 496,
+  "S.UNIV": 497,
+  "S.USGE": 498,
+  "S.VETF": 499,
+  "S.WALL": 500,
+  "S.WALLA": 501,
+  "S.WEIR": 502,
+  "S.WHRF": 503,
+  "S.WRCK": 504,
+  "S.WTRW": 505,
+  "S.ZNF": 506,
+  "S.ZOO": 507,
+  "T.": 508,
+  "T.ASPH": 509,
+  "T.ATOL": 510,
+  "T.BAR": 511,
+  "T.BCH": 512,
+  "T.BCHS": 513,
+  "T.BDLD": 514,
+  "T.BLDR": 515,
+  "T.BLHL": 516,
+  "T.BLOW": 517,
+  "T.BNCH": 518,
+  "T.BUTE": 519,
+  "T.CAPE": 520,
+  "T.CFT": 521,
+  "T.CLDA": 522,
+  "T.CLF": 523,
+  "T.CNYN": 524,
+  "T.CONE": 525,
+  "T.CRDR": 526,
+  "T.CRQ": 527,
+  "T.CRQS": 528,
+  "T.CRTR": 529,
+  "T.CUET": 530,
+  "T.DLTA": 531,
+  "T.DPR": 532,
+  "T.DSRT": 533,
+  "T.DUNE": 534,
+  "T.DVD": 535,
+  "T.ERG": 536,
+  "T.FAN": 537,
+  "T.FORD": 538,
+  "T.FSR": 539,
+  "T.GAP": 540,
+  "T.GRGE": 541,
+  "T.HDLD": 542,
+  "T.HLL": 543,
+  "T.HLLS": 544,
+  "T.HMCK": 545,
+  "T.HMDA": 546,
+  "T.INTF": 547,
+  "T.ISL": 548,
+  "T.ISLET": 549,
+  "T.ISLF": 550,
+  "T.ISLM": 551,
+  "T.ISLS": 552,
+  "T.ISLT": 553,
+  "T.ISLX": 554,
+  "T.ISTH": 555,
+  "T.KRST": 556,
+  "T.LAVA": 557,
+  "T.LEV": 558,
+  "T.MESA": 559,
+  "T.MND": 560,
+  "T.MRN": 561,
+  "T.MT": 562,
+  "T.MTS": 563,
+  "T.NKM": 564,
+  "T.NTK": 565,
+  "T.NTKS": 566,
+  "T.PAN": 567,
+  "T.PANS": 568,
+  "T.PASS": 569,
+  "T.PEN": 570,
+  "T.PENX": 571,
+  "T.PK": 572,
+  "T.PKS": 573,
+  "T.PLAT": 574,
+  "T.PLATX": 575,
+  "T.PLDR": 576,
+  "T.PLN": 577,
+  "T.PLNX": 578,
+  "T.PROM": 579,
+  "T.PT": 580,
+  "T.PTS": 581,
+  "T.RDGB": 582,
+  "T.RDGE": 583,
+  "T.REG": 584,
+  "T.RK": 585,
+  "T.RKFL": 586,
+  "T.RKS": 587,
+  "T.SAND": 588,
+  "T.SBED": 589,
+  "T.SCRP": 590,
+  "T.SDL": 591,
+  "T.SHOR": 592,
+  "T.SINK": 593,
+  "T.SLID": 594,
+  "T.SLP": 595,
+  "T.SPIT": 596,
+  "T.SPUR": 597,
+  "T.TAL": 598,
+  "T.TRGD": 599,
+  "T.TRR": 600,
+  "T.UPLD": 601,
+  "T.VAL": 602,
+  "T.VALG": 603,
+  "T.VALS": 604,
+  "T.VALX": 605,
+  "T.VLC": 606,
+  "U.": 607,
+  "U.APNU": 608,
+  "U.ARCU": 609,
+  "U.ARRU": 610,
+  "U.BDLU": 611,
+  "U.BKSU": 612,
+  "U.BNKU": 613,
+  "U.BSNU": 614,
+  "U.CDAU": 615,
+  "U.CNSU": 616,
+  "U.CNYU": 617,
+  "U.CRSU": 618,
+  "U.DEPU": 619,
+  "U.EDGU": 620,
+  "U.ESCU": 621,
+  "U.FANU": 622,
+  "U.FLTU": 623,
+  "U.FRZU": 624,
+  "U.FURU": 625,
+  "U.GAPU": 626,
+  "U.GLYU": 627,
+  "U.HLLU": 628,
+  "U.HLSU": 629,
+  "U.HOLU": 630,
+  "U.KNLU": 631,
+  "U.KNSU": 632,
+  "U.LDGU": 633,
+  "U.LEVU": 634,
+  "U.MESU": 635,
+  "U.MNDU": 636,
+  "U.MOTU": 637,
+  "U.MTU": 638,
+  "U.PKSU": 639,
+  "U.PKU": 640,
+  "U.PLNU": 641,
+  "U.PLTU": 642,
+  "U.PNLU": 643,
+  "U.PRVU": 644,
+  "U.RDGU": 645,
+  "U.RDSU": 646,
+  "U.RFSU": 647,
+  "U.RFU": 648,
+  "U.RISU": 649,
+  "U.SCNU": 650,
+  "U.SCSU": 651,
+  "U.SDLU": 652,
+  "U.SHFU": 653,
+  "U.SHLU": 654,
+  "U.SHSU": 655,
+  "U.SHVU": 656,
+  "U.SILU": 657,
+  "U.SLPU": 658,
+  "U.SMSU": 659,
+  "U.SMU": 660,
+  "U.SPRU": 661,
+  "U.TERU": 662,
+  "U.TMSU": 663,
+  "U.TMTU": 664,
+  "U.TNGU": 665,
+  "U.TRGU": 666,
+  "U.TRNU": 667,
+  "U.VALU": 668,
+  "U.VLSU": 669,
+  "V.": 670,
+  "V.BUSH": 671,
+  "V.CULT": 672,
+  "V.FRST": 673,
+  "V.FRSTF": 674,
+  "V.GROVE": 675,
+  "V.GRSLD": 676,
+  "V.GRVC": 677,
+  "V.GRVO": 678,
+  "V.GRVP": 679,
+  "V.GRVPN": 680,
+  "V.HTH": 681,
+  "V.MDW": 682,
+  "V.OCH": 683,
+  "V.SCRB": 684,
+  "V.TREE": 685,
+  "V.TUND": 686,
+  "V.VIN": 687,
+  "V.VINS": 688
+}
 */

@@ -1,5 +1,4 @@
 import { createApp } from "vue";
-import { createPinia } from "pinia";
 import { createRouter, createWebHashHistory } from "vue-router";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -14,13 +13,13 @@ import LandingView from "./views/LandingView.vue";
 
 import { default as policyMapRoute } from "@/projects/policymap/route.ts";
 import { default as carbonPricingMapRoute } from "@/projects/carbonpricing/route.ts";
+import { pinia } from "@/stores";
 
 // set up font awesome
 library.add(fas);
 library.add(fab);
 library.add(far);
 
-const pinia = createPinia();
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
@@ -36,6 +35,7 @@ const router = createRouter({
       component: () => import("./views/PrivacyView.vue"),
     },
     {
+      name: "project",
       path: "/project",
       component: () => import("@/views/ProjectContainer.vue"),
       children: [

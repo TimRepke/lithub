@@ -98,7 +98,8 @@ export interface ReglScatterplot {
   draw: (newPoints: rspt.Points, options?: rspt.ScatterplotMethodOptions["draw"]) => Promise<void>;
   filter: (pointIdxs: number | number[], { preventEvent }?: rspt.ScatterplotMethodOptions["filter"]) => Promise<any>;
   get: <
-    Key extends | "canvas"
+    Key extends
+      | "canvas"
       | "points"
       | "camera"
       | "regl"
@@ -166,7 +167,8 @@ export interface ReglScatterplot {
   set: (properties: Partial<rspt.Settable>) => void;
   export: () => ImageData;
   subscribe: <
-    EventName extends | "view"
+    EventName extends
+      | "view"
       | "select"
       | "focus"
       | "destroy"

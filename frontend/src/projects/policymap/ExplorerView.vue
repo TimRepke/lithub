@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useDatasetStore } from "@/stores/datasetstore.ts";
+import { datasetStore } from "@/stores";
 import SidebarLabelFilter from "@/components/SidebarLabelFilter.vue";
 import SidebarSearchFilter from "@/components/SidebarSearchFilter.vue";
 import InclusiveIcon from "@/components/InclusiveIcon.vue";
-import { useResults } from "@/util/dataset";
+import { Dataset, useResults } from "@/util/dataset";
 import DocumentCard from "@/components/DocumentCard.vue";
 import PaginationNav from "@/components/PaginationNav.vue";
 import HistogramFilter from "@/components/HistogramFilter.vue";
@@ -15,8 +15,8 @@ import ToggleIcon from "@/components/ToggleIcon.vue";
 import ScatterIcon from "@/components/icons/ScatterIcon.vue";
 
 type IndexKeys = "scatter" | "geo";
-const dataStore = useDatasetStore<IndexKeys>();
-const results = useResults(dataStore.dataset!);
+const dataset = datasetStore.dataset as Dataset<IndexKeys>;
+const results = useResults(dataset);
 
 const {
   arrow,
@@ -29,11 +29,10 @@ const {
   searchMask,
   keywords,
   pickedColour,
-} = dataStore.dataset!;
+} = dataset;
 
 // indexMasks.registerMask("geo");
-
-// indexMasks.masks.geo.selectIds([1, 2, 3]);
+// indexMasks.masks.value.geo.selectIds([1, 2, 3]);
 
 const { scatter: scatterMask, geo: geoMask } = indexMasks.masks;
 const { documents } = results;
@@ -62,14 +61,6 @@ const middleColumn = ref<MiddleColumns>("World Map");
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups[label]" v-model:picked-colour="pickedColour" />
         </template>
         <SidebarSearchFilter v-model:mask="searchMask" />
-
-        <!--        <ul>-->
-        <!--          <template v-for="(mask, key) in labelMaskGroups" :key="key">-->
-        <!--            <li v-for="(lmask, lkey) in mask.masks" :key="lkey">-->
-        <!--              {{ key }}={{ lkey }}: {{ lmask.counts }} ({{ lmask.active }} / {{ lmask.version }})-->
-        <!--            </li>-->
-        <!--          </template>-->
-        <!--        </ul>-->
       </div>
     </div>
 

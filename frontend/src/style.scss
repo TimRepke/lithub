@@ -64,39 +64,52 @@ html, body {
 
 @mixin icon-toggle {
   input {
-      display: none;
+    display: none;
+  }
+
+  input:checked + label {
+    color: var(--grey-3);
+    border-bottom: 1px solid var(--grey-3);
+
+    > svg {
+      fill: var(--grey-3);
+    }
+  }
+
+  input + label {
+    margin-left: 0.25em;
+    color: var(--grey-1);
+    cursor: pointer;
+
+    > svg {
+      fill: var(--grey-1);
+      width: 1.5em;
     }
 
-    input:checked + label {
-      color: var(--grey-3);
-      border-bottom: 1px solid var(--grey-3);
+    &:hover {
+      color: var(--grey-2);
 
       > svg {
-        fill: var(--grey-3);
+        fill: var(--grey-2);
       }
     }
-
-    input + label {
-      margin-left: 0.25em;
-      color: var(--grey-1);
-      cursor: pointer;
-
-      > svg {
-        fill: var(--grey-1);
-        width: 1.5em;
-      }
-
-      &:hover {
-        color: var(--grey-2);
-
-        > svg {
-          fill: var(--grey-2);
-        }
-      }
-    }
+  }
 }
 
-.icon-toggle{
+.icon {
+  color: var(--grey-1);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--grey-2);
+
+    > svg {
+      fill: var(--grey-2);
+    }
+  }
+}
+
+.icon-toggle {
   @include icon-toggle;
 }
 

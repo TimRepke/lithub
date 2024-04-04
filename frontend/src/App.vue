@@ -1,12 +1,26 @@
 <script setup lang="ts">
-import { useApiStore } from "@/stores/apistore.ts";
+import { apiStore, datasetStore } from "@/stores";
+import { version as storeVersion } from "@/stores/datasetstore.ts";
+import { computed, ref, watch } from "vue";
+import { DatasetInfo } from "@/util/types";
+import { useRoute } from "vue-router";
 
-const apiStore = useApiStore();
+const info = ref<DatasetInfo | null>(null);
+watch(storeVersion, () => (info.value = datasetStore.dataset?.info ?? null));
+
+const route = useRoute();
+const isProjectRoute = computed(() => {
+  const isProjectRoute_ = route.matched.some((r) => r.name === "project");
+  // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+  if (!isProjectRoute_) info.value = null;
+  return isProjectRoute_;
+});
 </script>
 
 <template>
   <nav class="lh-nav">
     <span class="fw-bold">Literature Hub</span>
+    <span v-if="info && isProjectRoute">—{{ info.name }}</span>
 
     <span v-if="apiStore.isLoading" class="ms-2">
       <span class="spinner-border spinner-border-sm" role="status">

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Results } from "@/util/dataset.ts";
+import { Results } from "@/util/dataset";
 
 const results = defineModel<Results>("results", { required: true });
 const { page: currentPage, pages, hasPrev, hasNext, prev, next } = results.value;
@@ -25,13 +25,7 @@ const { page: currentPage, pages, hasPrev, hasNext, prev, next } = results.value
         </button>
       </li>
       <li class="page-item">
-        <button
-          class="page-link"
-          aria-label="Next"
-          :disabled="!hasNext"
-          :class="{ disabled: !hasNext }"
-          @click="next"
-        >
+        <button class="page-link" aria-label="Next" :disabled="!hasNext" :class="{ disabled: !hasNext }" @click="next">
           &raquo;
         </button>
       </li>

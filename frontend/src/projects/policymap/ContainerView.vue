@@ -5,20 +5,19 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { onMounted } from "vue";
 import { GET } from "@/util/api.ts";
 import { DatasetInfo } from "@/util/types";
-import { useDatasetStore } from "@/stores/datasetstore.ts";
-
-const dataStore = useDatasetStore();
+import { datasetStore } from "@/stores";
 
 onMounted(async () => {
   const info = await GET<DatasetInfo>({ path: "/basic/info/policymap" });
-  await dataStore.load(info);
+  await datasetStore.load(info);
 });
 </script>
 
 <template>
-  <div class="d-flex flex-row">
-    <h2 class="m-0 ms-1 mt-1">Climate policy instruments</h2>
-    <ul class="nav nav-underline ms-auto me-4">
+  <div class="d-flex flex-row small">
+    <!--    <h2 class="m-0 ms-1 mt-1">Climate policy instruments</h2>-->
+    <!--  ms-auto -->
+    <ul class="nav nav-underline me-4 ms-1">
       <li class="nav-item">
         <router-link :to="{ name: route.children![0].name }" class="nav-link" exact-active-class="active">
           <font-awesome-icon :icon="['far', 'map']" />
@@ -34,7 +33,7 @@ onMounted(async () => {
     </ul>
   </div>
 
-  <div v-if="!dataStore.isLoaded" id="loading">
+  <div v-if="!datasetStore.isLoaded || !datasetStore.dataset" id="loading">
     <div class="card p-4">
       <h4>Loading data & initialising...</h4>
       <div class="d-flex flex-row gap-3">
@@ -42,8 +41,8 @@ onMounted(async () => {
           <span class="visually-hidden">Loading...</span>
         </div>
         <div>
-          {{ dataStore.loadingProgress?.progressCols }} filters loaded<br />
-          {{ ((dataStore.loadingProgress?.progressArrow ?? 0) / 1024 / 1024).toLocaleString() }}MB loaded
+          {{ datasetStore.loadingProgress?.progressCols }} filters loaded<br />
+          {{ ((datasetStore.loadingProgress?.progressArrow ?? 0) / 1024 / 1024).toLocaleString() }}MB loaded
         </div>
       </div>
     </div>
@@ -60,5 +59,10 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   gap: 1rem;
+}
+
+.nav-link {
+  padding-top: 0.25em;
+  padding-bottom: 0.25em;
 }
 </style>

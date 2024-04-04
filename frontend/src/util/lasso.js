@@ -1,22 +1,28 @@
-import { Selection, pointer } from "d3-selection";
-import * as drag from "d3-drag";
+import { pointer } from "d3-selection";
+import { drag } from "d3-drag";
 import classifyPoint from "robust-point-in-polygon";
+import { isNone } from "@/util/index.ts";
 
-type ItemSelection<T> = Selection<SVGCircleElement, T, SVGSVGElement, any>;
+const closePathDistance = 150;
+const closePathSelect = true;
 
-export default function lasso<T>() {
-  let items: ItemSelection<T> = [];
-  let closePathDistance: number = 75;
-  let closePathSelect: boolean = true;
-  let isPathClosed: boolean = false;
-  let hoverSelect: boolean = true;
-  let targetArea: Selection<SVGSVGElement, unknown, HTMLElement, any>;
-  const on = { start: function () {}, draw: function () {}, end: function () {} };
+export function d3lasso() {
+  let isPathClosed = false;
+  let hoverSelect = true;
+  let isReady = false;
+  let targetArea;
+  let items;
+
+  const on = {
+    start: function () {},
+    drag: function () {},
+    end: function () {},
+  };
 
   // Function to execute on call
-  function lasso(_this) {
+  function lasso(root) {
     // add a new group for the lasso
-    const g = _this.append("g").attr("class", "lasso");
+    const g = root.append("g").attr("class", "lasso");
 
     // add the drawn path for the lasso
     const dyn_path = g.append("path").attr("class", "drawn");
@@ -40,12 +46,15 @@ export default function lasso<T>() {
     let drawnCoords;
 
     // Apply drag behaviors
-    const dragAction = drag.drag().on("start", dragstart).on("drag", dragmove).on("end", dragend);
+    const dragAction = drag()
+      .filter((event) => event.shiftKey && isReady && hoverSelect)
+      .on("start", dragstart)
+      .on("drag", dragmove)
+      .on("end", dragend);
 
-    // Call drag
-    targetArea.call(dragAction);
+    dragAction(targetArea);
 
-    function dragstart() {
+    function dragstart(event) {
       // Init coordinates
       drawnCoords = [];
 
@@ -56,6 +65,7 @@ export default function lasso<T>() {
 
       // Set every item to have a false selection and reset their center point and counters
       items.nodes().forEach(function (e) {
+        e.__lasso = {};
         e.__lasso.possible = false;
         e.__lasso.selected = false;
         e.__lasso.hoverSelect = false;
@@ -74,7 +84,7 @@ export default function lasso<T>() {
       }
 
       // Run user defined start function
-      on.start();
+      on.start(event);
     }
 
     function dragmove(event) {
@@ -117,7 +127,7 @@ export default function lasso<T>() {
       close_path.attr("d", close_draw_path);
 
       // Check if the path is closed
-      isPathClosed = distance <= closePathDistance ? true : false;
+      isPathClosed = distance <= closePathDistance;
 
       // If within the closed path distance parameter, show the closed path. otherwise, hide it
       if (isPathClosed && closePathSelect) {
@@ -132,16 +142,18 @@ export default function lasso<T>() {
         n.__lasso.possible = n.__lasso.hoverSelect || n.__lasso.loopSelect;
       });
 
-      on.draw();
+      on.drag(event);
     }
 
-    function dragend() {
+    function dragend(event) {
       // Remove mouseover tagging function
       items.on("mouseover.lasso", null);
 
       items.nodes().forEach(function (n) {
-        n.__lasso.selected = n.__lasso.possible;
-        n.__lasso.possible = false;
+        if (n.__lasso) {
+          n.__lasso.selected = n.__lasso.possible;
+          n.__lasso.possible = false;
+        }
       });
 
       // Clear lasso
@@ -150,14 +162,15 @@ export default function lasso<T>() {
       origin_node.attr("display", "none");
 
       // Run user defined end function
-      on.end();
+      on.end(event);
     }
   }
 
   // Set or get list of items for lasso to select
-  lasso.items = function (_) {
-    if (!arguments.length) return items;
-    items = _;
+  lasso.items = function (selection) {
+    if (isNone(selection)) return items;
+    items = selection;
+    isReady = !!items && [...items].length > 0;
     const nodes = items.nodes();
     nodes.forEach(function (n) {
       n.__lasso = {
@@ -171,74 +184,50 @@ export default function lasso<T>() {
   // Return possible items
   lasso.possibleItems = function () {
     return items.filter(function () {
-      return this.__lasso.possible;
+      return !!this.__lasso?.possible;
     });
   };
 
   // Return selected items
   lasso.selectedItems = function () {
     return items.filter(function () {
-      return this.__lasso.selected;
+      return !!this.__lasso?.selected;
     });
   };
 
   // Return not possible items
   lasso.notPossibleItems = function () {
     return items.filter(function () {
-      return !this.__lasso.possible;
+      return !this.__lasso?.possible;
     });
   };
 
   // Return not selected items
   lasso.notSelectedItems = function () {
     return items.filter(function () {
-      return !this.__lasso.selected;
+      return !this.__lasso?.selected;
     });
   };
 
-  // Distance required before path auto closes loop
-  lasso.closePathDistance = function (_) {
-    if (!arguments.length) return closePathDistance;
-    closePathDistance = _;
-    return lasso;
-  };
-
-  // Option to loop select or not
-  lasso.closePathSelect = function (_) {
-    if (!arguments.length) return closePathSelect;
-    closePathSelect = _ === true ? true : false;
-    return lasso;
-  };
-
-  // Not sure what this is for
-  lasso.isPathClosed = function (_) {
-    if (!arguments.length) return isPathClosed;
-    isPathClosed = _ === true ? true : false;
-    return lasso;
-  };
-
   // Option to select on hover or not
-  lasso.hoverSelect = function (_) {
-    if (!arguments.length) return hoverSelect;
-    hoverSelect = _ === true ? true : false;
+  lasso.active = function (active) {
+    if (isNone(active)) return hoverSelect;
+    hoverSelect = active;
     return lasso;
   };
 
   // Events
-  lasso.on = function (type, _) {
+  lasso.on = function (type, fn) {
     if (!arguments.length) return on;
     if (arguments.length === 1) return on[type];
-    const types = ["start", "draw", "end"];
-    if (types.indexOf(type) > -1) {
-      on[type] = _;
-    }
+    on[type] = fn;
     return lasso;
   };
 
   // Area where lasso can be triggered from
-  lasso.targetArea = function (_) {
-    if (!arguments.length) return targetArea;
-    targetArea = _;
+  lasso.targetArea = function (area) {
+    if (isNone(area)) return targetArea;
+    targetArea = area;
     return lasso;
   };
 

@@ -76,7 +76,7 @@ export function useDataset<K extends Indexes>(params: {
     keywords_filename,
   } = params.info;
 
-  const inclusive = ref(true);
+  const inclusive = ref(false);
   const _counts = ref({
     countFiltered: params.arrow.numRows,
     countTotal: params.arrow.numRows,

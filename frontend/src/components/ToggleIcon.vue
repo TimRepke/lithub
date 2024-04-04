@@ -30,7 +30,7 @@ const hasFalseSlot = computed(() => !!slots.iconFalse);
   <div class="icon-toggle">
     <input :type="type" :id="`${prefix}-${uniq}`" v-model="model" :name="name" :value="value" />
     <label :for="`${prefix}-${uniq}`" class="icon">
-      <template v-if="hasPropIcon">
+      <template v-if="hasPropIcon && faIcon">
         <font-awesome-icon :icon="faIcon" />
       </template>
       <template v-else>

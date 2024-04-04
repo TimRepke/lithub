@@ -24,7 +24,7 @@ module.exports = {
       {
         // maximum length of lines
         code: 140,
-        ignorePattern: "(d|style)=\"[^\"]*\"", // do this to ignore long lines for svg paths and long styles
+        ignorePattern: `'(d|style)="[^"]*"'`, // do this to ignore long lines for svg paths and long styles
         ignoreStrings: true,
         ignoreTrailingComments: true, // allow comments to be longer than max. line length
       },

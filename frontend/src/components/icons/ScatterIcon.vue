@@ -1,12 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <svg
-    viewBox="0 0 12 12"
-    version="1.1"
-    xmlns="http://www.w3.org/2000/svg"
-    xmlns:svg="http://www.w3.org/2000/svg"
-  >
+  <svg viewBox="0 0 12 12" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg">
     <g>
       <circle id="path5" cx="2.8493426" cy="2.0834148" r="1.1707565" />
       <circle id="path5-0" cx="2.2290897" cy="4.6103396" r="1.1707565" />
