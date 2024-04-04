@@ -1,101 +1,105 @@
-# NACSOS-services TopicExplorer
+# Literature Hub
 
-## Building/starting the server
+## Server deployment
+### Frontend
+Edit `/var/www/lithub/literature-hub/frontend/.env.production`
+```dotenv
+VITE_LITHUB_API_URL=/lithub/api
+VITE_LITHUB_DATA_URL=/lithub/data
+VITE_LITHUB_BASE=/lithub/
+```
 
+Build
 ```bash
-# Install python dependencies
-virtualenv venv
-source venv/bin/activate
-pip install -r server/requirements.txt
-
-# Install frontend dependencies
-cd frontend
+cd /var/www/lithub/literature-hub/
+git pull origin main
+cd frontend/
+rm -r node_modules
 npm install
-
-# Build frontend
-npm run api # (only if backend was changed)
-npm run build
-
-# Start server
-export PYTHONUNBUFFERED=1 # optional
-export PYTHONASYNCIODEBUG=1 # optional
-export NACSOS_TE_CONFIG=config/default.env
-hypercorn server.app:app --config=config/hypercorn.toml
+source .env.production
+npm run build-only
 ```
 
-## Topic Model Format
+Note: Make sure you have node==v21.7.1 (or higher) and npm==v.10.5.0 (or higher).
+If necessary, adjust via [nvm](https://github.com/nvm-sh/nvm).
 
-The topic model explorer assumes the following format for pre-computed topic models.
-Each model is a folder in the `/data` folder containing the following files:
+### Backend
+Edit `/var/www/lithub/literature-hub/.config/.server.env`
+```dotenv
+HOST="127.0.0.1"
+PORT=9080
+LOG_CONF_FILE="../.config/logging.toml"
+HEADER_CORS=true
+CORS_ORIGINS='["https://apsis.mcc-berlin.net"]'
+HEADER_TRUSTED_HOST=false
 
-* `info.toml`: Basic settings and information about this model
-* `data.sqlite`: SQLite database file with the data
-* `tiles/`: Folder containing Arrow files (will be generated on first use of the dataset)
-* `pages/`: Folder containing md files that will be rendered
+STATIC_FILES="../frontend/dist"
+DATASETS_FOLDER="../.data/"
+```
 
-### Model info
-
+Edit `/var/www/lithub/literature-hub/.config/.server.toml`
 ```toml
-[info]
-name = "??"
-# if not empty, user needs to provde the token to see the model
-access_token = ""
-
-[db]
-# where to look for data ("generic" or "twitter")
-data = "generic"
-# the available topic similarity measures
-similarities = ["hd-cos"]
-# set to false if topic annotations don't exist yet
-annotations = false
+bind = '127.0.0.1:9080'
+debug = false
+access_log_format = '%(s)s | "%(R)s" |  Size: %(b)s | Referrer: "%(f)s"'
+workers = 1
+accesslog = '../.logs/hypercorn.access'
+errorlog = '../.logs/hypercorn.error'
+logconfig = 'toml:../.config/logging.toml'
 ```
 
-### Pages
+Set up environment
+```bash
+cd /var/www/lithub/literature-hub/backend
+git pull origin main
+rm -rf venv
+python3.11 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
 
-This can be used to build (interactive) websites written in markdown.
-Each markdown file in the folder will be rendered as an entry in the navigation.
-Paths to attachments/figures are assumed to be relative to this folder.
+### systemd
+Edit: `/etc/systemd/system/lithub.service`
+```
+[Unit]
+Description=LitHub server
+After=network.target
 
-### SQLite database
+[Service]
+User=nacsos
+Type=simple
+Environment="LITHUB_CONFIG=/var/www/lithub/literature-hub/.config/server.env"
+WorkingDirectory=/var/www/lithub/literature-hub/backend
+LimitNOFILE=4096
+ExecStart=/var/www/lithub/literature-hub/backend/venv/bin/python -m hypercorn main:app --config=../.config/server.toml
+Restart=always
+RestartSec=10s
 
-The database should contain the following tables:
+[Install]
+WantedBy=multi-user.target
+```
 
-* ?data? (base for `generic` or `tweets`)
-    * id [int]
-    * nacsos_id [str | NULL]
-    * txt [str]
-    * topic [int | NULL]: FK to `id` in `topics`
-    * meta_topic [int | NULL]: FK to `id` in `meta_topics`
-    * created [str | NULL]: formatted like '2018-01-01T00:00:16.000Z'
-    * x [float]
-    * y [float]
-* generic (implements ?data?)
-    * see above in ?data?
-    * meta [str]: JSON-formatted string with meta-data
-* tweets (implements ?data?)
-    * see above in ?data?
-    * retweets [int]
-    * likes [int]
-    * replies [int]
-* topics _(may also be labels)_
-    * id [int]
-    * name [str | NULL]: manually assigned topic name _(optional)_
-    * terms_tfidf [str | NULL]: e.g. comma-separated list of tokens _(optional)_
-    * terms_mmr [str | NULL]: e.g. comma-separated list of tokens _(optional)_
-* meta_topics *(optional)*
-    * id [int]
-    * name [name]
-    * description [str | NULL]
-* similarities (for simplicity we assume asymmetric similarity measure, so there should always be two rows per pair and
-  metric) _[optional]_
-    * topic_a [int]: FK to `id` in `topics`
-    * topic_b [int]: FK to `id` in `topics`
-    * metric [str]: e.g. 'hd-cos' (cosine similarity in embedding space) or 'ld-euclid' (euclidean distance in 2D
-      projection)
-    * similarity [float]: similarity score between the two topics
+Then update and start:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable lithub.service  
+sudo systemctl start lithub.service  
+```
 
-## Design systems
 
-* https://atlassian.design/
-* https://carbondesignsystem.com/
-* https://www.lightningdesignsystem.com/
+### nginx
+
+Edit: `/etc/nginx/sites-enabled/default`
+```
+location /lithub/ {
+    include proxy_params;
+    proxy_pass_request_headers on;
+    proxy_pass http://127.0.0.1:9080/;
+}
+```
+
+Then test and restart:
+```bash
+sudo nginx -t
+sudo systemctl restart nginx.service  
+```

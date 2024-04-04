@@ -39,7 +39,7 @@ const { documents } = results;
 const labels = ref(["sec", "ins", "gov", "econ"]);
 
 type MiddleColumns = "Scatterplot" | "World Map" | "Evidence Gaps";
-const middleColumn = ref<MiddleColumns>("World Map");
+const middleColumn = ref<MiddleColumns>("Scatterplot");
 </script>
 
 <template>

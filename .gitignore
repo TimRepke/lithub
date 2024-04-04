@@ -1,6 +1,8 @@
 data/
 frontend/dist/
 
+old/
+
 .cache
 .queue
 *.rdb
@@ -8,7 +10,6 @@ notes.md
 task_db.jsonl
 .vscode
 .idea
-.data
 config
 logmessages.txt
 
@@ -193,3 +194,10 @@ pnpm-debug.log*
 *.njsproj
 *.sln
 *.sw?
+
+
+scratch/
+
+.data
+!.data/*/info.toml
+!.data/README.md
