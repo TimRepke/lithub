@@ -39,12 +39,9 @@ const {
   info,
 } = dataset;
 
-// indexMasks.registerMask("geo");
-// indexMasks.masks.value.geo.selectIds([1, 2, 3]);
-
 const { scatter: scatterMask, geo: geoMask } = indexMasks.masks;
 const { documents } = results;
-const labels = ref(["sec", "ins", "gov", "econ"]);
+const labels = ref(["tech", "meth", "cont"]);
 
 type MiddleColumns = "Scatterplot" | "World Map" | "Heatmap";
 const middleColumn = ref<MiddleColumns>("Scatterplot");
@@ -102,8 +99,8 @@ const middleColumn = ref<MiddleColumns>("Scatterplot");
           class="flex-grow-1"
           v-model:mask="geoMask"
           v-model:global-mask="globalMask"
-          :slim-url="`${DATA_BASE}/policymap/${info.slim_geo_filename}`"
-          :full-url="`${DATA_BASE}/policymap/${info.full_geo_filename}`"
+          :slim-url="`${DATA_BASE}/cdrmap/${info.slim_geo_filename}`"
+          :full-url="`${DATA_BASE}/cdrmap/${info.full_geo_filename}`"
         />
       </template>
 

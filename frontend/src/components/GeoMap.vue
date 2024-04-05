@@ -23,7 +23,6 @@ import { useGeodata } from "@/util/geo";
 import type { Countries, CountryProp, ProjectedEntry } from "@/util/geo";
 import type { IndexMask } from "@/util/dataset/masks/ids";
 import type { Bitmask } from "@/util/dataset/masks/bitmask";
-import { DATA_BASE } from "@/util/api";
 
 type AnnotatedEntry = ProjectedEntry & {
   filterInclude: boolean;
@@ -35,11 +34,16 @@ const uniq = crypto.randomUUID();
 const loading = ref<boolean>(true);
 const mapElement = ref<HTMLDivElement | null>(null);
 
+const { slimUrl, fullUrl } = defineProps({
+  slimUrl: { type: String, required: true },
+  fullUrl: { type: String, required: true },
+});
+
 const mask = defineModel<IndexMask>("mask", { required: true });
 const globalMask = defineModel<Bitmask | None>("globalMask", { required: true });
 const { selectIds, clear: clearSelection, active } = mask.value;
 
-const data = useGeodata(`${DATA_BASE}/policymap/geocodes.minimal.arrow`, `${DATA_BASE}/policymap/geocodes.full.arrow`);
+const data = useGeodata(slimUrl, fullUrl);
 let full: Record<number, ProjectedEntry[]> = {};
 let topo: Countries;
 

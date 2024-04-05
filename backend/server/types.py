@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Literal, Annotated
 
-from pydantic import BaseModel, ConfigDict, validator, AfterValidator
+from pydantic import BaseModel, ConfigDict, AfterValidator
 
 
 class SchemeLabelValue(BaseModel):
@@ -40,6 +40,9 @@ class DatasetInfoFull(DatasetInfo):
     db_filename: str
     arrow_filename: str
     keywords_filename: str | None = None
+
+    slim_geo_filename: str | None = None
+    full_geo_filename: str | None = None
 
     start_year: int = 1990
     end_year: int = 2024
