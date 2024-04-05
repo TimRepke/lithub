@@ -1,4 +1,5 @@
 import type { RouteLocationNormalized, RouteRecordNormalized } from "vue-router";
+import { interpolateRgbBasis } from "d3-interpolate";
 
 // inspired by https://github.com/jashkenas/underscore/blob/master/modules/_shallowProperty.js
 // Internal helper to generate a function to obtain property `key` from `obj`.
@@ -136,4 +137,16 @@ export function useDelay<T extends Array<any>, U>(fn: (...args: T) => U, delay: 
   }
 
   return { call, delayedCall, clear };
+}
+
+export function colours(specifier: string) {
+  const n = (specifier.length / 6) | 0;
+  const colors: string[] = new Array(n);
+  let i: number = 0;
+  while (i < n) colors[i] = "#" + specifier.slice(i * 6, ++i * 6);
+  return colors;
+}
+
+export function ramp(scheme: string[][]) {
+  return interpolateRgbBasis(scheme[scheme.length - 1]);
 }

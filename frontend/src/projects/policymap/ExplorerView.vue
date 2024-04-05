@@ -1,18 +1,23 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { datasetStore } from "@/stores";
-import SidebarLabelFilter from "@/components/SidebarLabelFilter.vue";
-import SidebarSearchFilter from "@/components/SidebarSearchFilter.vue";
-import InclusiveIcon from "@/components/InclusiveIcon.vue";
+
 import { Dataset, useResults } from "@/util/dataset";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import DocumentCard from "@/components/DocumentCard.vue";
 import PaginationNav from "@/components/PaginationNav.vue";
-import HistogramFilter from "@/components/HistogramFilter.vue";
-import ScatterLandscape from "@/components/ScatterLandscape.vue";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { ref } from "vue";
-import GeoMap from "@/components/GeoMap.vue";
+
 import ToggleIcon from "@/components/ToggleIcon.vue";
 import ScatterIcon from "@/components/icons/ScatterIcon.vue";
+import InclusiveIcon from "@/components/InclusiveIcon.vue";
+
+import HistogramFilter from "@/components/HistogramFilter.vue";
+import SidebarLabelFilter from "@/components/SidebarLabelFilter.vue";
+import SidebarSearchFilter from "@/components/SidebarSearchFilter.vue";
+
+import GeoMap from "@/components/GeoMap.vue";
+import HeatMap from "@/components/HeatMap.vue";
+import ScatterLandscape from "@/components/ScatterLandscape.vue";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -29,6 +34,7 @@ const {
   searchMask,
   keywords,
   pickedColour,
+  scheme,
 } = dataset;
 
 // indexMasks.registerMask("geo");
@@ -38,8 +44,8 @@ const { scatter: scatterMask, geo: geoMask } = indexMasks.masks;
 const { documents } = results;
 const labels = ref(["sec", "ins", "gov", "econ"]);
 
-type MiddleColumns = "Scatterplot" | "World Map" | "Evidence Gaps";
-const middleColumn = ref<MiddleColumns>("Scatterplot");
+type MiddleColumns = "Scatterplot" | "World Map" | "Heatmap";
+const middleColumn = ref<MiddleColumns>("Heatmap");
 </script>
 
 <template>
@@ -74,7 +80,7 @@ const middleColumn = ref<MiddleColumns>("Scatterplot");
             </template>
           </ToggleIcon>
           <ToggleIcon name="mid-col-tab" v-model:model="middleColumn" icon="earth-africa" value="World Map" />
-          <ToggleIcon name="mid-col-tab" v-model:model="middleColumn" icon="chart-gantt" value="Evidence Gaps" />
+          <ToggleIcon name="mid-col-tab" v-model:model="middleColumn" icon="chart-gantt" value="Heatmap" />
         </div>
       </div>
 
@@ -93,7 +99,14 @@ const middleColumn = ref<MiddleColumns>("Scatterplot");
         <GeoMap class="flex-grow-1" v-model:mask="geoMask" v-model:global-mask="globalMask" />
       </template>
 
-      <template v-if="middleColumn === 'Evidence Gaps'">Coming soon.</template>
+      <template v-if="middleColumn === 'Heatmap'">
+        <HeatMap
+          class="flex-grow-1"
+          v-model:global-mask="globalMask"
+          v-model:group-masks="labelMaskGroups"
+          :scheme="scheme"
+        />
+      </template>
     </div>
 
     <div class="results-column">
