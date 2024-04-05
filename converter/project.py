@@ -42,4 +42,4 @@ def get_vectors(cache: Path, df: pd.DataFrame, to_txt: Callable[[pd.Series], str
     mins = embedding.min(axis=0)
     spans = np.sqrt(np.power(mins - maxs, 2))
 
-    return embedding, maxs, mins, spans
+    return embedding, mins, maxs, spans

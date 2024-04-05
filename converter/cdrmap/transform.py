@@ -69,8 +69,5 @@ print('Preparing dataframes...')
 df_full = pd.DataFrame(out_full)
 df_slim = pd.DataFrame(out_slim)
 
-print(df_slim.columns)
-print(df_full.columns)
-
 print('Saving to files...')
 write(df_full=df_full, df_slim=df_slim, scheme_keys=scheme_keys, out_full=OUT_FULL, out_slim=OUT_SLIM, out_sql=OUT_SQL)
