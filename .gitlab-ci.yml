@@ -51,6 +51,9 @@ test-job2:
 
 .deployment:
   stage: deploy
+  tags:
+    - lithub
+    - metal
   when: manual
   script:
     - echo "noop"
