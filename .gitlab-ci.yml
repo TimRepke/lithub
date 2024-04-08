@@ -81,6 +81,7 @@ deploy-frontend:
     - mv dist/frontend/dist/* dist/
     - rm -rf dist/frontend/
     - rm artifacts.zip
+    - ls -lisah dist/
     - sudo chown -R lithub:lithub $LITHUB_LOCAL_PATH
 
 deploy-backend:
