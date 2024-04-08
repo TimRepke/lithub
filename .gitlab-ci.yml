@@ -26,12 +26,15 @@ build-job:
   stage: build
   script:
     - echo "Building frontend"
+    - echo $VITE_LITHUB_API_URL
+    - echo $VITE_LITHUB_DATA_URL
+    - echo $VITE_LITHUB_BASE
     - cd frontend
     - npm install
     - npm run build-only
   artifacts:
     paths:
-      - dist/
+      - frontend/dist/
     expire_in: 24 hours
 
 test-job1:
