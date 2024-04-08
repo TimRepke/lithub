@@ -71,19 +71,16 @@ deploy-frontend:
     - echo $LITHUB_LOCAL_PATH
     - cd $LITHUB_LOCAL_PATH
     - sudo chown -R gitlab-runner:gitlab-runner $LITHUB_LOCAL_PATH
-    - ls -lisah
     - cd frontend/
-    - ls -lisah
+    - ls -lisah dist/
     - rm -rf dist/*
-    - ls -lisah
     - echo $CI_JOB_TOKEN
     - echo $CI_PROJECT_ID
     - echo $CI_PIPELINE_ID
-
     - 'JOB_ID=$(curl -s --location --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.pik-potsdam.de/api/v4/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs" | jq ''.[] | select( [ .name == "build-job" ] | any) .id'')'
     - echo $JOB_ID
-    - 'curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.pik-potsdam.de/api/v4/projects/$CI_PROJECT_ID/jobs/$JOB_ID/artifacts/download"'
-    - unzip -d dist artifacts.zip
+    - 'curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.pik-potsdam.de/api/v4/projects/$CI_PROJECT_ID/jobs/$JOB_ID/artifacts"'
+    - unzip artifacts.zip "frontend/dist/*" -d dist/
     - rm artifacts.zip
     - sudo chown -R lithub:lithub $LITHUB_LOCAL_PATH
 
