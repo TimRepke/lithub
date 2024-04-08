@@ -18,9 +18,9 @@ stages:
 
 cache:
   paths:
-    - venv/
-    - .cache/pip/
-    - node_modules/
+    - backend/venv/
+    - backend/.cache/pip/
+    - frontend/node_modules/
 
 build-job:
   stage: build
