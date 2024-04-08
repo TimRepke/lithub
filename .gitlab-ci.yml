@@ -71,7 +71,7 @@ deploy-frontend:
     - sudo chown -R gitlab-runner:gitlab-runner $LITHUB_LOCAL_PATH
     - ls -lisah
     - cd frontend/
-    - rm -r dist/
+    - rm -rf dist/
     - ls -lisah
     - 'curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.example.com/api/v4/projects/$CI_PROJECT_ID/jobs/artifacts/main/download?job=test"'
     - unzip -d dist artifacts.zip
@@ -109,4 +109,5 @@ deploy-backend:
     - echo "Restart service"
     - sudo chown -R lithub:lithub $LITHUB_LOCAL_PATH
     - sudo /usr/bin/systemctl start lithub.service
+    - sleep 5
     - sudo /usr/bin/systemctl status lithub.service
