@@ -26,6 +26,7 @@ build-job:
   stage: build
   script:
     - echo "Building frontend"
+    - cd frontend
     - npm install
     - npm run build-only
   artifacts:
