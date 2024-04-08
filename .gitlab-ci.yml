@@ -9,7 +9,7 @@ variables:
   LITHUB_LOCAL_PATH: "/var/www/lithub/literature-hub"
 
 stages:
-#  - build
+  - build
 #  - test
   - deploy
 
