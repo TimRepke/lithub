@@ -20,8 +20,6 @@ cache:
     - frontend/node_modules/
 
 build-job:
-  tags:
-    - lithub
   stage: build
   script:
     - echo "Building frontend"
@@ -37,16 +35,12 @@ build-job:
     expire_in: 24 hours
 
 #test-lint:
-#  tags:
-#    - lithub
 #  stage: test
 #  script:
 #    - cd frontend
 #    - npm run lint
 #
 #test-typing:
-#  tags:
-#    - lithub
 #  stage: test
 #  script:
 #    - cd frontend
@@ -80,8 +74,10 @@ deploy-frontend:
     - ls -lisah
     - echo $CI_JOB_TOKEN
     - echo $CI_PROJECT_ID
-    - 'curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.pik-potsdam.de/api/v4/projects/$CI_PROJECT_ID/jobs/artifacts/main/download?job=build"'
-    - cat art
+    - echo $CI_PIPELINE_ID
+    - 'JOB_ID=$(curl -s --location --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.pik-potsdam.de/api/v4/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs" | jq \'.[] | select( [ .name == "build-job" ] | any) .id\')'
+    - echo $JOB_ID
+    - 'curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.pik-potsdam.de/api/v4/projects/$CI_PROJECT_ID/jobs/$JOB_ID/artifacts/download"'
     - unzip -d dist artifacts.zip
     - rm artifacts.zip
     - sudo chown -R lithub:lithub $LITHUB_LOCAL_PATH
