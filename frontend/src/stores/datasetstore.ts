@@ -42,6 +42,9 @@ export function useDatasetStore<K extends Indexes>() {
       // Prevent multiple loads
       if (isLoading.value) throw Error("Already loading!");
 
+      _dataset.value = null;
+      isLoaded.value = false;
+
       // Reset loading counter
       loadingPromise = new Promise<void>(async (resolve) => {
         isLoading.value = true;

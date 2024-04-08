@@ -2,14 +2,15 @@
 import route from "./route.ts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { GET } from "@/util/api.ts";
 import { DatasetInfo } from "@/util/types";
 import { datasetStore } from "@/stores";
-
+const isReady = ref(false);
 onMounted(async () => {
   const info = await GET<DatasetInfo>({ path: "/basic/info/cdrmap" });
   await datasetStore.load(info);
+  isReady.value = true;
 });
 </script>
 
@@ -33,7 +34,7 @@ onMounted(async () => {
     </ul>
   </div>
 
-  <div v-if="!datasetStore.isLoaded || !datasetStore.dataset" id="loading">
+  <div v-if="!datasetStore.isLoaded || !datasetStore.dataset || !isReady" id="loading">
     <div class="card p-4">
       <h4>Loading data & initialising...</h4>
       <div class="d-flex flex-row gap-3">

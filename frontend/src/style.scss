@@ -33,6 +33,8 @@ $enable-cssgrid: true;
   --grey-3: hsl(0, 0%, 30%); // selected
 
   --top-bar-height: 2rem;
+
+  --bs-font-sans-serif: "Lato", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 html, body {
@@ -141,3 +143,5 @@ html, body {
     }
   }
 }
+
+@import "assets/font-lato.css";

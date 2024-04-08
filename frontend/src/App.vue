@@ -4,6 +4,7 @@ import { version as storeVersion } from "@/stores/datasetstore.ts";
 import { computed, ref, watch } from "vue";
 import { DatasetInfo } from "@/util/types";
 import { useRoute } from "vue-router";
+import { browserInfo, isBrowserCompatible } from "@/util";
 
 const info = ref<DatasetInfo | null>(null);
 watch(storeVersion, () => (info.value = datasetStore.dataset?.info ?? null));
@@ -15,6 +16,11 @@ const isProjectRoute = computed(() => {
   if (!isProjectRoute_) info.value = null;
   return isProjectRoute_;
 });
+
+const isCompatible = computed(() => isBrowserCompatible());
+function hideWarning(e: MouseEvent) {
+  if (e.target) e.target.parentElement.style.display = "none";
+}
 </script>
 
 <template>
@@ -35,6 +41,14 @@ const isProjectRoute = computed(() => {
   </nav>
 
   <router-view></router-view>
+
+  <div id="browser-compatibility" v-if="!isCompatible">
+    <p>
+      The literature hub only supports recent versions of Chrome and Firefox. It appears as if you are using an
+      unsupported browser. Please consider updating (which is a very good idea in general anyway).
+    </p>
+    <button class="btn btn-danger btn-sm" @click="hideWarning">Ok</button>
+  </div>
 </template>
 
 <style scoped>
@@ -49,5 +63,16 @@ const isProjectRoute = computed(() => {
 
 .lh-nav a {
   margin-right: 1ch;
+}
+
+#browser-compatibility {
+  position: fixed;
+  background: #ee5e5e;
+  border: 1px solid #d04242;
+  border-radius: 0.25em;
+  width: 40ch;
+  top: 1em;
+  right: 1em;
+  padding: 0.5em 1em;
 }
 </style>

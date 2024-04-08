@@ -150,3 +150,26 @@ export function colours(specifier: string) {
 export function ramp(scheme: string[][]) {
   return interpolateRgbBasis(scheme[scheme.length - 1]);
 }
+
+export function browserInfo(): { version: number; name: string } {
+  const ua = navigator.userAgent;
+  let M = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+  if (/trident/i.test(M[1])) {
+    return { name: "IE", version: Number.parseInt((/\brv[ :]+(\d+)/g.exec(ua) || [])[1] || "") };
+  }
+  if (M[1] === "Chrome") {
+    const chromeInfo = ua.match(/\b(OPR|Edge)\/(\d+)/);
+    if (chromeInfo) return { name: chromeInfo[1].replace("OPR", "Opera"), version: Number.parseInt(chromeInfo[2]) };
+  }
+  const info = ua.match(/version\/(\d+)/i);
+  M = M[2] ? [M[1], M[2]] : [navigator.appName, navigator.appVersion, "-?"];
+  if (info) M.splice(1, 1, info[1]);
+  return { name: M[0], version: Number.parseInt(M[1]) };
+}
+
+export function isBrowserCompatible() {
+  const { name, version } = browserInfo();
+  if (name === "Chrome") return version > 115;
+  if (name === "Firefox") return version > 120;
+  return false;
+}
