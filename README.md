@@ -103,3 +103,14 @@ Then test and restart:
 sudo nginx -t
 sudo systemctl restart nginx.service  
 ```
+
+## Deployment
+```
+$ cat /etc/sudoers.d/gitlab
+gitlab-runner ALL= NOPASSWD: /usr/bin/chown -R gitlab-runner\:gitlab-runner /var/www/lithub/literature-hub
+gitlab-runner ALL= NOPASSWD: /usr/bin/chown -R lithub\:lithub /var/www/lithub/literature-hub
+
+gitlab-runner ALL= NOPASSWD: /usr/bin/systemctl stop lithub.service
+gitlab-runner ALL= NOPASSWD: /usr/bin/systemctl start lithub.service
+gitlab-runner ALL= NOPASSWD: /usr/bin/systemctl status lithub.service
+```
