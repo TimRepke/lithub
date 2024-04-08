@@ -8,9 +8,6 @@ variables:
   VITE_LITHUB_BASE: "/lithub/"
   LITHUB_LOCAL_PATH: "/var/www/lithub/literature-hub"
 
-before_script:
-  - apk add unzip
-
 stages:
   - build
   - test
@@ -37,13 +34,13 @@ build-job:
       - frontend/dist/
     expire_in: 24 hours
 
-test-job1:
+test-lint:
   stage: test
   script:
     - cd frontend
     - npm run lint
 
-test-job2:
+test-typing:
   stage: test
   script:
     - cd frontend

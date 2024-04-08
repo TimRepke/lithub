@@ -11,10 +11,15 @@
       Cite as
     </p>
     <p>
-      Open source:
+      This project is fully open source and is hosted at:
       <a href="https://gitlab.pik-potsdam.de/mcc-apsis/living-evidence-maps/literature-hub" target="_blank">
         PIK GitLab
       </a>
+    </p>
+    <p>
+      Some honourable mentions about libraries used in this interface:
+      <a href="https://github.com/flekschas/regl-scatterplot" target="_blank">regl-scatterplot</a>,
+      <a href="https://d3js.org/" target="_blank">D3.js</a>, <a href="https://vuejs.org/" target="_blank">Vue.js</a>.
     </p>
   </div>
 </template>
