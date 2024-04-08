@@ -40,11 +40,13 @@ build-job:
 test-job1:
   stage: test
   script:
+    - cd frontend
     - npm run lint
 
 test-job2:
   stage: test
   script:
+    - cd frontend
     - npm run type-check
 
 .deployment:
