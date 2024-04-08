@@ -56,6 +56,9 @@ build-job:
 
 deploy-frontend:
   extends: .deployment
+  needs:
+   - job: build-job
+     artifacts: true
   script:
     - echo "Deploying to production"
     - pwd
@@ -75,6 +78,7 @@ deploy-frontend:
     - echo $CI_JOB_TOKEN
     - echo $CI_PROJECT_ID
     - echo $CI_PIPELINE_ID
+
     - 'JOB_ID=$(curl -s --location --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.pik-potsdam.de/api/v4/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs" | jq ''.[] | select( [ .name == "build-job" ] | any) .id'')'
     - echo $JOB_ID
     - 'curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.pik-potsdam.de/api/v4/projects/$CI_PROJECT_ID/jobs/$JOB_ID/artifacts/download"'
