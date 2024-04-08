@@ -73,7 +73,7 @@ deploy-frontend:
     - cd frontend/
     - rm -rf dist/
     - ls -lisah
-    - 'curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.example.com/api/v4/projects/$CI_PROJECT_ID/jobs/artifacts/main/download?job=test"'
+    - 'curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.pik-potsdam.de/api/v4/projects/$CI_PROJECT_ID/jobs/artifacts/main/download?job=build"'
     - unzip -d dist artifacts.zip
     - rm artifacts.zip
     - sudo chown -R lithub:lithub $LITHUB_LOCAL_PATH
