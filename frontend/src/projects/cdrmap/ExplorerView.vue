@@ -51,7 +51,7 @@ const filterSidebar = ref(true);
 
 <template>
   <div class="explorer-container">
-    <div class="filter-sidebar" :class="{closed: !filterSidebar}">
+    <div class="filter-sidebar" :class="{ closed: !filterSidebar }">
       <div class="column-head">Filters <input type="checkbox" v-model="filterSidebar" /></div>
       <template v-if="filterSidebar">
         <div class="filter-top">

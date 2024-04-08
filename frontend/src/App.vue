@@ -4,7 +4,7 @@ import { version as storeVersion } from "@/stores/datasetstore.ts";
 import { computed, ref, watch } from "vue";
 import { DatasetInfo } from "@/util/types";
 import { useRoute } from "vue-router";
-import { browserInfo, isBrowserCompatible } from "@/util";
+import { isBrowserCompatible } from "@/util";
 
 const info = ref<DatasetInfo | null>(null);
 watch(storeVersion, () => (info.value = datasetStore.dataset?.info ?? null));
@@ -18,8 +18,10 @@ const isProjectRoute = computed(() => {
 });
 
 const isCompatible = computed(() => isBrowserCompatible());
+
 function hideWarning(e: MouseEvent) {
-  if (e.target) e.target.parentElement.style.display = "none";
+  const target = e.target as HTMLButtonElement | null;
+  if (target && target.parentElement) target.parentElement.style.display = "none";
 }
 </script>
 
