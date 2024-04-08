@@ -1,0 +1,105 @@
+# Official language image. Look for the different tagged releases at:
+# https://hub.docker.com/r/library/python/tags/
+image: node:21-alpine
+
+variables:
+  VITE_LITHUB_API_URL: "/lithub/api"
+  VITE_LITHUB_DATA_URL: "/lithub/data"
+  VITE_LITHUB_BASE: "/lithub/"
+  LITHUB_LOCAL_PATH: "/var/www/lithub/literature-hub"
+
+before_script:
+  - apk add unzip
+
+stages:
+  - build
+  - test
+  - deploy
+
+cache:
+  paths:
+    - venv/
+    - .cache/pip/
+    - node_modules/
+
+build-job:
+  stage: build
+  script:
+    - echo "Building frontend"
+    - npm install
+    - npm run build-only
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 24 hours
+
+test-job1:
+  stage: test
+  script:
+    - npm run lint
+
+test-job2:
+  stage: test
+  script:
+    - npm run type-check
+
+.deployment:
+  stage: deploy
+  when: manual
+  script:
+    - echo "noop"
+
+deploy-frontend:
+  extends: .deployment
+  script:
+    - echo "Deploying to production"
+    - pwd
+    - whoami
+    - groups
+    - echo $HOME
+    - echo $VITE_LITHUB_API_URL
+    - echo $VITE_LITHUB_DATA_URL
+    - echo $VITE_LITHUB_BASE
+    - echo $LITHUB_LOCAL_PATH
+    - cd $LITHUB_LOCAL_PATH
+    - sudo chown -R gitlab-runner:gitlab-runner $LITHUB_LOCAL_PATH
+    - ls -lisah
+    - cd frontend/
+    - rm -r dist/
+    - curl --location --output artifacts.zip "https://gitlab.pik-potsdam.de/api/v4/projects/1/jobs/artifacts/main/download?job=test&job_token=$CI_JOB_TOKEN"
+    - unzip -d dist artifacts.zip
+    - rm artifacts.zip
+    - sudo chown -R lithub:lithub $LITHUB_LOCAL_PATH
+
+deploy-backend:
+  extends: .deployment
+  script:
+    - echo "Deploying to production"
+    - pwd
+    - whoami
+    - groups
+    - echo $HOME
+    - echo $VITE_LITHUB_API_URL
+    - echo $VITE_LITHUB_DATA_URL
+    - echo $VITE_LITHUB_BASE
+    - echo $LITHUB_LOCAL_PATH
+    - cd $LITHUB_LOCAL_PATH
+    - sudo chown -R gitlab-runner:gitlab-runner $LITHUB_LOCAL_PATH
+    - sudo /usr/bin/systemctl stop lithub.service
+    - ls -lisah
+    - echo "Update repository"
+    - git stash  # "reset" softly by stashing (in case files changed)
+    - git pull origin main  # pull from origin
+    - echo "Set up environment"
+    - cd backend
+    - rm -rf venv/
+    - python3.11 -m venv venv
+    - source venv/bin/activate
+    - which python
+    - python -V
+    - echo "Installing requirements"
+    - pip install -r requirements.txt
+    - echo "Restart service"
+    - sudo chown -R lithub:lithub $LITHUB_LOCAL_PATH
+    - sudo /usr/bin/systemctl start lithub.service
+    - sudo /usr/bin/systemctl status lithub.service

@@ -6,12 +6,24 @@ import { onMounted, ref } from "vue";
 import { GET } from "@/util/api.ts";
 import { DatasetInfo } from "@/util/types";
 import { datasetStore } from "@/stores";
+
 const isReady = ref(false);
+const downloadSecondary = ref(false);
 onMounted(async () => {
   const info = await GET<DatasetInfo>({ path: "/basic/info/cdrmap" });
   await datasetStore.load(info);
   isReady.value = true;
 });
+
+function downloadAll() {
+  downloadSecondary.value = false;
+  // pass
+}
+
+function downloadSelection() {
+  downloadSecondary.value = false;
+  // pass
+}
 </script>
 
 <template>
@@ -32,6 +44,17 @@ onMounted(async () => {
         </router-link>
       </li>
     </ul>
+
+    <div class="ms-auto">
+      <button class="btn btn-sm text-muted" @click="downloadSecondary = !downloadSecondary">
+        <font-awesome-icon icon="download" />
+        Download
+      </button>
+      <template v-if="downloadSecondary">
+        <button class="btn btn-sm" @click="downloadAll">all</button>
+        <button class="btn btn-sm" @click="downloadSelection">selected</button>
+      </template>
+    </div>
   </div>
 
   <div v-if="!datasetStore.isLoaded || !datasetStore.dataset || !isReady" id="loading">

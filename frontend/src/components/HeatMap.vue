@@ -11,32 +11,75 @@ import {
   scaleSequentialLog as d3scaleSequentialLog,
 } from "d3";
 import { interpolateYlGn } from "d3-scale-chromatic";
+import { HistogramMask } from "@/util/dataset/masks/histogram.ts";
+
+interface SCM {
+  name: string;
+  key: string;
+  values: Record<number, { name: string; value: boolean | number; mask: Bitmask }>;
+}
 
 const uniq = crypto.randomUUID();
 const globalMask = defineModel<Bitmask | None>("globalMask", { required: true });
 const groupMasks = defineModel<Record<string, LabelMaskGroup>>("groupMasks", { required: true });
+const yearMasks = defineModel<HistogramMask>("yearMasks", { required: false });
 const { scheme } = defineProps({
   scheme: { type: Object as PropType<Scheme>, required: true },
 });
 
 const xKey = ref<string>(Object.keys(scheme)[0]);
 const yKey = ref<string>(Object.keys(scheme)[1]);
-const applyGlobalMask = ref<boolean>(true);
-const useLogScale = ref<boolean>(true);
+const applyGlobalMask = ref<boolean>(false);
+const useLogScale = ref<boolean>(false);
 
 const isAvailable = computed(() => Object.keys(scheme).length > 1);
+
+const fullScheme = computed<Record<string, SCM>>(() => {
+  const keys = Object.fromEntries(
+    Object.values(scheme).map((label) => [
+      label.key,
+      {
+        name: label.name,
+        key: label.key,
+        values: Object.fromEntries(
+          label.values.map((val) => [
+            +val.value,
+            {
+              name: val.name,
+              value: val.value,
+              mask: groupMasks.value[label.key].masks[+val.value].bitmask.value,
+            },
+          ]),
+        ),
+      } as SCM,
+    ]),
+  );
+  if (yearMasks.value)
+    keys.PUB_YEAR = {
+      name: "Publication year",
+      key: "PUB_YEAR",
+      values: Object.fromEntries(
+        yearMasks.value.years.map((yr) => [
+          yr,
+          {
+            value: yr,
+            name: `${yr}`,
+            mask: yearMasks.value?.masks[yr].bitmask.value,
+          },
+        ]),
+      ),
+    } as SCM;
+  return keys;
+});
+
 const counts = computed<Record<number, Record<number, number>>>(() => {
   return Object.fromEntries(
-    scheme[yKey.value].values.map((yValue) => [
+    Object.values(fullScheme.value[yKey.value].values).map((yValue) => [
       +yValue.value,
       Object.fromEntries(
-        scheme[xKey.value].values.map((xValue) => [
+        Object.values(fullScheme.value[xKey.value].values).map((xValue) => [
           +xValue.value,
-          and(
-            groupMasks.value[yKey.value].masks[+yValue.value].bitmask.value,
-            groupMasks.value[xKey.value].masks[+xValue.value].bitmask.value,
-            applyGlobalMask.value ? globalMask.value : null,
-          )?.count,
+          and(yValue.mask, xValue.mask, applyGlobalMask.value ? globalMask.value : null)?.count,
         ]),
       ),
     ]),
@@ -52,7 +95,7 @@ const colours = computed(() => {
 </script>
 
 <template>
-  <div class="d-flex flex-column">
+  <div class="d-flex flex-column" style="height: 0">
     <template v-if="isAvailable">
       <div class="row m-2">
         <div class="col">
@@ -81,7 +124,7 @@ const colours = computed(() => {
         <div class="col">
           <label :for="`ykey-${uniq}`">Vertical axis</label>
           <select class="form-select form-select-sm" v-model="yKey" :id="`ykey-${uniq}`">
-            <option v-for="label in scheme" :key="label.key" :value="label.key" :disabled="label.key === xKey">
+            <option v-for="label in fullScheme" :key="label.key" :value="label.key" :disabled="label.key === xKey">
               {{ label.name }}
             </option>
           </select>
@@ -89,23 +132,23 @@ const colours = computed(() => {
         <div class="col">
           <label :for="`xkey-${uniq}`">Horizontal axis</label>
           <select class="form-select form-select-sm" v-model="xKey" :id="`xkey-${uniq}`">
-            <option v-for="label in scheme" :key="label.key" :value="label.key" :disabled="label.key === yKey">
+            <option v-for="label in fullScheme" :key="label.key" :value="label.key" :disabled="label.key === yKey">
               {{ label.name }}
             </option>
           </select>
         </div>
       </div>
 
-      <div>
+      <div class="overflow-auto">
         <table>
           <tr>
             <th></th>
-            <th v-for="value in scheme[xKey].values" :key="+value.value">{{ value.name }}</th>
+            <th v-for="value in fullScheme[xKey].values" :key="+value.value">{{ value.name }}</th>
           </tr>
-          <tr v-for="yValue in scheme[yKey].values" :key="+yValue.value">
+          <tr v-for="yValue in fullScheme[yKey].values" :key="+yValue.value">
             <th>{{ yValue.name }}</th>
             <td
-              v-for="xValue in scheme[xKey].values"
+              v-for="xValue in fullScheme[xKey].values"
               :key="+xValue.value"
               :style="{ 'background-color': colours(counts[+yValue.value][+xValue.value]) }"
             >

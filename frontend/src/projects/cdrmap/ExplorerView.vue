@@ -45,28 +45,32 @@ const labels = ref(["tech", "meth", "cont"]);
 
 type MiddleColumns = "Scatterplot" | "World Map" | "Heatmap";
 const middleColumn = ref<MiddleColumns>("Scatterplot");
+
+const filterSidebar = ref(true);
 </script>
 
 <template>
   <div class="explorer-container">
-    <div class="filter-sidebar">
-      <div class="column-head">Filters</div>
-      <div class="filter-top">
-        <div>
-          Number of documents:
-          {{ globalCounts.countFiltered.toLocaleString() }} /
-          {{ globalCounts.countTotal.toLocaleString() }}
+    <div class="filter-sidebar" :class="{closed: !filterSidebar}">
+      <div class="column-head">Filters <input type="checkbox" v-model="filterSidebar" /></div>
+      <template v-if="filterSidebar">
+        <div class="filter-top">
+          <div>
+            Number of documents:
+            {{ globalCounts.countFiltered.toLocaleString() }} /
+            {{ globalCounts.countTotal.toLocaleString() }}
+          </div>
+          <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
         </div>
-        <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
-      </div>
 
-      <div class="filter-sidebar-container">
-        <HistogramFilter v-model:mask="pyMask" />
-        <template v-for="label in labels" :key="label">
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups[label]" v-model:picked-colour="pickedColour" />
-        </template>
-        <SidebarSearchFilter v-model:mask="searchMask" />
-      </div>
+        <div class="filter-sidebar-container">
+          <HistogramFilter v-model:mask="pyMask" />
+          <template v-for="label in labels" :key="label">
+            <SidebarLabelFilter v-model:group-mask="labelMaskGroups[label]" v-model:picked-colour="pickedColour" />
+          </template>
+          <SidebarSearchFilter v-model:mask="searchMask" />
+        </div>
+      </template>
     </div>
 
     <div class="middle-column">
@@ -110,6 +114,7 @@ const middleColumn = ref<MiddleColumns>("Scatterplot");
           v-model:global-mask="globalMask"
           v-model:group-masks="labelMaskGroups"
           :scheme="scheme"
+          :year-masks="pyMask"
         />
       </template>
     </div>
@@ -189,6 +194,13 @@ const middleColumn = ref<MiddleColumns>("Scatterplot");
     flex: 1 1 auto;
     height: 0;
     font-size: 0.85em;
+  }
+
+  &.closed {
+    .column-head {
+      transform: rotate(-90deg);
+      transform-origin: 100% 100%;
+    }
   }
 }
 
