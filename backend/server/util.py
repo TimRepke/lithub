@@ -1,6 +1,6 @@
 import base64
 from array import array
-from typing import Iterable
+from typing import Iterable, Any, TypeVar
 
 
 def as_bitmask(ids: Iterable[int], total: int) -> bytes:
@@ -61,3 +61,16 @@ def as_ids_lim(bitmask_str: str, limit: int | None = None):
                     break
 
     return [idx for idx in gen()]
+
+
+T = TypeVar('T')
+
+
+def as_batches(it: Iterable[T], batch_size: int) -> Iterable[list[T]]:
+    batch = []
+    for item in it:
+        batch.append(item)
+        if len(batch) >= batch_size:
+            yield batch
+            batch = []
+    yield batch

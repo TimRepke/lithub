@@ -3,26 +3,54 @@ import route from "./route.ts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 import { onMounted, ref } from "vue";
-import { GET } from "@/util/api.ts";
+import { GET, POST, request, RequestWithProgress } from "@/util/api.ts";
 import { DatasetInfo } from "@/util/types";
 import { datasetStore } from "@/stores";
+import { Bitmask } from "@/util/dataset/masks/bitmask.ts";
 
 const isReady = ref(false);
 const downloadSecondary = ref(false);
+const downloadProgress = ref<number | null>(null);
 onMounted(async () => {
   const info = await GET<DatasetInfo>({ path: "/basic/info/cdrmap" });
   await datasetStore.load(info);
   isReady.value = true;
 });
 
-function downloadAll() {
-  downloadSecondary.value = false;
-  // pass
+async function downloadAll() {
+  await download();
 }
 
-function downloadSelection() {
+async function downloadSelection() {
+  if (datasetStore.dataset) {
+    const { hasActiveMask, bitmask } = datasetStore.dataset;
+    const mask = hasActiveMask() ? bitmask.value?.toBase64() : undefined;
+    await download(mask);
+  }
+}
+
+async function download(mask?: string) {
+  downloadProgress.value = 0;
+  const rslt = await RequestWithProgress({
+    method: "POST",
+    path: "/basic/download/cdrmap",
+    payload: mask ? { bitmask: mask } : undefined,
+    headers: {
+      "Content-Type": "application/json; charset=UTF-8",
+    },
+    progressCallback: (loaded) => {
+      downloadProgress.value = loaded;
+    },
+  });
+
+  const blob = new Blob([await rslt.blob()], { type: "application/csv" });
+  const link = document.createElement("a");
+  link.href = window.URL.createObjectURL(blob);
+  link.download = "export.csv";
+  link.click();
+
   downloadSecondary.value = false;
-  // pass
+  downloadProgress.value = null;
 }
 </script>
 
@@ -50,6 +78,9 @@ function downloadSelection() {
         <font-awesome-icon icon="download" />
         Download
       </button>
+      <template v-if="downloadProgress !== null">
+        Preparing download... ({{ (downloadProgress / 1024 / 1024).toFixed(2) }}MB loaded)
+      </template>
       <template v-if="downloadSecondary">
         <button class="btn btn-sm" @click="downloadAll">all</button>
         <button class="btn btn-sm" @click="downloadSelection">selected</button>
@@ -64,7 +95,7 @@ function downloadSelection() {
         <div class="spinner-border" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
-        <div>
+        <div v-if="datasetStore">
           {{ datasetStore.loadingProgress?.progressCols }} filters loaded<br />
           {{ ((datasetStore.loadingProgress?.progressArrow ?? 0) / 1024 / 1024).toLocaleString() }}MB loaded
         </div>

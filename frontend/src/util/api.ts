@@ -95,7 +95,7 @@ export async function POST<T>(params: {
 }): Promise<T> {
   const response = await request({
     method: "POST",
-    body: JSON.stringify(params.payload),
+    body: params.payload ? JSON.stringify(params.payload) : undefined,
     path: params.path,
     params: params.params,
     headers: {
@@ -107,13 +107,15 @@ export async function POST<T>(params: {
   return response.json();
 }
 
-export function GETWithProgress(params: {
+export function RequestWithProgress(params: {
+  method: string;
   path: string;
   progressCallback: (bytesLoaded: number) => void;
   params?: URLParams;
   headers?: HeadersInit;
+  payload?: Record<string, any>;
   keepPath?: boolean;
-}): Promise<ArrayBuffer> {
+}): Promise<Response> {
   const apiStore = useApiStore();
   const req = apiStore.startRequest();
   const url = getUrl(params.path, params.params, params.keepPath);
@@ -122,9 +124,10 @@ export function GETWithProgress(params: {
     // mostly copied from
     // https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#fetch_stream
     fetch(url, {
-      method: "GET",
+      method: params.method,
       mode: "cors",
       headers: params.headers,
+      body: params.payload ? JSON.stringify(params.payload) : undefined,
     })
       .then((response) => response.body)
       .then((rb) => {
@@ -164,7 +167,7 @@ export function GETWithProgress(params: {
       )
       .then(async (result) => {
         apiStore.finishRequest(req);
-        resolve(await result.arrayBuffer());
+        resolve(result);
       })
       .catch(reject);
   });

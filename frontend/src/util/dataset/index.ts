@@ -8,7 +8,7 @@ import type {
   KeywordArrowSchema,
 } from "@/util/types";
 import { type Bitmask, and, or, isNew } from "@/util/dataset/masks/bitmask.ts";
-import { DATA_BASE, GETWithProgress, POST, request } from "@/util/api.ts";
+import { DATA_BASE, POST, request, RequestWithProgress } from "@/util/api.ts";
 import { type Ref, type ComputedRef, readonly, ref, toRef, watch, computed } from "vue";
 import { type Table, tableFromIPC } from "apache-arrow";
 import { type HistogramMask, useHistogramMask } from "@/util/dataset/masks/histogram.ts";
@@ -48,6 +48,8 @@ export interface Dataset<K extends Indexes> {
   inclusive: Ref<boolean>; // when true, use OR for combination, else AND
   keywords: Ref<Keyword[]>;
   pickedColour: Ref<string>;
+
+  hasActiveMask(): boolean;
 
   masks(): Generator<AnyMask, void, any>;
 
@@ -207,6 +209,7 @@ export function useDataset<K extends Indexes>(params: {
     labelMaskGroups: params.labelMasks,
     bitmask: toRef(bitmask),
     keywords: toRef(keywords),
+    hasActiveMask,
     masks,
     activeMasks,
     activeBitmasks,
@@ -321,12 +324,13 @@ export async function loadDataset<K extends Indexes>(params: {
       );
 
     // request arrow base
-    const arrowRaw = await GETWithProgress({
+    const arrowRaw = await RequestWithProgress({
+      method: "GET",
       path: DATA_BASE + `/${dataset}/${arrowFile}`,
       progressCallback: params.dataCallback,
       keepPath: true,
     });
-    const arrow = tableFromIPC<ArrowSchema>(arrowRaw);
+    const arrow = tableFromIPC<ArrowSchema>(await arrowRaw.arrayBuffer());
 
     // wait for all requests to finish and return dataset
     Promise.all(maskPromises)

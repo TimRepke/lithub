@@ -133,4 +133,4 @@ class DatasetCache:
 datasets = DatasetCache(base_path=Path(settings.DATASETS_FOLDER))
 datasets.reload()
 
-__all__ = ['datasets', 'Dataset']
+__all__ = ['datasets', 'Dataset', 'DatasetInfoWeb']
