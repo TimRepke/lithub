@@ -76,12 +76,13 @@ export function useDataset<K extends Indexes>(params: {
     key: name,
     default_colour: defaultColour,
     keywords_filename,
+    total,
   } = params.info;
 
   const inclusive = ref(false);
   const _counts = ref({
-    countFiltered: params.arrow.numRows,
-    countTotal: params.arrow.numRows,
+    countFiltered: total,
+    countTotal: total,
   });
   const counts = readonly(_counts);
   const _version = ref(0);
@@ -92,7 +93,7 @@ export function useDataset<K extends Indexes>(params: {
   // @ts-ignore
   const pyMask = useHistogramMask(startYear, endYear, pyYears);
   const searchMask = useSearchMask(name);
-  const indexMasks = useIndexMasks(params.arrow.numRows);
+  const indexMasks = useIndexMasks(total);
 
   const bitmask = ref<Bitmask | None>();
 
@@ -223,6 +224,7 @@ export interface Results {
   documents: Ref<AnnotatedDocument[]>;
   page: Ref<number>;
   limit: Ref<number>;
+  paused: Ref<boolean>;
   numPages: ComputedRef<number>;
   pages: ComputedRef<number[]>;
   next: () => void;
@@ -236,12 +238,15 @@ export function useResults<K extends Indexes>(dataset: Dataset<K>): Results {
   const REQUEST_DELAY = 250;
   const MAX_PAGES = 8;
 
+  const paused = ref(false);
   const page = ref(0);
   const limit = ref(10);
   const documents = ref<AnnotatedDocument[]>([]);
 
   const { call: update, delayedCall: delayedUpdate } = useDelay(async () => {
-    documents.value = await dataset.documents({ page: page.value, limit: limit.value });
+    if (!paused.value) {
+      documents.value = await dataset.documents({ page: page.value, limit: limit.value });
+    }
     return documents.value;
   }, REQUEST_DELAY);
 
@@ -278,6 +283,7 @@ export function useResults<K extends Indexes>(dataset: Dataset<K>): Results {
 
   return {
     documents: toRef(documents),
+    paused: toRef(paused),
     page: toRef(page),
     limit: toRef(limit),
     numPages: toRef(numPages),

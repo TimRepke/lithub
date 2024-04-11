@@ -7,8 +7,6 @@ import {
   interpolateBlues as d3interpolateBlues,
   extent as d3extent,
   create as d3create,
-  select as d3select,
-  selectAll as d3selectAll,
   pointer as d3pointer,
   zoomIdentity as d3zoomIdentity,
   zoom as d3zoom,
@@ -160,13 +158,18 @@ function mouseClickCountry(event: MouseEvent, d: Feature<GeometryObject, Country
         .translate(-(x0 + x1) / 2, -(y0 + y1) / 2),
       d3pointer(event, svg.node()),
     );
+
   selectIds(countryDocuments[d.id as number]);
+  redrawCountries();
 }
 
 function resetZoom() {
-  clearSelection();
   focusCountry.value = null;
   selectedGeonameIds.value = [];
+
+  clearSelection();
+  redrawCountries();
+  redrawPlaces();
 
   svg
     .transition()
@@ -188,14 +191,15 @@ function redrawCountries() {
     .attr("d", path)
     .attr("fill", (d) => colorScale(countryCounts.value[d.id as number]) ?? "#fff")
     .attr("class", "country")
-    .on("mouseover", () => {
-      d3selectAll(".country").transition().duration(200).style("opacity", 0.5);
-      d3select(this).transition().duration(200).style("opacity", 1).style("stroke-width", "var(--stroke-width-focus)");
-    })
-    .on("mouseleave", () => {
-      d3selectAll(".country").transition().duration(200).style("opacity", 1);
-      d3select(this).transition().duration(200).style("stroke-width", "var(--stroke-width-default)");
-    })
+    .classed("selected", (d) => d.id === focusCountry.value)
+    // .on("mouseover", () => {
+    //   d3selectAll(".country").transition().duration(200).style("opacity", 0.5);
+    //   d3select(this).transition().duration(200).style("opacity", 1).style("stroke-width", "var(--stroke-width-focus)");
+    // })
+    // .on("mouseleave", () => {
+    //   d3selectAll(".country").transition().duration(200).style("opacity", 1);
+    //   d3select(this).transition().duration(200).style("stroke-width", "var(--stroke-width-default)");
+    // })
     .on("click", mouseClickCountry);
 
   countryPaths //
@@ -237,6 +241,8 @@ function redrawPlaces() {
 }
 
 svg.call(lasso).call(zoom);
+// .call(zoom.transform, d3zoomIdentity.translate(-width/2, -height/2).scale(1));
+
 watch(annotatedPlaces, redrawPlaces);
 watch(countryCounts, redrawCountries);
 
@@ -325,13 +331,18 @@ function clearAll() {
 <style lang="scss">
 .country {
   --stroke-width-default: 0.2pt;
-  --stroke-width-focus: 0.6pt;
+  --stroke-width-focus: 2.5pt;
 
   stroke: #333;
   stroke-linejoin: round;
   stroke-linecap: round;
   stroke-width: var(--stroke-width-default);
   vector-effect: non-scaling-stroke;
+
+  &.selected {
+    stroke-width: var(--stroke-width-focus);
+    stroke: #32831e;
+  }
 }
 
 .place {

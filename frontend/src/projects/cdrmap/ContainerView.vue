@@ -3,10 +3,9 @@ import route from "./route.ts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 import { onMounted, ref } from "vue";
-import { GET, POST, request, RequestWithProgress } from "@/util/api.ts";
+import { GET, RequestWithProgress } from "@/util/api.ts";
 import { DatasetInfo } from "@/util/types";
 import { datasetStore } from "@/stores";
-import { Bitmask } from "@/util/dataset/masks/bitmask.ts";
 
 const isReady = ref(false);
 const downloadSecondary = ref(false);

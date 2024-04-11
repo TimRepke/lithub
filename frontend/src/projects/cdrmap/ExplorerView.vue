@@ -7,11 +7,8 @@ import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import DocumentCard from "@/components/DocumentCard.vue";
 import PaginationNav from "@/components/PaginationNav.vue";
 
-import ToggleIcon from "@/components/ToggleIcon.vue";
-import ScatterIcon from "@/components/icons/ScatterIcon.vue";
 import InclusiveIcon from "@/components/InclusiveIcon.vue";
 
-import HistogramFilter from "@/components/HistogramFilter.vue";
 import SidebarLabelFilter from "@/components/SidebarLabelFilter.vue";
 import SidebarSearchFilter from "@/components/SidebarSearchFilter.vue";
 
@@ -19,6 +16,8 @@ import GeoMap from "@/components/GeoMap.vue";
 import HeatMap from "@/components/HeatMap.vue";
 import ScatterLandscape from "@/components/ScatterLandscape.vue";
 import { DATA_BASE } from "@/util/api.ts";
+import FluidContainerGrid from "@/components/FluidContainerGrid.vue";
+import FluidContainer from "@/components/FluidContainer.vue";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -29,6 +28,7 @@ const {
   counts: globalCounts,
   inclusive,
   bitmask: globalMask,
+  version: globalVersion,
   labelMaskGroups,
   indexMasks,
   pyMask,
@@ -43,17 +43,15 @@ const { scatter: scatterMask, geo: geoMask } = indexMasks.masks;
 const { documents } = results;
 const labels = ref(["tech", "meth", "cont"]);
 
-type MiddleColumns = "Scatterplot" | "World Map" | "Heatmap";
-const middleColumn = ref<MiddleColumns>("Scatterplot");
-
-const filterSidebar = ref(true);
+function startPauseResultFetching(active: boolean) {
+  results.paused.value = !active;
+}
 </script>
 
 <template>
-  <div class="explorer-container">
-    <div class="filter-sidebar" :class="{ closed: !filterSidebar }">
-      <div class="column-head">Filters <input type="checkbox" v-model="filterSidebar" /></div>
-      <template v-if="filterSidebar">
+  <FluidContainerGrid>
+    <template #cont1>
+      <FluidContainer title="Filters" style="">
         <div class="filter-top">
           <div>
             Number of documents:
@@ -64,41 +62,31 @@ const filterSidebar = ref(true);
         </div>
 
         <div class="filter-sidebar-container">
-          <HistogramFilter v-model:mask="pyMask" />
+          <!--          <HistogramFilter v-model:mask="pyMask" />-->
           <template v-for="label in labels" :key="label">
             <SidebarLabelFilter v-model:group-mask="labelMaskGroups[label]" v-model:picked-colour="pickedColour" />
           </template>
           <SidebarSearchFilter v-model:mask="searchMask" />
         </div>
-      </template>
-    </div>
+      </FluidContainer>
+    </template>
 
-    <div class="middle-column">
-      <div class="column-head d-flex flex-row">
-        <div>{{ middleColumn }}</div>
-        <div class="d-flex flex-row ms-auto p-1" style="height: 1em; font-size: 0.75em">
-          <ToggleIcon name="mid-col-tab" v-model:model="middleColumn" value="Scatterplot">
-            <template #iconTrue>
-              <ScatterIcon />
-            </template>
-          </ToggleIcon>
-          <ToggleIcon name="mid-col-tab" v-model:model="middleColumn" icon="earth-africa" value="World Map" />
-          <ToggleIcon name="mid-col-tab" v-model:model="middleColumn" icon="chart-gantt" value="Heatmap" />
-        </div>
-      </div>
-
-      <template v-if="middleColumn === 'Scatterplot'">
+    <template #cont2>
+      <FluidContainer title="Scatterplot">
         <ScatterLandscape
           v-model:mask="scatterMask"
           v-model:global-mask="globalMask"
+          v-model:global-version="globalVersion"
           v-model:group-masks="labelMaskGroups"
           :arrow="arrow"
           v-model:keywords="keywords"
           v-model:picked-colour="pickedColour"
         />
-      </template>
+      </FluidContainer>
+    </template>
 
-      <template v-if="middleColumn === 'World Map'">
+    <template #cont3>
+      <FluidContainer title="Geographic map">
         <GeoMap
           class="flex-grow-1"
           v-model:mask="geoMask"
@@ -106,9 +94,10 @@ const filterSidebar = ref(true);
           :slim-url="`${DATA_BASE}/cdrmap/${info.slim_geo_filename}`"
           :full-url="`${DATA_BASE}/cdrmap/${info.full_geo_filename}`"
         />
-      </template>
-
-      <template v-if="middleColumn === 'Heatmap'">
+      </FluidContainer>
+    </template>
+    <template #cont4>
+      <FluidContainer title="Label correlation" :initial-state="false">
         <HeatMap
           class="flex-grow-1"
           v-model:global-mask="globalMask"
@@ -116,62 +105,35 @@ const filterSidebar = ref(true);
           :scheme="scheme"
           :year-masks="pyMask"
         />
-      </template>
-    </div>
-
-    <div class="results-column">
-      <div class="column-head">Results</div>
-      <template v-if="documents.length > 0">
-        <div class="results-column-results">
-          <DocumentCard v-for="doc in documents" :key="doc.idx" :doc="doc" class="m-2" />
-        </div>
-        <div class="results-column-pagination">
-          <PaginationNav v-model:results="results" />
-        </div>
-      </template>
-      <div v-else>
-        <div class="m-2 d-flex flex-row">
-          <div class="d-flex align-items-center me-2 fs-2">
-            <font-awesome-icon icon="file-lines" class="text-muted" />
+      </FluidContainer>
+    </template>
+    <template #cont5>
+      <FluidContainer title="Results" :initial-state="false" @visibility-updated="startPauseResultFetching">
+        <template v-if="documents.length > 0">
+          <div class="results-column-results">
+            <DocumentCard v-for="doc in documents" :key="doc.idx" :doc="doc" class="m-2" />
           </div>
-          <div>
-            No results, yet. <br />
-            Start applying filters to discover relevant documents.
+          <div class="results-column-pagination">
+            <PaginationNav v-model:results="results" />
+          </div>
+        </template>
+        <div v-else>
+          <div class="m-2 d-flex flex-row">
+            <div class="d-flex align-items-center me-2 fs-2">
+              <font-awesome-icon icon="file-lines" class="text-muted" />
+            </div>
+            <div>
+              No results, yet. <br />
+              Start applying filters to discover relevant documents.
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </div>
+      </FluidContainer>
+    </template>
+  </FluidContainerGrid>
 </template>
 
 <style scoped lang="scss">
-.explorer-container {
-  display: grid;
-  grid-template-areas: "col1 col2 col3";
-  /*grid-template-columns: 1fr 1fr 20fr;*/
-  grid-template-columns: minmax(150px, auto) minmax(150px, auto) minmax(150px, 1fr);
-  gap: 0.25rem;
-
-  flex-grow: 1;
-
-  & > div {
-    overflow-x: hidden;
-    overflow-y: auto;
-
-    border: {
-      left: 1px solid var(--socdr-grey);
-      right: 1px solid var(--socdr-grey);
-    }
-  }
-}
-
-.column-head {
-  background-color: var(--socdr-grey);
-  font-variant-caps: small-caps;
-  font-weight: bold;
-  padding-left: 0.25rem;
-}
-
 .filter-sidebar {
   grid-area: col1;
   resize: horizontal;

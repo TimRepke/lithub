@@ -52,6 +52,9 @@ const { counts, active, fields, search, fetch } = mask.value;
 
 <style scoped lang="scss">
 .filter {
+  &:last-of-type {
+    margin-bottom: 4em;
+  }
   .filter-masks {
     display: flex;
     flex-direction: row;

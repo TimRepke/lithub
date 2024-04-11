@@ -18,6 +18,7 @@ type Point = [number, number, number, number];
 const uniq = crypto.randomUUID();
 const mask = defineModel<IndexMask>("mask", { required: true });
 const globalMask = defineModel<Bitmask | None>("globalMask", { required: true });
+const globalVersion = defineModel<number>("globalVersion", { required: true });
 const pickedColour = defineModel<string>("pickedColour", { required: true });
 const groupMasks = defineModel<Record<string, LabelMaskGroup>>("groupMasks", { required: true });
 const keywords = defineModel<Keyword[]>("keywords", { required: true });
@@ -110,8 +111,8 @@ onMounted(async () => {
 
     function getViewBounds(xScale: Scale, yScale: Scale): ViewBounds {
       const rect = canvas!.getBoundingClientRect();
-      const topRight: [number, number] = [xScale!.invert(rect.width / window.devicePixelRatio), yScale!.invert(0)];
-      const bottomLeft: [number, number] = [xScale!.invert(0), yScale!.invert(rect.height / window.devicePixelRatio)];
+      const topRight: [number, number] = [xScale.invert(rect.width / window.devicePixelRatio), yScale.invert(0)];
+      const bottomLeft: [number, number] = [xScale.invert(0), yScale.invert(rect.height / window.devicePixelRatio)];
       return { topRight, bottomLeft };
     }
 
@@ -128,6 +129,7 @@ onMounted(async () => {
         const yScale: Scale | null = scatterplot.get("yScale");
 
         if (keywordsVisible.value && xScale && yScale) {
+          xScale.domain();
           textOverlayCtx.font = "1.2em bold, sans-serif";
           textOverlayCtx.textAlign = "center";
           textOverlayCtx.lineWidth = 4;
@@ -138,11 +140,13 @@ onMounted(async () => {
           let cnt = 0;
           let x;
           let y;
+          const scaling = window.devicePixelRatio;
+
           for (const keyword of keywords.value) {
             if (inBounds(viewBounds, keyword.x, keyword.y)) {
               cnt += 1;
-              x = xScale(keyword.x) * window.devicePixelRatio;
-              y = yScale(keyword.y) * window.devicePixelRatio - overlayFontSize * 1.2 * window.devicePixelRatio;
+              x = xScale(keyword.x) * scaling;
+              y = yScale(keyword.y) * scaling - overlayFontSize * 1.2 * scaling;
 
               textOverlayCtx.strokeStyle = "white";
               textOverlayCtx.strokeText(keyword.keyword, x, y);
@@ -184,7 +188,7 @@ onMounted(async () => {
     watch(keywords, redrawKeywords);
     watch(keywordsVisible, redrawKeywords);
     watch(pickedColour, redrawColour);
-    watch(globalMask, redrawMask);
+    watch(globalVersion, redrawMask);
 
     // In case resizing becomes an issue again:
     // https://github.com/flekschas/regl-scatterplot?tab=readme-ov-file#resizing-the-scatterplot

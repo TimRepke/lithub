@@ -12,6 +12,7 @@ import {
 } from "d3";
 import { interpolateYlGn } from "d3-scale-chromatic";
 import { HistogramMask } from "@/util/dataset/masks/histogram.ts";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 interface SCM {
   name: string;
@@ -92,6 +93,12 @@ const colours = computed(() => {
   if (useLogScale.value) return d3scaleSequentialLog(extent, interpolateYlGn);
   return d3scaleSequential(extent, interpolateYlGn);
 });
+
+function swapAxes() {
+  const tmp = xKey.value;
+  xKey.value = yKey.value;
+  yKey.value = tmp;
+}
 </script>
 
 <template>
@@ -128,6 +135,9 @@ const colours = computed(() => {
               {{ label.name }}
             </option>
           </select>
+        </div>
+        <div class="col text-muted small p-0" style="flex: 0">
+          <font-awesome-icon icon="right-left" role="button" @click="swapAxes" />
         </div>
         <div class="col">
           <label :for="`xkey-${uniq}`">Horizontal axis</label>
