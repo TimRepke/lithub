@@ -27,6 +27,8 @@ def write(scheme_keys: list[str], df_slim: pd.DataFrame, df_full: pd.DataFrame,
     # -- Indexing data
     con.execute(text('INSERT INTO search (idx, title, abstract, authors) '
                      'SELECT idx, title, abstract, authors FROM documents;'))
+    con.commit()
+    con.close()
 
     schema = pa.schema([
         ('idx', pa.uint32()),

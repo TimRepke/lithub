@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .logging import get_logger
 from .config import settings
 from .middlewares import ErrorHandlingMiddleware, TimingMiddleware
-from .api import router as api_router
+from .api import router as api_router, FilteredStaticFiles
 
 import mimetypes
 
@@ -42,7 +42,7 @@ logger.debug('Setup routers')
 app.include_router(api_router, prefix='/api')
 
 logger.info(f'Dataset files to {settings.DATASETS_FOLDER}')
-app.mount('/data', StaticFiles(directory=Path(settings.DATASETS_FOLDER).absolute()), name='data')
+app.mount('/data', FilteredStaticFiles(directory=Path(settings.DATASETS_FOLDER).absolute()), name='data')
 
 logger.info(f'Static files to {settings.STATIC_FILES}')
 app.mount('/', StaticFiles(directory=settings.STATIC_FILES, html=True), name='static')

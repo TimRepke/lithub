@@ -20,7 +20,7 @@ class SchemeLabel(BaseModel):
     parent_val: bool | int | None = None
 
 
-class DatasetInfo(BaseModel):
+class DatasetInfoBase(BaseModel):
     model_config = ConfigDict(extra='ignore')
 
     name: str
@@ -35,7 +35,11 @@ class DatasetInfo(BaseModel):
     figure: str | None = None
 
 
-class DatasetInfoFull(DatasetInfo):
+class DatasetInfo(DatasetInfoBase):
+    contact: list[str] | None = None
+
+
+class DatasetInfoFull(DatasetInfoBase):
     model_config = ConfigDict(extra='ignore')
     db_filename: str
     arrow_filename: str

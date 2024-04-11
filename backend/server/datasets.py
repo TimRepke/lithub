@@ -42,7 +42,9 @@ class Dataset:
                     logger.debug(f'Loading size of dataset for {self.key}')
                     rslt = db.cur.execute('SELECT COUNT(1) as total FROM documents;').fetchone()
                     self._total = rslt['total']
-            except:
+            except Exception as e:
+                logger.error(e)
+                logger.warning('Falling back to returning `0` as total count.')
                 return 0
         return self._total
 
@@ -99,6 +101,7 @@ class DatasetCache:
         self.datasets = {}
         # Iterate the dataset folder
         for entry in self.base_path.iterdir():
+            logger.info(f'Checking if folder {entry} is a dataset')
             # Only consider folders (excl. those starting with ".") that contain a 'info.toml' file
             if entry.is_dir() and not entry.name.startswith('.') and (entry / 'info.toml').exists():
                 try:

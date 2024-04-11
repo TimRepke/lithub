@@ -2,10 +2,9 @@ import csv
 import io
 import logging
 from sqlite3 import Cursor
-from typing import Generator
+from typing import Generator, Annotated
 
-import pandas as pd
-from fastapi import APIRouter, Query, HTTPException, Body
+from fastapi import APIRouter, Query, HTTPException, Body, Depends, status as http_status
 from fastapi.responses import StreamingResponse, PlainTextResponse
 
 from ..config import settings
@@ -20,38 +19,47 @@ router = APIRouter()
 datasets = dataset_cache.datasets
 
 
+def ensure_dataset(dataset: str) -> Dataset:
+    if dataset in datasets:
+        return datasets[dataset]
+    raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND)
+
+
 @router.get('/info/', response_model=list[DatasetInfoWeb])
 async def get_datasets() -> list[DatasetInfoWeb]:
     return [ds.info for ds in datasets.values()]
 
 
 @router.get('/info/{dataset}', response_model=DatasetInfoWeb)
-async def get_dataset(dataset: str) -> list[DatasetInfoWeb]:
-    return datasets[dataset].info
+async def get_dataset(dataset: Annotated[DatasetInfoWeb, Depends(ensure_dataset)]) -> DatasetInfoWeb:
+    return dataset.info
 
 
 @router.get('/bitmask/{dataset}', response_class=PlainTextResponse)
 @cache(coder=BytesCoder)
-async def get_bitmask(dataset: str, key: str, min_score: float = 0.5) -> bytes:
-    with datasets[dataset] as db:
+async def get_bitmask(dataset: Annotated[Dataset, Depends(ensure_dataset)],
+                      key: str, min_score: float = 0.5) -> bytes:
+    with dataset as db:
         rslt = db.cur.execute(f'SELECT idx FROM documents WHERE {db.safe_col(key)} >= :min_score ORDER BY idx;',
                               {'min_score': min_score})
-        mask = as_bitmask((r['idx'] for r in rslt), datasets[dataset].total)
+        mask = as_bitmask((r['idx'] for r in rslt), dataset.total)
         return mask
 
 
 @router.get('/bitmask/{dataset}/ids')
 @cache(coder=JsonCoder)
-async def get_ids(dataset: str, key: str, min_score: float = 0.5) -> list[int]:
-    with datasets[dataset] as db:
+async def get_ids(dataset: Annotated[Dataset, Depends(ensure_dataset)],
+                  key: str, min_score: float = 0.5) -> list[int]:
+    with dataset as db:
         rslt = db.cur.execute(f'SELECT idx FROM documents WHERE {db.safe_col(key)} >= :min_score ORDER BY idx;',
                               {'min_score': min_score})
         return [r['idx'] for r in rslt]
 
 
 @router.get('/search/bitmask/{dataset}', response_class=PlainTextResponse)
-async def get_search_mask(dataset: str, query: str, fields: list[str] = Query()) -> bytes:
-    with datasets[dataset] as db:
+async def get_search_mask(dataset: Annotated[Dataset, Depends(ensure_dataset)],
+                          query: str, fields: list[str] = Query()) -> bytes:
+    with dataset as db:
         field_filters = [
             f"{db.safe_col(field)} MATCH :query"
             for field in fields
@@ -65,7 +73,7 @@ async def get_search_mask(dataset: str, query: str, fields: list[str] = Query())
 
 
 @router.post('/documents/{dataset}', response_model=list[AnnotatedDocument])
-async def get_documents(dataset: str,
+async def get_documents(dataset: Annotated[Dataset, Depends(ensure_dataset)],
                         bitmask: str | None = Body(default=None),
                         ids: list[int] | None = Body(default=None),
                         order_by: list[str] | None = Body(default=None),
@@ -74,7 +82,7 @@ async def get_documents(dataset: str,
     if limit > 100:
         raise HTTPException(400, detail='Maximum number of documents exceeded')
 
-    with datasets[dataset] as db:
+    with dataset as db:
         order_fields = ''  # TODO: Do we want default ordering on something?
         where = ''
         if order_by is not None and len(order_by) > 0:
@@ -89,7 +97,7 @@ async def get_documents(dataset: str,
         stmt = f'SELECT * FROM documents {where} {order_fields} LIMIT :limit OFFSET :offset;'
         # logger.debug(stmt)
         rslt = db.cur.execute(stmt, {'limit': limit, 'offset': page * limit})
-        return list(convert_documents(rslt, datasets[dataset]))
+        return list(convert_documents(rslt, dataset))
 
 
 class CFR(StreamingResponse):  # custom file response to set the media type
@@ -97,7 +105,7 @@ class CFR(StreamingResponse):  # custom file response to set the media type
 
 
 @router.post('/download/{dataset}', response_class=CFR)
-async def get_download(dataset: str,
+async def get_download(dataset: Annotated[Dataset, Depends(ensure_dataset)],
                        bitmask: str | None = Body(default=None),
                        anyway: str | None = Body(default=None)) -> StreamingResponse:
     where = ''
@@ -107,11 +115,10 @@ async def get_download(dataset: str,
         where = f'WHERE idx IN ({ids_str})'
     stmt = f'SELECT * FROM documents {where} ORDER BY idx;'
 
-    dataset_ = datasets[dataset]
-    cols = list(dataset_.document_columns) + list(dataset_.label_columns)
+    cols = list(dataset.document_columns) + list(dataset.label_columns)
 
     def streamer():
-        with dataset_ as db:
+        with dataset as db:
             rslt = db.cur.execute(stmt)
             stream = io.StringIO()
             writer = csv.DictWriter(stream, fieldnames=cols, lineterminator='\n')
@@ -133,9 +140,14 @@ async def get_download(dataset: str,
             yield stream.read()
 
     response = StreamingResponse(streamer(), media_type='text/csv')
-    response.headers['Content-Disposition'] = f'attachment; filename={dataset}.csv'
+    response.headers['Content-Disposition'] = f'attachment; filename={dataset.key}.csv'
 
     return response
+
+
+@router.post('/report/{dataset}')
+async def report(dataset: Annotated[DatasetInfoWeb, Depends(ensure_dataset)]) -> None:
+    pass
 
 
 def convert_documents(rslt: Cursor, dataset: Dataset) -> Generator[AnnotatedDocument, None, None]:

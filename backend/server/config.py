@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = []  # list of trusted hosts
 
     CACHE_LIMIT: int = 1024 * 1024 * 128  # Maximum cache size is 128MB
-    DOWNLOAD_BUFFER: int = 200
+    DOWNLOAD_BUFFER: int = 10240
 
     @field_validator('CORS_ORIGINS', mode='before')
     @classmethod
