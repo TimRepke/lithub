@@ -1,13 +1,14 @@
 fastapi==0.110.1
-pydantic[dotenv]==2.6.4
+pydantic[dotenv]==2.7.0
 pydantic_settings==2.2.1
 uvicorn==0.29.0
 hypercorn==0.16.0
 aiofiles==23.2.1
 toml==0.10.2
 numpy==1.26.4
-pandas==2.2.1
+pandas==2.2.2
 pyarrow==15.0.2
-typer[all]==0.12.1
+typer[all]==0.12.3
 msgpack==1.0.8
 opentsne==1.0.1
+aiosmtplib==3.0.1

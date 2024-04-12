@@ -163,8 +163,8 @@ function loadMask(dataset: string, col: string, threshold: number = 0.5) {
   return new Promise((resolve: (bitmask: Bitmask) => void, reject) => {
     request({
       method: "GET",
-      path: `/basic/bitmask/${dataset}`,
-      params: { key: col, min_score: threshold },
+      path: "/basic/bitmask",
+      params: { key: col, min_score: threshold, dataset },
     })
       .then(async (result) => {
         resolve(Bitmask.fromBase64(await result.text()));

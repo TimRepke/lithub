@@ -175,10 +175,11 @@ export function useDataset<K extends Indexes>(params: {
     const orderBy = [...activeLabelMaskColumns()];
     const mask = (!dparams.ids || dparams.ids.length === 0) && hasActiveMask() ? bitmask.value?.toBase64() : undefined;
     return await POST<AnnotatedDocument[]>({
-      path: `/basic/documents/${name}`,
+      path: "/basic/documents",
       params: {
         limit: dparams.limit ?? 10,
         page: dparams.page ?? 0,
+        dataset: name,
       },
       payload: {
         ids: dparams.ids,

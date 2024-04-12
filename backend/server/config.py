@@ -27,6 +27,16 @@ class Settings(BaseSettings):
     CACHE_LIMIT: int = 1024 * 1024 * 128  # Maximum cache size is 128MB
     DOWNLOAD_BUFFER: int = 10240
 
+    MAILING_ENABLED: bool = False
+    MAILING_SENDER: str | None = 'Literature Hub <noreply@climateliterature.org>'
+    SMTP_TLS: bool = True
+    SMTP_START_TLS: bool | None = None
+    SMTP_CHECK_CERT: bool = True
+    SMTP_PORT: int | None = None
+    SMTP_HOST: str | None = None
+    SMTP_USER: str | None = None
+    SMTP_PASSWORD: str | None = None
+
     @field_validator('CORS_ORIGINS', mode='before')
     @classmethod
     def assemble_cors_origins(cls, v: str | list[str]) -> str | list[str]:

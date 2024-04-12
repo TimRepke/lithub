@@ -20,7 +20,7 @@ class SchemeLabel(BaseModel):
     parent_val: bool | int | None = None
 
 
-class DatasetInfoBase(BaseModel):
+class DatasetInfo(BaseModel):
     model_config = ConfigDict(extra='ignore')
 
     name: str
@@ -35,11 +35,7 @@ class DatasetInfoBase(BaseModel):
     figure: str | None = None
 
 
-class DatasetInfo(DatasetInfoBase):
-    contact: list[str] | None = None
-
-
-class DatasetInfoFull(DatasetInfoBase):
+class DatasetInfoFull_(DatasetInfo):
     model_config = ConfigDict(extra='ignore')
     db_filename: str
     arrow_filename: str
@@ -55,7 +51,11 @@ class DatasetInfoFull(DatasetInfoBase):
     default_colour: str
 
 
-class DatasetInfoWeb(DatasetInfoFull):
+class DatasetInfoFull(DatasetInfoFull_):
+    contact: list[str] | None = None
+
+
+class DatasetInfoWeb(DatasetInfoFull_):
     model_config = ConfigDict(extra='ignore')
     key: str
     total: int

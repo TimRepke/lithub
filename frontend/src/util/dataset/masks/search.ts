@@ -31,8 +31,8 @@ export function useSearchMask(dataset: string): SearchMask {
     }
     const rawMask = await request({
       method: "GET",
-      path: `/basic/search/bitmask/${dataset}`,
-      params: { query: search.value, fields: fields.value },
+      path: "/basic/search/bitmask",
+      params: { query: search.value, fields: fields.value, dataset },
     });
     bitmask.value = Bitmask.fromBase64(await rawMask.text());
     base.update();

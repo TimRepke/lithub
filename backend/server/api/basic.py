@@ -4,11 +4,12 @@ import logging
 from sqlite3 import Cursor
 from typing import Generator, Annotated
 
-from fastapi import APIRouter, Query, HTTPException, Body, Depends, status as http_status
+from fastapi import APIRouter, Query, HTTPException, Body, Depends, status as http_status, BackgroundTasks
 from fastapi.responses import StreamingResponse, PlainTextResponse
 
 from ..config import settings
 from ..datasets import DatasetInfoWeb, datasets as dataset_cache, Dataset
+from ..mails import send_message, EmailNotSentError
 from ..types import AnnotatedDocument
 from ..util import as_bitmask, as_ids
 from ..cache import cache
@@ -19,23 +20,23 @@ router = APIRouter()
 datasets = dataset_cache.datasets
 
 
-def ensure_dataset(dataset: str) -> Dataset:
+def ensure_dataset(dataset: str = Query()) -> Dataset:
     if dataset in datasets:
         return datasets[dataset]
     raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND)
 
 
-@router.get('/info/', response_model=list[DatasetInfoWeb])
+@router.get('/infos', response_model=list[DatasetInfoWeb])
 async def get_datasets() -> list[DatasetInfoWeb]:
     return [ds.info for ds in datasets.values()]
 
 
-@router.get('/info/{dataset}', response_model=DatasetInfoWeb)
+@router.get('/info', response_model=DatasetInfoWeb)
 async def get_dataset(dataset: Annotated[DatasetInfoWeb, Depends(ensure_dataset)]) -> DatasetInfoWeb:
     return dataset.info
 
 
-@router.get('/bitmask/{dataset}', response_class=PlainTextResponse)
+@router.get('/bitmask', response_class=PlainTextResponse)
 @cache(coder=BytesCoder)
 async def get_bitmask(dataset: Annotated[Dataset, Depends(ensure_dataset)],
                       key: str, min_score: float = 0.5) -> bytes:
@@ -46,7 +47,7 @@ async def get_bitmask(dataset: Annotated[Dataset, Depends(ensure_dataset)],
         return mask
 
 
-@router.get('/bitmask/{dataset}/ids')
+@router.get('/bitmask/ids')
 @cache(coder=JsonCoder)
 async def get_ids(dataset: Annotated[Dataset, Depends(ensure_dataset)],
                   key: str, min_score: float = 0.5) -> list[int]:
@@ -56,7 +57,7 @@ async def get_ids(dataset: Annotated[Dataset, Depends(ensure_dataset)],
         return [r['idx'] for r in rslt]
 
 
-@router.get('/search/bitmask/{dataset}', response_class=PlainTextResponse)
+@router.get('/search/bitmask', response_class=PlainTextResponse)
 async def get_search_mask(dataset: Annotated[Dataset, Depends(ensure_dataset)],
                           query: str, fields: list[str] = Query()) -> bytes:
     with dataset as db:
@@ -72,7 +73,7 @@ async def get_search_mask(dataset: Annotated[Dataset, Depends(ensure_dataset)],
         return mask
 
 
-@router.post('/documents/{dataset}', response_model=list[AnnotatedDocument])
+@router.post('/documents', response_model=list[AnnotatedDocument])
 async def get_documents(dataset: Annotated[Dataset, Depends(ensure_dataset)],
                         bitmask: str | None = Body(default=None),
                         ids: list[int] | None = Body(default=None),
@@ -104,7 +105,7 @@ class CFR(StreamingResponse):  # custom file response to set the media type
     media_type = 'application/csv'
 
 
-@router.post('/download/{dataset}', response_class=CFR)
+@router.post('/download', response_class=CFR)
 async def get_download(dataset: Annotated[Dataset, Depends(ensure_dataset)],
                        bitmask: str | None = Body(default=None),
                        anyway: str | None = Body(default=None)) -> StreamingResponse:
@@ -145,9 +146,28 @@ async def get_download(dataset: Annotated[Dataset, Depends(ensure_dataset)],
     return response
 
 
-@router.post('/report/{dataset}')
-async def report(dataset: Annotated[DatasetInfoWeb, Depends(ensure_dataset)]) -> None:
-    pass
+@router.post('/report')
+async def report(dataset: Annotated[Dataset, Depends(ensure_dataset)],
+                 background_tasks: BackgroundTasks) -> None:
+    if dataset.full_info.contact and len(dataset.full_info.contact) > 0:
+        try:
+            background_tasks.add_task(
+                send_message,
+                sender=None,
+                recipients=dataset.full_info.contact,
+                subject='[NACSOS] Reset password',
+                message=f'Dear {user.full_name},\n'
+                        f'You are receiving this message because you or someone else '
+                        f'tried to reset your password.\n'
+                        f'We closed all your active sessions, so you will have to log in again.\n'
+                        f'\n'
+                        f'You can use the following link within the next 3h to reset your password:\n'
+                        f'{settings.SERVER.WEB_URL}/#/password-reset/{token.token_id}\n'
+                        f'\n'
+                        f'Sincerely,\n'
+                        f'The Platform')
+        except EmailNotSentError:
+            pass
 
 
 def convert_documents(rslt: Cursor, dataset: Dataset) -> Generator[AnnotatedDocument, None, None]:

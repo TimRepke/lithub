@@ -11,7 +11,7 @@ const isReady = ref(false);
 const downloadSecondary = ref(false);
 const downloadProgress = ref<number | null>(null);
 onMounted(async () => {
-  const info = await GET<DatasetInfo>({ path: "/basic/info/cdrmap" });
+  const info = await GET<DatasetInfo>({ path: "/basic/info", params: { dataset: "cdrmap" } });
   await datasetStore.load(info);
   isReady.value = true;
 });
@@ -32,7 +32,8 @@ async function download(mask?: string) {
   downloadProgress.value = 0;
   const rslt = await RequestWithProgress({
     method: "POST",
-    path: "/basic/download/cdrmap",
+    path: "/basic/download",
+    params: { dataset: "cdrmap" },
     payload: mask ? { bitmask: mask } : undefined,
     headers: {
       "Content-Type": "application/json; charset=UTF-8",

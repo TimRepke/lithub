@@ -5,7 +5,7 @@ import { DatasetInfo } from "@/util/types";
 
 const datasets = ref<DatasetInfo[]>([]);
 onMounted(async () => {
-  datasets.value = await GET<DatasetInfo[]>({ path: "/basic/info/" });
+  datasets.value = await GET<DatasetInfo[]>({ path: "/basic/infos" });
 });
 
 const sortedDatasets = computed(() =>

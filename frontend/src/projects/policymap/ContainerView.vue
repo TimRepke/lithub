@@ -9,7 +9,7 @@ import { datasetStore } from "@/stores";
 
 const isReady = ref(false);
 onMounted(async () => {
-  const info = await GET<DatasetInfo>({ path: "/basic/info/policymap" });
+  const info = await GET<DatasetInfo>({ path: "/basic/info", params: { dataset: "policymap" } });
   await datasetStore.load(info);
   isReady.value = true;
 });

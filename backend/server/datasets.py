@@ -13,7 +13,7 @@ logger = get_logger('util.datasets')
 class Dataset:
     def __init__(self, info: DatasetInfoFull, path: Path, key: str):
         self.key = key
-        self._info = info
+        self.full_info = info
         self.db_file = path / info.db_filename
         self.logger = get_logger(f'util.db.{key}')
         self._total: int | None = None
@@ -24,7 +24,7 @@ class Dataset:
 
     @property
     def schema(self) -> dict[str, SchemeLabel]:
-        return self._info.scheme
+        return self.full_info.scheme
 
     @property
     def info(self) -> DatasetInfoWeb:
@@ -32,7 +32,7 @@ class Dataset:
             key=self.key,
             total=self.total,
             columns=self.columns,
-            **self._info.dict())
+            **self.full_info.dict())
 
     @property
     def total(self) -> int:
