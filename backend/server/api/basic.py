@@ -2,14 +2,15 @@ import csv
 import io
 import logging
 from sqlite3 import Cursor
-from typing import Generator, Annotated
+from typing import Generator, Annotated, Literal
 
 from fastapi import APIRouter, Query, HTTPException, Body, Depends, status as http_status, BackgroundTasks
 from fastapi.responses import StreamingResponse, PlainTextResponse
+from pydantic import BaseModel
 
 from ..config import settings
 from ..datasets import DatasetInfoWeb, datasets as dataset_cache, Dataset
-from ..mails import send_message, EmailNotSentError
+from ..mails import send_message, EmailNotSentError, mailing_active
 from ..types import AnnotatedDocument
 from ..util import as_bitmask, as_ids
 from ..cache import cache
@@ -146,26 +147,61 @@ async def get_download(dataset: Annotated[Dataset, Depends(ensure_dataset)],
     return response
 
 
+class FeedbackValue(BaseModel):
+    key: str
+    selected: bool
+
+
+class Feedback(BaseModel):
+    key: str
+    is_wrong: bool
+    values: list[FeedbackValue]
+
+
 @router.post('/report')
 async def report(dataset: Annotated[Dataset, Depends(ensure_dataset)],
-                 background_tasks: BackgroundTasks) -> None:
-    if dataset.full_info.contact and len(dataset.full_info.contact) > 0:
+                 background_tasks: BackgroundTasks,
+                 kind: Literal['MISSING', 'ERROR'] = Query(),
+                 document: int | None = Query(default=None),
+                 name: str = Body(),
+                 email: str = Body(),
+                 comment: str = Body(),
+                 relevant: bool = Body(),
+                 feedback: list[Feedback] = Body()) -> None:
+    if mailing_active(dataset) and dataset.full_info.contact and len(dataset.full_info.contact) > 0:
         try:
+            message = f"""
+Hi,
+
+Someone flagged up the following issue on the literature hub:
+
+Project: {dataset.info.name}
+Reported issue: {kind}
+Sender: {name} <{email}>
+Document: {document or '[not provided]'}
+Relevant: {relevant}
+Comment:
+{comment}
+
+"""
+            for fb in feedback:
+                message += f'{fb.model_dump_json()}\n'
+
+            logger.debug(message)
+
+            recipients = dataset.full_info.contact
+            if email:
+                recipients.append(email)
+
             background_tasks.add_task(
                 send_message,
                 sender=None,
-                recipients=dataset.full_info.contact,
-                subject='[NACSOS] Reset password',
-                message=f'Dear {user.full_name},\n'
-                        f'You are receiving this message because you or someone else '
-                        f'tried to reset your password.\n'
-                        f'We closed all your active sessions, so you will have to log in again.\n'
-                        f'\n'
-                        f'You can use the following link within the next 3h to reset your password:\n'
-                        f'{settings.SERVER.WEB_URL}/#/password-reset/{token.token_id}\n'
-                        f'\n'
-                        f'Sincerely,\n'
-                        f'The Platform')
+                to=None,
+                cc=None,
+                bcc=recipients,
+                subject=f'[LitHub] New report for "{dataset.info.name}"',
+                message=message,
+                quiet=True)
         except EmailNotSentError:
             pass
 

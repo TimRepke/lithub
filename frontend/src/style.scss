@@ -78,8 +78,14 @@ html, body {
     }
   }
 
+  &.no-border {
+    input:checked + label {
+      border: 0!important;
+    }
+  }
+
   input + label {
-    margin-left: 0.25em;
+    /*margin-left: 0.25em;*/
     color: var(--grey-1);
     cursor: pointer;
 

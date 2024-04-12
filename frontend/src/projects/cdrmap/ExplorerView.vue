@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { datasetStore } from "@/stores";
 
-import { Dataset, useResults } from "@/util/dataset";
+import { type Dataset, useResults } from "@/util/dataset";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import DocumentCard from "@/components/DocumentCard.vue";
 import PaginationNav from "@/components/PaginationNav.vue";
@@ -18,6 +18,8 @@ import ScatterLandscape from "@/components/ScatterLandscape.vue";
 import { DATA_BASE } from "@/util/api.ts";
 import FluidContainerGrid from "@/components/FluidContainerGrid.vue";
 import FluidContainer from "@/components/FluidContainer.vue";
+import ReportingModal from "@/components/ReportingModal.vue";
+import type { AnnotatedDocument } from "@/util/types";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -43,9 +45,15 @@ const { scatter: scatterMask, geo: geoMask } = indexMasks.masks;
 const { documents } = results;
 const labels = ref(["tech", "meth", "cont"]);
 
+const reportDoc = ref<AnnotatedDocument | null>(null);
+
 function startPauseResultFetching(active: boolean) {
   results.paused.value = !active;
 }
+
+onMounted(() => {
+  results.delayedUpdate();
+});
 </script>
 
 <template>
@@ -86,7 +94,7 @@ function startPauseResultFetching(active: boolean) {
     </template>
 
     <template #cont3>
-      <FluidContainer title="Geographic map">
+      <FluidContainer title="Geographic map" :initial-state="false">
         <GeoMap
           class="flex-grow-1"
           v-model:mask="geoMask"
@@ -108,10 +116,16 @@ function startPauseResultFetching(active: boolean) {
       </FluidContainer>
     </template>
     <template #cont5>
-      <FluidContainer title="Results" :initial-state="false" @visibility-updated="startPauseResultFetching">
+      <FluidContainer title="Results" @visibility-updated="startPauseResultFetching">
         <template v-if="documents.length > 0">
           <div class="results-column-results">
-            <DocumentCard v-for="doc in documents" :key="doc.idx" :doc="doc" class="m-2" />
+            <DocumentCard
+              v-for="doc in documents"
+              :key="doc.idx"
+              :doc="doc"
+              :scheme="scheme"
+              @report="(doc) => (reportDoc = doc)"
+            />
           </div>
           <div class="results-column-pagination">
             <PaginationNav v-model:results="results" />
@@ -131,6 +145,13 @@ function startPauseResultFetching(active: boolean) {
       </FluidContainer>
     </template>
   </FluidContainerGrid>
+  <ReportingModal
+    v-if="reportDoc"
+    :doc="reportDoc"
+    :scheme="scheme"
+    @close="reportDoc = null"
+    :dataset="dataset.name"
+  />
 </template>
 
 <style scoped lang="scss">

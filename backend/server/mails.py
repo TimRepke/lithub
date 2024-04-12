@@ -43,45 +43,59 @@ def mailing_active(dataset: Dataset) -> bool:
     return settings.MAILING_ENABLED and dataset.full_info.contact and len(dataset.full_info.contact) > 0
 
 
-def construct_email(recipients: list[str],
-                    subject: str,
+def construct_email(subject: str,
                     message: str,
+                    to: list[str] | None = None,
+                    cc: list[str] | None = None,
+                    bcc: list[str] | None = None,
                     sender: str | None = None) -> EmailMessage:
     if sender is None:
-        sender = settings.EMAIL.SENDER
+        sender = settings.MAILING_SENDER
 
     email = EmailMessage()
     email.set_content(message)
     email['Subject'] = subject
     email['From'] = sender
-    email['To'] = ', '.join(recipients)
+
+    if to:
+        email['To'] = ', '.join(to)
+    if cc:
+        email['Cc'] = ', '.join(cc)
+    if bcc:
+        email['Bcc'] = ', '.join(bcc)
+
     return email
 
 
-async def send_message(recipients: list[str],
-                       subject: str,
+async def send_message(subject: str,
                        message: str,
-                       sender: str | None = None) -> bool:
-    email = construct_email(sender=sender, recipients=recipients, subject=subject, message=message)
-    return await send_email(email)
+                       to: list[str] | None = None,
+                       cc: list[str] | None = None,
+                       bcc: list[str] | None = None,
+                       sender: str | None = None,
+                       quiet: bool = False) -> bool:
+    email = construct_email(sender=sender, to=to, cc=cc, bcc=bcc, subject=subject, message=message)
+    return await send_email(email, quiet=quiet)
 
 
-async def send_email(email: EmailMessage) -> bool:
-    if not settings.EMAIL.ENABLED:
+async def send_email(email: EmailMessage, quiet: bool) -> bool:
+    if not settings.MAILING_ENABLED:
+        if quiet:
+            return False
         raise EmailNotSentError(f'Mailing system inactive, '
                                 f'email with subject "{email["Subject"]}" not sent to {email["To"]}')
 
     if email['From'] is None:
         del email['From']
-        email['From'] = settings.EMAIL.SENDER
+        email['From'] = settings.MAILING_SENDER
 
-    client = SMTP(hostname=settings.EMAIL.SMTP_HOST,
-                  port=settings.EMAIL.SMTP_PORT,
-                  use_tls=settings.EMAIL.SMTP_TLS,
-                  start_tls=settings.EMAIL.SMTP_START_TLS,
-                  validate_certs=settings.EMAIL.SMTP_CHECK_CERT,
-                  username=settings.EMAIL.SMTP_USER,
-                  password=settings.EMAIL.SMTP_PASSWORD)
+    client = SMTP(hostname=settings.SMTP_HOST,
+                  port=settings.SMTP_PORT,
+                  use_tls=settings.SMTP_TLS,
+                  start_tls=settings.SMTP_START_TLS,
+                  validate_certs=settings.SMTP_CHECK_CERT,
+                  username=settings.SMTP_USER,
+                  password=settings.SMTP_PASSWORD)
     try:
         await client.connect()
         logger.debug(f'Trying to send email to {email["To"]} with subject "{email["Subject"]}"')
@@ -101,36 +115,38 @@ async def send_email(email: EmailMessage) -> bool:
         raise EmailNotSentError(f'Email with subject "{email["Subject"]}" not sent to {email["To"]} because of "{e}"')
 
 
-def send_message_sync(recipients: list[str],
-                      subject: str,
+def send_message_sync(subject: str,
                       message: str,
+                      to: list[str] | None = None,
+                      cc: list[str] | None = None,
+                      bcc: list[str] | None = None,
                       sender: str | None = None) -> bool:
-    email = construct_email(sender=sender, recipients=recipients, subject=subject, message=message)
+    email = construct_email(sender=sender, to=to, cc=cc, bcc=bcc, subject=subject, message=message)
     return send_email_sync(email)
 
 
 def send_email_sync(email: EmailMessage) -> bool:
-    host = settings.EMAIL.SMTP_HOST
-    port = settings.EMAIL.SMTP_PORT
+    host = settings.SMTP_HOST
+    port = settings.SMTP_PORT
 
-    if not settings.EMAIL.ENABLED or host is None or port is None:
+    if not settings.MAILING_ENABLED or host is None or port is None:
         raise EmailNotSentError(f'Mailing system inactive, '
                                 f'email with subject "{email["Subject"]}" not sent to {email["To"]}')
 
     if email['From'] is None:
         del email['From']
-        email['From'] = settings.EMAIL.SENDER
+        email['From'] = settings.MAILING_SENDER
 
     try:
         client: SMTP_SSL | SMTPSync
-        if not settings.EMAIL.SMTP_TLS:
+        if not settings.SMTP_TLS:
             client = SMTP_SSL(host=host, port=port)
         else:
             client = SMTPSync(host=host, port=port)
 
         with client as smtp:
-            user = settings.EMAIL.SMTP_USER
-            password = settings.EMAIL.SMTP_PASSWORD
+            user = settings.SMTP_USER
+            password = settings.SMTP_PASSWORD
             if user is not None and password is not None:
                 smtp.login(user=user, password=password)
 

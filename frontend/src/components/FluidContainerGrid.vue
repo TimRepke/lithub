@@ -11,7 +11,13 @@ function manageResize(md: MouseEvent, sizeProp: "offsetWidth" | "offsetHeight", 
   const r = md.target as HTMLDivElement;
 
   const prev = r.previousElementSibling as HTMLDivElement;
-  const next = r.nextElementSibling as HTMLDivElement;
+  let next = r.nextElementSibling as HTMLDivElement;
+
+  // Skip closed elements and find the next opened column
+  while (next) {
+    if (!next.classList.contains("closed") && !next.classList.contains("flex-resizer")) break;
+    next = next.nextElementSibling as HTMLDivElement;
+  }
 
   if (!prev || !next) {
     return;
@@ -140,6 +146,7 @@ onMounted(() => {
   cursor: ns-resize;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='30' height='10'><path d='M0 2 h30 M0 5 h30 M0 8 h30' fill='none' stroke='black'/></svg>");
 }
+
 .closed + .flex-resizer {
   display: none;
 }

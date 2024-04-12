@@ -4,6 +4,7 @@ import { Type } from "apache-arrow/enum";
 import * as rspt from "regl-scatterplot/src/types";
 
 export interface SchemeLabelValue {
+  key: string;
   name: string;
   value: boolean | number;
   colour: [number, number, number];

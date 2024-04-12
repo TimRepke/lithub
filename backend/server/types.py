@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, AfterValidator
 
 
 class SchemeLabelValue(BaseModel):
+    key: str
     name: str
     value: bool | int
     colour: tuple[float, float, float]  # label colour in HSL

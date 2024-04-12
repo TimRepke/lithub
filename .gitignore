@@ -1,6 +1,6 @@
 data/
 frontend/dist/
-
+.config/
 old/
 
 .cache

@@ -98,7 +98,9 @@ export function dt2str(datetime: string | null | undefined): string | null {
   }
   return null;
 }
-
+export function hslToCSS(h: number, s: number, l: number): string {
+  return `hsl(${h} ${s} ${l}%)`;
+}
 // https://stackoverflow.com/questions/36721830/convert-hsl-to-rgb-and-hex
 export function hslToHex(h: number, s: number, l: number): string {
   l /= 100;

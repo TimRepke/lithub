@@ -230,6 +230,8 @@ export interface Results {
   pages: ComputedRef<number[]>;
   next: () => void;
   prev: () => void;
+  update: () => void;
+  delayedUpdate: () => void;
   hasPrev: ComputedRef<boolean>;
   hasNext: ComputedRef<boolean>;
 }
@@ -293,6 +295,8 @@ export function useResults<K extends Indexes>(dataset: Dataset<K>): Results {
     hasNext: toRef(hasNext),
     next,
     prev,
+    update,
+    delayedUpdate,
   };
 }
 
