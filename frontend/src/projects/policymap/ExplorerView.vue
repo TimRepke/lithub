@@ -111,7 +111,7 @@ function startPauseResultFetching(active: boolean) {
       <FluidContainer title="Results" :initial-state="false" @visibility-updated="startPauseResultFetching">
         <template v-if="documents.length > 0">
           <div class="results-column-results">
-            <DocumentCard v-for="doc in documents" :key="doc.idx" :doc="doc" class="m-2" />
+            <DocumentCard v-for="doc in documents" :key="doc.idx" :doc="doc" class="m-2" :scheme="scheme" />
           </div>
           <div class="results-column-pagination">
             <PaginationNav v-model:results="results" />

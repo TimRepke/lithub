@@ -130,11 +130,7 @@ async function submitFeedback() {
                   Correct categories should be:
                   <div class="labels">
                     <template v-for="value in label.values" :key="+value.value">
-                      <input
-                        type="checkbox"
-                        v-model="value.selected"
-                        :id="`report-mistake-${value.key}`"
-                      />
+                      <input type="checkbox" v-model="value.selected" :id="`report-mistake-${value.key}`" />
                       <label :for="`report-mistake-${value.key}`">{{ value.name }}</label>
                     </template>
                   </div>
