@@ -49,7 +49,7 @@ test-typing:
 .deployment:
   stage: deploy
   tags:
-    - metal
+    - metal,lithub
   when: manual
   script:
     - echo "noop"

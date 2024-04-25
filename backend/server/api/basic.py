@@ -70,7 +70,7 @@ async def get_search_mask(dataset: Annotated[Dataset, Depends(ensure_dataset)],
                               f'WHERE {" OR ".join(field_filters)} '
                               f'ORDER BY idx;',
                               {'query': query})
-        mask = as_bitmask((r['idx'] for r in rslt), datasets[dataset].total)
+        mask = as_bitmask((r['idx'] for r in rslt), dataset.total)
         return mask
 
 
