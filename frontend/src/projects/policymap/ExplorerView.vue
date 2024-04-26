@@ -18,6 +18,7 @@ import ScatterLandscape from "@/components/ScatterLandscape.vue";
 import { DATA_BASE } from "@/util/api.ts";
 import FluidContainerGrid from "@/components/FluidContainerGrid.vue";
 import FluidContainer from "@/components/FluidContainer.vue";
+import HistogramFilter from "@/components/HistogramFilter.vue";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -62,7 +63,7 @@ function startPauseResultFetching(active: boolean) {
         </div>
 
         <div class="filter-sidebar-container">
-          <!--          <HistogramFilter v-model:mask="pyMask" />-->
+          <HistogramFilter v-model:mask="pyMask" />
           <template v-for="label in labels" :key="label">
             <SidebarLabelFilter v-model:group-mask="labelMaskGroups[label]" v-model:picked-colour="pickedColour" />
           </template>
