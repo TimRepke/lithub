@@ -127,6 +127,7 @@ const { call: delayedRedraw } = useDelay(() => {
   ]);
 
   const numTicks = Math.floor(Math.max(16 - width.value / 50, 2));
+  //@ts-ignore
   xAxis.scale(xScale).tickValues(xScale.domain().filter((y, i) => !(i % numTicks)));
 
   // Bars
