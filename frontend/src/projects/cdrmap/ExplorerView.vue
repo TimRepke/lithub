@@ -20,6 +20,7 @@ import FluidContainerGrid from "@/components/FluidContainerGrid.vue";
 import FluidContainer from "@/components/FluidContainer.vue";
 import ReportingModal from "@/components/ReportingModal.vue";
 import type { AnnotatedDocument } from "@/util/types";
+import HistogramFilter from "@/components/HistogramFilter.vue";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -70,7 +71,7 @@ onMounted(() => {
         </div>
 
         <div class="filter-sidebar-container">
-          <!--          <HistogramFilter v-model:mask="pyMask" />-->
+          <HistogramFilter v-model:mask="pyMask" />
           <template v-for="label in labels" :key="label">
             <SidebarLabelFilter v-model:group-mask="labelMaskGroups[label]" v-model:picked-colour="pickedColour" />
           </template>

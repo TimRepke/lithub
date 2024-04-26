@@ -34,9 +34,12 @@ export interface GroupBaseParams<K extends string | number | symbol, M extends M
   masks: Record<K, M>;
 }
 
+export type Extent = [number, number];
+
 export interface GroupMaskBase<K extends string | number | symbol, M extends MaskBase> extends MaskBase {
   inclusive: Ref<boolean>;
   masks: Record<K, M>;
+  extent: Ref<{ total: Extent; filtered: Extent }>;
   getCombinedMasks: () => Bitmask | None;
 }
 
@@ -108,12 +111,26 @@ export function useGroupBase<K extends string | number | symbol, M extends MaskB
   const base = useBase(params);
   const { bitmask } = base;
   const inclusive = ref(params.inclusive ?? true);
+
+  const initCounts: number[] = Object.values<M>(params.masks).map((mask) => mask.counts.value.countTotal);
+  const initExtent: Extent = [Math.min(...initCounts), Math.max(...initCounts)];
+  const extent = ref({
+    total: initExtent,
+    filtered: initExtent,
+  });
+
   bitmask.value = getCombinedMasks();
+
+  function updateExtents() {
+    const filteredCounts = Object.values<M>(params.masks).map((mask) => mask.counts.value.countFiltered);
+    extent.value.filtered = [Math.min(...filteredCounts), Math.max(...filteredCounts)];
+  }
 
   function updateCounts(globalMask: Bitmask | None) {
     Object.values<M>(params.masks).forEach((mask) => {
       mask.updateCounts(globalMask);
     });
+    updateExtents();
   }
 
   function getCombinedMasks() {
@@ -144,6 +161,7 @@ export function useGroupBase<K extends string | number | symbol, M extends MaskB
   return {
     ...base,
     inclusive: toRef(inclusive),
+    extent: toRef(extent),
     masks: params.masks,
     updateCounts,
     getCombinedMasks,

@@ -5,11 +5,8 @@ import type { None } from "@/util";
 import type { Scheme } from "@/util/types";
 import { and, Bitmask } from "@/util/dataset/masks/bitmask";
 import type { LabelMaskGroup } from "@/util/dataset/masks/labels";
-import {
-  extent as d3extent,
-  scaleSequential as d3scaleSequential,
-  scaleSequentialLog as d3scaleSequentialLog,
-} from "d3";
+import { extent as d3extent } from "d3-array";
+import { scaleSequential as d3scaleSequential, scaleSequentialLog as d3scaleSequentialLog } from "d3-scale";
 import { interpolateYlGn } from "d3-scale-chromatic";
 import { HistogramMask } from "@/util/dataset/masks/histogram.ts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";

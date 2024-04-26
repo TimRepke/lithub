@@ -2,16 +2,12 @@
 import { computed, onMounted, ref, watch } from "vue";
 
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import {
-  scaleSequential as d3scaleSequential,
-  interpolateBlues as d3interpolateBlues,
-  extent as d3extent,
-  create as d3create,
-  pointer as d3pointer,
-  zoomIdentity as d3zoomIdentity,
-  zoom as d3zoom,
-  zoomTransform as d3zoomTransform,
-} from "d3";
+import { scaleSequential as d3scaleSequential } from "d3-scale";
+import { extent as d3extent } from "d3-array";
+import { create as d3create, pointer as d3pointer } from "d3-selection";
+import { zoom as d3zoom, zoomTransform as d3zoomTransform, zoomIdentity as d3zoomIdentity } from "d3-zoom";
+import { interpolateBlues as d3interpolateBlues } from "d3-scale-chromatic";
+
 import type { Selection, BaseType } from "d3";
 import { d3lasso, type ItemSelection } from "@/util/lasso";
 import type { Feature, GeometryObject } from "geojson";

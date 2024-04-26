@@ -5,12 +5,12 @@ import type { Table } from "apache-arrow";
 import type { ArrowSchema, Keyword, ReglScatterplot } from "@/util/types";
 import { type None } from "@/util";
 import type { Bitmask } from "@/util/dataset/masks/bitmask.ts";
-import { scaleLinear } from "d3-scale";
+import { scaleLinear, type ScaleContinuousNumeric } from "d3-scale";
 import createScatterplot from "regl-scatterplot";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { Scale } from "regl-scatterplot/dist/types";
 import { LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
 
+type Scale = ScaleContinuousNumeric<number, number>;
 // type ViewPayload = Pick<Properties, "camera" | "xScale" | "yScale"> & { view: Properties["cameraView"] };
 type ViewBounds = { topRight: [number, number]; bottomLeft: [number, number] };
 type Point = [number, number, number, number];
