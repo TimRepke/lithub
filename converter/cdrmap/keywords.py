@@ -70,7 +70,21 @@ cluster_keywords = [
 ]
 
 print('  - transform')
-keywords = []
+keywords = [
+    {'x': 30, 'y': -15, 'keyword': 'Biochar', 'level': 0},
+    {'x': -60, 'y': 5, 'keyword': 'CCS', 'level': 0},
+    {'x': -20, 'y': -40, 'keyword': 'DAC(CS)', 'level': 0},
+    {'x': -10, 'y': 50, 'keyword': 'Afforestation/Reforestation', 'level': 0},
+    {'x': 0, 'y': 2, 'keyword': 'Ocean fertilization & Artificial upwelling', 'level': 0},
+    {'x': -27, 'y': 38, 'keyword': 'BECCS', 'level': 0},
+    {'x': -27, 'y': 27, 'keyword': 'General Literature on CDR', 'level': 0},
+    {'x': -10, 'y': -20, 'keyword': 'Enhanced Weathering (land based)', 'level': 0},
+    {'x': -15, 'y': 70, 'keyword': 'Blue carbon', 'level': 0},
+    {'x': 0, 'y': 7, 'keyword': 'Ocean alkalinity enhancement', 'level': 0},
+    {'x': 30, 'y': 55, 'keyword': 'Soil Carbon Sequestration', 'level': 0},
+    {'x': 10, 'y': 65, 'keyword': 'Restoration of landscapes/peats', 'level': 0}
+]
+
 for ci, kwds in enumerate(cluster_keywords):
     centroid = [kmeans.cluster_centers_[ci, 0], kmeans.cluster_centers_[ci, 1]]
     cluster_points = dfs[kmeans.labels_ == ci][['x', 'y']]
@@ -83,34 +97,13 @@ for ci, kwds in enumerate(cluster_keywords):
         keywords.append({
             'x': coordinates[0],
             'y': coordinates[1],
-            'level': depth,
+            'level': depth + 1,
             'keyword': keyword
             # "cluster": ci,
             # "size": 1000 + (size * 25000000 / (100 * (depth + 1)))
         })
 
 df_kws = pd.DataFrame(keywords)
-df_kws["level"] = df_kws["level"]+1
-
-level_0_data = [
-    [30,-15,'Biochar'],
-    [-60,5,'CCS'],
-    [-20,-40,'DAC(CS)'],
-    [-10,50,'Afforestation/Reforestation'],
-    [0,2,'Ocean fertilization & Artificial upwelling'],
-    [-27,38,'BECCS'],
-    [-27,27,'General Literature on CDR'],
-    [-10,-20,'Enhanced Weathering (land based)'],
-    [-15,70,'Blue carbon'],
-    [0,7,'Ocean alkalinity enhancement'],
-    [30,55,'Soil Carbon Sequestration'],
-    [10,65,'Restoration of landscapes/peats'],
-]
-level_0 = pd.DataFrame(level_0_data, columns=['x','y','keyword'])
-level_0["level"] = 0
-
-df_kws = pd.concat([level_0[['x','y','level','keyword']],df_kws])
-
 df_kws['level'] = df_kws['level'].astype("Int64")
 df_kws[['x', 'y']] = df_kws[['x', 'y']].astype("float16")
 
