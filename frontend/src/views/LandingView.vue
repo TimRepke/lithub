@@ -45,7 +45,9 @@ const sortedDatasets = computed(() =>
                 <!-- <span v-if="props.isNew" class="ribbon">NEW</span>-->
               </h5>
               <p class="card-text" v-html="dataset.teaser" />
-              <p class="update-note">Last update: {{ dataset.last_update }}</p>
+              <p class="update-note">
+                First released: {{ dataset.created_date }}&nbsp;&#x2B1D;&nbsp; Last update: {{ dataset.last_update }}
+              </p>
             </div>
           </div>
         </div>

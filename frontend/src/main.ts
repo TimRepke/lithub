@@ -14,6 +14,7 @@ import LandingView from "./views/LandingView.vue";
 import { default as policyMapRoute } from "@/projects/policymap/route.ts";
 import { default as carbonPricingMapRoute } from "@/projects/carbonpricing/route.ts";
 import { default as carbonDioxideRemovalMapRoute } from "@/projects/cdrmap/route.ts";
+import { default as climateHealthMapRoute } from "@/projects/healthmap/route.ts";
 import { pinia } from "@/stores";
 
 // set up font awesome
@@ -44,6 +45,7 @@ const router = createRouter({
         policyMapRoute,
         carbonPricingMapRoute,
         carbonDioxideRemovalMapRoute,
+        climateHealthMapRoute,
       ],
     },
   ],

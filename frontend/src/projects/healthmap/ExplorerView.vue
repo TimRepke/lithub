@@ -12,15 +12,17 @@ import InclusiveIcon from "@/components/InclusiveIcon.vue";
 import SidebarLabelFilter from "@/components/SidebarLabelFilter.vue";
 import SidebarSearchFilter from "@/components/SidebarSearchFilter.vue";
 
-import GeoMap from "@/components/GeoMap.vue";
+// import GeoMap from "@/components/GeoMap.vue";
 import HeatMap from "@/components/HeatMap.vue";
 import ScatterLandscape from "@/components/ScatterLandscape.vue";
-import { DATA_BASE } from "@/util/api.ts";
+// import { DATA_BASE } from "@/util/api.ts";
 import FluidContainerGrid from "@/components/FluidContainerGrid.vue";
 import FluidContainer from "@/components/FluidContainer.vue";
 import ReportingModal from "@/components/ReportingModal.vue";
 import type { AnnotatedDocument } from "@/util/types";
 import HistogramFilter from "@/components/HistogramFilter.vue";
+// import { constructTopicTree } from "@/projects/healthmap/TopicHierarchy.ts";
+// import SunburstDiagram from "@/components/SunburstDiagram.vue";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -40,12 +42,12 @@ const {
   pickedColour,
   labels: schemeLabels,
   groups: schemeGroups,
-  info,
 } = dataset;
 
-const { scatter: scatterMask, geo: geoMask } = indexMasks.masks;
+const { scatter: scatterMask } = indexMasks.masks;
 const { documents } = results;
 
+// console.log(constructTopicTree('t3'));
 const reportDoc = ref<AnnotatedDocument | null>(null);
 
 function startPauseResultFetching(active: boolean) {
@@ -72,16 +74,17 @@ onMounted(() => {
 
         <div class="filter-sidebar-container">
           <HistogramFilter v-model:mask="pyMask" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['tech']" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['meth']" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['cont']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.t3" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cont" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cat" v-model:picked-colour="pickedColour" />
           <SidebarSearchFilter v-model:mask="searchMask" />
+          <!--          <SunburstDiagram />-->
         </div>
       </FluidContainer>
     </template>
 
     <template #cont2>
-      <FluidContainer title="Scatterplot">
+      <FluidContainer title="Scatterplot" :initial-state="false">
         <ScatterLandscape
           v-model:mask="scatterMask"
           v-model:global-mask="globalMask"
@@ -94,17 +97,17 @@ onMounted(() => {
       </FluidContainer>
     </template>
 
-    <template #cont3>
-      <FluidContainer title="Geographic map" :initial-state="false">
-        <GeoMap
-          class="flex-grow-1"
-          v-model:mask="geoMask"
-          v-model:global-mask="globalMask"
-          :slim-url="`${DATA_BASE}/cdrmap/${info.slim_geo_filename}`"
-          :full-url="`${DATA_BASE}/cdrmap/${info.full_geo_filename}`"
-        />
-      </FluidContainer>
-    </template>
+    <!--    <template #cont3>-->
+    <!--      <FluidContainer title="Geographic map" :initial-state="false">-->
+    <!--        <GeoMap-->
+    <!--          class="flex-grow-1"-->
+    <!--          v-model:mask="geoMask"-->
+    <!--          v-model:global-mask="globalMask"-->
+    <!--          :slim-url="`${DATA_BASE}/cdrmap/${info.slim_geo_filename}`"-->
+    <!--          :full-url="`${DATA_BASE}/cdrmap/${info.full_geo_filename}`"-->
+    <!--        />-->
+    <!--      </FluidContainer>-->
+    <!--    </template>-->
     <template #cont4>
       <FluidContainer title="Label correlation" :initial-state="false">
         <HeatMap

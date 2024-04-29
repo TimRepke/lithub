@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 from .logging import get_logger
 from .config import settings
-from .types import Document, DatasetInfoFull, SchemeLabel, DatasetInfoWeb
+from .types import Document, DatasetInfoFull, SchemeLabel, DatasetInfoWeb, SchemeGroup
 
 logger = get_logger('util.datasets')
 
@@ -18,13 +18,26 @@ class Dataset:
         self.logger = get_logger(f'util.db.{key}')
         self._total: int | None = None
 
+        self._groups: dict[str, SchemeGroup] | None = None
         self._columns: set[str] | None = None
         self._label_columns: set[str] | None = None
         self._document_columns: set[str] | None = None
 
     @property
-    def schema(self) -> dict[str, SchemeLabel]:
-        return self.full_info.scheme
+    def groups(self) -> dict[str, SchemeGroup]:
+        if self._groups is None:
+            groups = self.full_info.groups
+
+            def rec(grp: str) -> list[str]:
+                group = groups[grp]
+                if group.labels is None:
+                    return [gi for g in group.subgroups for gi in rec(g)]
+                return group.labels
+
+            for subgroup in groups.values():
+                subgroup.labels = rec(subgroup.key)
+            self._groups = groups
+        return self._groups
 
     @property
     def info(self) -> DatasetInfoWeb:
@@ -32,7 +45,13 @@ class Dataset:
             key=self.key,
             total=self.total,
             columns=self.columns,
-            **self.full_info.dict())
+            label_columns=self.label_columns,
+            document_columns=self.document_columns,
+            **{
+                **self.full_info.dict(),
+                'groups': self.groups,
+            }
+        )
 
     @property
     def total(self) -> int:
@@ -55,14 +74,13 @@ class Dataset:
                 logger.debug(f'Loading columns for {self.key}')
                 rslt = db.cur.execute('PRAGMA table_info(documents);').fetchall()
                 self._columns = set([r['name'] for r in rslt])
+                print(self._columns)
         return self._columns
 
     @property
     def label_columns(self) -> set[str]:
         if self._label_columns is None:
-            cols = [f'{key}|{int(value.value)}'
-                    for key, label in self.schema.items()
-                    for value in label.values]
+            cols = list(self.full_info.labels.keys())
             self._label_columns = self.columns.intersection(cols)
         return self._label_columns
 
@@ -71,6 +89,11 @@ class Dataset:
         if self._document_columns is None:
             self._document_columns = self.columns.intersection(Document.model_fields.keys())
         return self._document_columns
+
+    def safe_col_silent(self, col:str):
+        if col not in self.columns:
+            return None
+        return f'"{col}"'
 
     def safe_col(self, col: str):
         if col not in self.columns:

@@ -79,7 +79,7 @@ svg.call(
       groupBars.attr(
         "transform",
         // -6 to account for margin + axis; the rest term adjusts weird offset side effects
-        `translate(0, ${-height.value * (event.transform.k - 1) - 6 + 6 * (event.transform.k / 10)})
+        `translate(0, ${-(height.value * (event.transform.k - 1)) - 6 + (6 * (event.transform.k / 10))})
                scale(1, ${event.transform.k})`,
       );
     }),
@@ -99,8 +99,8 @@ const brush = brushX<undefined>()
         const domain = xScale
           .domain()
           .slice(
-            Math.ceil(Math.max(0, x0 - xScale.step() / 2) / xScale.step()),
-            Math.floor(Math.min(width.value, x1 + xScale.step() / 2) / xScale.step()),
+            Math.ceil(Math.max(0, x0 - (xScale.step() / 2)) / xScale.step()),
+            Math.floor(Math.min(width.value, x1 + (xScale.step() / 2)) / xScale.step()),
           );
 
         if (domain.length === 0) {
@@ -126,7 +126,7 @@ const { call: delayedRedraw } = useDelay(() => {
     [width.value, height.value],
   ]);
 
-  const numTicks = Math.floor(Math.max(16 - width.value / 50, 2));
+  const numTicks = Math.floor(Math.max(16 - (width.value / 50), 2));
   //@ts-ignore
   xAxis.scale(xScale).tickValues(xScale.domain().filter((y, i) => !(i % numTicks)));
 
@@ -160,9 +160,7 @@ const uniq = crypto.randomUUID();
 onMounted(async () => {
   if (histogramElement.value) {
     const containerObserver = new ResizeObserver((r) => {
-      width.value = r[0].contentRect.width - margin.left - margin.right;
-      // vegaContainer.view.width(r[0].contentRect.width);
-      // vegaContainer.view.resize().runAsync();
+      width.value = Math.max(0, r[0].contentRect.width - margin.left - margin.right);
     });
     containerObserver.observe(histogramElement.value);
     delayedRedraw();

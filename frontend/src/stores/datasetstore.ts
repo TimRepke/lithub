@@ -38,7 +38,7 @@ export function useDatasetStore<K extends Indexes>() {
       return Promise.resolve();
     }
 
-    async function load(info: DatasetInfo) {
+    async function load(info: DatasetInfo, threshold?: number) {
       // Prevent multiple loads
       if (isLoading.value) throw Error("Already loading!");
 
@@ -60,6 +60,7 @@ export function useDatasetStore<K extends Indexes>() {
             (loadingProgress.value as LoadInfo).progressCols = colsLoaded;
           },
           dataCallback: (bytesLoaded) => ((loadingProgress.value as LoadInfo).progressArrow = bytesLoaded),
+          threshold,
         });
 
         // force refresh

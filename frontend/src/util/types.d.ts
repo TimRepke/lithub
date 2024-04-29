@@ -3,26 +3,24 @@ import { DataType, TypeMap } from "apache-arrow/type";
 import { Type } from "apache-arrow/enum";
 import * as rspt from "regl-scatterplot/src/types";
 
-export interface SchemeLabelValue {
-  key: string;
+export interface SchemeLabel {
   name: string;
-  value: boolean | number;
-  colour: [number, number, number];
+  key: string;
+  value: number;
+  colour: [number, number, number]; // HSL colour
 }
 
 export type SchemeLabelType = "single" | "bool" | "multi";
 
-export interface SchemeLabel {
+export interface SchemeGroup {
   name: string;
   key: string;
   type: SchemeLabelType;
-  values: SchemeLabelValue[];
+  colour: [number, number, number]; // HSL colour
 
-  parent_key?: string | null;
-  parent_val?: boolean | number | null;
+  labels?: string[] | null;
+  subgroups?: string[] | null;
 }
-
-export type Scheme = Record<string, SchemeLabel>;
 
 export interface DatasetInfo {
   name: string;
@@ -48,7 +46,9 @@ export interface DatasetInfo {
   full_geo_filename?: string | null;
   figure?: string | null;
   default_colour: string;
-  scheme: Scheme;
+
+  labels: Record<string, SchemeLabel>;
+  groups: Record<string, SchemeGroup>;
 }
 
 export interface ArrowSchema extends TypeMap {

@@ -2,7 +2,6 @@
 import { computed, ref } from "vue";
 import type { PropType } from "vue";
 import type { None } from "@/util";
-import type { Scheme } from "@/util/types";
 import { and, Bitmask } from "@/util/dataset/masks/bitmask";
 import type { LabelMaskGroup } from "@/util/dataset/masks/labels";
 import { extent as d3extent } from "d3-array";
@@ -21,36 +20,39 @@ const uniq = crypto.randomUUID();
 const globalMask = defineModel<Bitmask | None>("globalMask", { required: true });
 const groupMasks = defineModel<Record<string, LabelMaskGroup>>("groupMasks", { required: true });
 const yearMasks = defineModel<HistogramMask>("yearMasks", { required: false });
-const { scheme } = defineProps({
-  scheme: { type: Object as PropType<Scheme>, required: true },
+const { selectableGroups } = defineProps({
+  selectableGroups: { type: Object as PropType<string[]>, required: true },
 });
 
-const xKey = ref<string>(Object.keys(scheme)[0]);
-const yKey = ref<string>(Object.keys(scheme)[1]);
+const xKey = ref<string>(selectableGroups[0]);
+const yKey = ref<string>(selectableGroups[1]);
 const applyGlobalMask = ref<boolean>(false);
 const useLogScale = ref<boolean>(false);
 
-const isAvailable = computed(() => Object.keys(scheme).length > 1);
+const isAvailable = computed(() => Object.keys(groupMasks).length > 1);
 
 const fullScheme = computed<Record<string, SCM>>(() => {
   const keys = Object.fromEntries(
-    Object.values(scheme).map((label) => [
-      label.key,
-      {
-        name: label.name,
-        key: label.key,
-        values: Object.fromEntries(
-          label.values.map((val) => [
-            +val.value,
-            {
-              name: val.name,
-              value: val.value,
-              mask: groupMasks.value[label.key].masks[+val.value].bitmask.value,
-            },
-          ]),
-        ),
-      } as SCM,
-    ]),
+    selectableGroups.map((labelKey) => {
+      const group = groupMasks.value[labelKey];
+      return [
+        group.key,
+        {
+          name: group.name,
+          key: group.key,
+          values: Object.fromEntries(
+            Object.values(group.masks).map((mask) => [
+              mask.value,
+              {
+                name: mask.name,
+                value: mask.value,
+                mask: mask.bitmask.value,
+              },
+            ]),
+          ),
+        } as SCM,
+      ];
+    }),
   );
   if (yearMasks.value)
     keys.PUB_YEAR = {

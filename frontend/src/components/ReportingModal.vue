@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { PropType, ref } from "vue";
-import type { AnnotatedDocument, Scheme } from "@/util/types";
+import type { AnnotatedDocument, SchemeLabel, SchemeGroup } from "@/util/types";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { POST } from "@/util/api.ts";
+import { is } from "@/util";
 
 const emits = defineEmits<{ (e: "close"): void }>();
 
 const {
   doc: document,
-  scheme,
+  schemeLabels,
+  schemeGroups,
   dataset,
 } = defineProps({
-  scheme: { type: Object as PropType<Scheme>, required: true },
+  schemeLabels: { type: Object as PropType<Record<string, SchemeLabel>>, required: true },
+  schemeGroups: { type: Object as PropType<Record<string, SchemeGroup>>, required: true },
   doc: { type: Object as PropType<AnnotatedDocument>, required: true },
   dataset: { type: String, required: true },
 });
@@ -21,17 +24,23 @@ const name = ref<string>("");
 const email = ref<string>("");
 const comment = ref<string>(`I discovered inconsistencies for "${document.title}"`);
 const relevant = ref(true);
-
+type LabelFeedback = SchemeGroup & { isWrong: boolean; values: (SchemeLabel & { selected: boolean })[] };
 const feedback = ref(
-  Object.values(scheme).map((label) => ({
-    ...label,
-    isWrong: false,
-    values: label.values.map((value) => ({
-      ...value,
-      key: `${label.key}|${+value.value}`,
-      selected: document?.labels[value.key] > 0.5,
-    })),
-  })),
+  Object.values(schemeGroups)
+    .map((group) => {
+      if (group.labels && group.labels.length > 0) {
+        return {
+          ...group,
+          isWrong: false,
+          values: group.labels.map((key) => ({
+            ...schemeLabels[key],
+            selected: document?.labels[key] > 0.5,
+          })),
+        } as LabelFeedback;
+      }
+      return undefined;
+    })
+    .filter(is<LabelFeedback>),
 );
 
 async function submitFeedback() {

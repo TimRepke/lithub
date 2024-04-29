@@ -4,21 +4,21 @@ from typing import Literal, Annotated
 from pydantic import BaseModel, ConfigDict, AfterValidator
 
 
-class SchemeLabelValue(BaseModel):
-    key: str
-    name: str
-    value: bool | int
+class SchemeLabel(BaseModel):
+    key: str  # Column in the database
+    name: str  # Humanly readable name
+    value: int  # label value (e.g. technology = 1)
     colour: tuple[float, float, float]  # label colour in HSL
 
 
-class SchemeLabel(BaseModel):
+class SchemeGroup(BaseModel):
     name: str
     key: str
     type: Literal['single', 'bool', 'multi']
-    values: list[SchemeLabelValue]
+    colour: tuple[float, float, float] | None = None  # if this is a subgroup, this needs to be set
 
-    parent_key: str | None = None
-    parent_val: bool | int | None = None
+    labels: list[str] | None = None  # list of SchemeLabel.key (if empty, will be inferred from subgroups)
+    subgroups: list[str] | None = None  # list of SchemeGroup.key
 
 
 class DatasetInfo(BaseModel):
@@ -36,7 +36,7 @@ class DatasetInfo(BaseModel):
     figure: str | None = None
 
 
-class DatasetInfoFull_(DatasetInfo):
+class _DatasetInfoFull(DatasetInfo):
     model_config = ConfigDict(extra='ignore')
     db_filename: str
     arrow_filename: str
@@ -48,19 +48,23 @@ class DatasetInfoFull_(DatasetInfo):
     start_year: int = 1990
     end_year: int = 2024
 
-    scheme: dict[str, SchemeLabel]
+    labels: dict[str, SchemeLabel]
+    groups: dict[str, SchemeGroup]
+
     default_colour: str
 
 
-class DatasetInfoFull(DatasetInfoFull_):
+class DatasetInfoFull(_DatasetInfoFull):
     contact: list[str] | None = None
 
 
-class DatasetInfoWeb(DatasetInfoFull_):
+class DatasetInfoWeb(_DatasetInfoFull):
     model_config = ConfigDict(extra='ignore')
     key: str
     total: int
     columns: set[str]
+    label_columns: set[str]
+    document_columns: set[str]
 
 
 class Document(BaseModel):

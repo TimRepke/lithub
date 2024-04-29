@@ -146,7 +146,7 @@ onMounted(async () => {
             if (inBounds(viewBounds, keyword.x, keyword.y)) {
               cnt += 1;
               x = xScale(keyword.x) * scaling;
-              y = yScale(keyword.y) * scaling - overlayFontSize * 1.2 * scaling;
+              y = (yScale(keyword.y) * scaling) - (overlayFontSize * 1.2 * scaling);
 
               textOverlayCtx.strokeStyle = "white";
               textOverlayCtx.strokeText(keyword.keyword, x, y);

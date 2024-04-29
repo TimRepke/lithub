@@ -72,7 +72,7 @@ export function d3lasso() {
         e.__lasso.loopSelect = false;
 
         const box = e.getBoundingClientRect();
-        e.__lasso.lassoPoint = [Math.round(box.left + box.width / 2), Math.round(box.top + box.height / 2)];
+        e.__lasso.lassoPoint = [Math.round(box.left + (box.width / 2)), Math.round(box.top + (box.height / 2))];
       });
 
       // if hover is on, add hover function

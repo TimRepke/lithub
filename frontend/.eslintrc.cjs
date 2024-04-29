@@ -17,6 +17,7 @@ module.exports = {
     ecmaVersion: "latest",
   },
   rules: {
+    "no-mixed-operators": "error",
     "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
     "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
     "vue/max-len": [

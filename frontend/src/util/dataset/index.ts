@@ -3,9 +3,10 @@ import type {
   AnnotatedDocument,
   ArrowSchema,
   DatasetInfo,
-  Scheme,
   Keyword,
   KeywordArrowSchema,
+  SchemeGroup,
+  SchemeLabel,
 } from "@/util/types";
 import { type Bitmask, and, or, isNew } from "@/util/dataset/masks/bitmask.ts";
 import { DATA_BASE, POST, request, RequestWithProgress } from "@/util/api.ts";
@@ -17,9 +18,9 @@ import { Indexes, type IndexMask, IndexMasks, useIndexMasks } from "@/util/datas
 import {
   type LabelMaskGroup,
   type LabelValueMask,
-  type MaskBufferEntry,
   loadLabelValueMask,
   useLabelMaskGroup,
+  useLabelValueMask,
 } from "@/util/dataset/masks/labels.ts";
 import { SearchMask, useSearchMask } from "@/util/dataset/masks/search.ts";
 import { Counts } from "@/util/dataset/masks/base.ts";
@@ -33,10 +34,11 @@ export type AnyMask = IndexMask | HistogramMask | LabelMaskGroup | SearchMask;
 export interface Dataset<K extends Indexes> {
   info: DatasetInfo;
   name: string;
-  scheme: Scheme;
   arrow: Table<ArrowSchema>;
   counts: ReadonlyRef<Counts>;
   version: ReadonlyRef<number>;
+  groups: Record<string, SchemeGroup>;
+  labels: Record<string, SchemeLabel>;
 
   labelMaskGroups: Record<string, LabelMaskGroup>; // masks for all the annotations
   pyMask: HistogramMask; // masks for publication years
@@ -70,7 +72,8 @@ export function useDataset<K extends Indexes>(params: {
   arrow: Table<ArrowSchema>;
 }): Dataset<K> {
   const {
-    scheme,
+    groups,
+    labels,
     start_year: startYear,
     end_year: endYear,
     key: name,
@@ -164,7 +167,7 @@ export function useDataset<K extends Indexes>(params: {
   }
 
   function* activeLabelMaskColumns() {
-    for (const mask of activeLabelMasks()) yield mask.column;
+    for (const mask of activeLabelMasks()) yield mask.key;
   }
 
   async function documents(dparams: {
@@ -199,7 +202,8 @@ export function useDataset<K extends Indexes>(params: {
   return {
     info: params.info,
     name: name,
-    scheme: scheme,
+    groups,
+    labels,
     arrow: params.arrow,
     counts: toRef(counts),
     version: toRef(version),
@@ -300,39 +304,35 @@ export function useResults<K extends Indexes>(dataset: Dataset<K>): Results {
   };
 }
 
+type BufferEntry = SchemeLabel & { mask: LabelValueMask };
+
 export async function loadDataset<K extends Indexes>(params: {
   info: DatasetInfo;
   maskCallback: (colsLoaded: number) => void;
   dataCallback: (bytesLoaded: number) => void;
+  threshold?: number;
 }): Promise<Dataset<K>> {
-  const { scheme, key: dataset, arrow_filename: arrowFile } = params.info;
+  const { labels, groups, key: dataset, arrow_filename: arrowFile } = params.info;
 
   return new Promise(async (resolve: (res: Dataset<K>) => void, reject) => {
     // request all masks
     let numLoadedMasks = 0;
-    const maskBuffer: Record<string, MaskBufferEntry> = {};
-    const maskPromises = Object.entries(scheme) //
-      .flatMap(([key, label]) =>
-        label.values.map(async (value) => {
-          if (!(key in maskBuffer))
-            maskBuffer[key] = {
-              key,
-              name: label.name,
-              type: label.type,
-              masks: [],
-            };
-          maskBuffer[key].masks.push(
-            await loadLabelValueMask({
-              dataset: dataset,
-              name: value.name,
-              key,
-              value: value.value,
-              colour: value.colour,
-            }),
-          );
-          params.maskCallback(++numLoadedMasks);
-        }),
-      );
+    const maskBuffer: Record<string, BufferEntry> = {};
+    const maskPromises = Object.values(labels) //
+      .map(async (label) => {
+        maskBuffer[label.key] = {
+          ...label,
+          mask: await loadLabelValueMask({
+            dataset: dataset,
+            name: label.name,
+            key: label.key,
+            value: label.value,
+            colour: label.colour,
+            threshold: params.threshold,
+          }),
+        };
+        params.maskCallback(++numLoadedMasks);
+      });
 
     // request arrow base
     const arrowRaw = await RequestWithProgress({
@@ -347,15 +347,35 @@ export async function loadDataset<K extends Indexes>(params: {
     Promise.all(maskPromises)
       .then(() => {
         const groupedLabelMasks = Object.fromEntries(
-          Object.entries(maskBuffer).map(([key, entry]) => {
+          Object.values(groups).map((group) => {
+            let masks: LabelValueMask[];
+
+            if (group.subgroups && group.subgroups.length > 0) {
+              masks = group.subgroups.map((subgroup, i) => {
+                const sg = groups[subgroup];
+                return useLabelValueMask({
+                  dataset,
+                  name: sg.name,
+                  key: sg.key,
+                  value: i,
+                  colour: sg.colour,
+                  bitmask: or(...(sg.labels?.map((label) => maskBuffer[label].mask.bitmask.value) ?? [])) as Bitmask,
+                });
+              });
+            } else if (group.labels && group.labels.length > 0) {
+              masks = group.labels.map((label) => maskBuffer[label].mask);
+            } else {
+              throw new Error("Inconsistent data received!");
+            }
+
             return [
-              key,
+              group.key,
               useLabelMaskGroup({
-                dataset: dataset,
-                key: entry.key,
-                name: entry.name,
-                type: entry.type,
-                masks: entry.masks,
+                dataset,
+                key: group.key,
+                name: group.name,
+                type: group.type,
+                masks,
               }),
             ];
           }),

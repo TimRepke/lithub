@@ -1,25 +1,25 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { computed, PropType, ref } from "vue";
-import { AnnotatedDocument, Scheme } from "@/util/types";
+import { computed, type PropType, ref } from "vue";
+import type { AnnotatedDocument, SchemeLabel } from "@/util/types";
 import { hslToCSS } from "@/util";
 import ToggleIcon from "@/components/ToggleIcon.vue";
 
-const { scheme, doc: document } = defineProps({
+const { schemeLabels, doc: document } = defineProps({
   doc: { type: Object as PropType<AnnotatedDocument>, required: true },
-  scheme: { type: Object as PropType<Scheme>, required: true },
+  schemeLabels: { type: Object as PropType<Record<string, SchemeLabel>>, required: true },
 });
 defineEmits<{ (e: "report", document: AnnotatedDocument): void }>();
 const showAllLabels = ref(false);
+
 const labels = computed(() =>
-  Object.entries(document?.labels).map(([key, value]) => {
-    const [k, v] = key.split("|");
+  Object.entries(document?.labels).map(([key, score]) => {
+    const label = schemeLabels[key];
     return {
-      k,
       key,
-      name: scheme[k].values[+v].name,
-      col: scheme[k].values[+v].colour,
-      value: value,
+      name: label.name,
+      col: label.colour,
+      value: score,
     };
   }),
 );

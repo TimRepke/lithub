@@ -12,8 +12,6 @@ router = APIRouter()
 router.include_router(basic.router, prefix='/basic', tags=['basic'])
 
 
-
-
 class FilteredStaticFiles(StaticFiles):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)

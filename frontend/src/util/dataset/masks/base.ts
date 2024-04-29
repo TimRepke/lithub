@@ -169,7 +169,3 @@ export function useGroupBase<K extends string | number | symbol, M extends MaskB
     clear,
   };
 }
-
-export function colKey(key: string, value: number | boolean) {
-  return `${key}|${+value}`;
-}

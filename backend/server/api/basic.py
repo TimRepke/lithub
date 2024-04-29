@@ -33,7 +33,7 @@ async def get_datasets() -> list[DatasetInfoWeb]:
 
 
 @router.get('/info', response_model=DatasetInfoWeb)
-async def get_dataset(dataset: Annotated[DatasetInfoWeb, Depends(ensure_dataset)]) -> DatasetInfoWeb:
+async def get_dataset(dataset: Annotated[Dataset, Depends(ensure_dataset)]) -> DatasetInfoWeb:
     return dataset.info
 
 
@@ -88,8 +88,11 @@ async def get_documents(dataset: Annotated[Dataset, Depends(ensure_dataset)],
         order_fields = ''  # TODO: Do we want default ordering on something?
         where = ''
         if order_by is not None and len(order_by) > 0:
-            # order_fields = f'ORDER BY {", ".join([db.safe_col(field) for field in order_by])} DESC'
-            order_fields = f'ORDER BY ({" + ".join([db.safe_col(field) for field in order_by])}) DESC'
+            valid_order_fields = [field
+                                  for field in [db.safe_col_silent(field) for field in order_by]
+                                  if field is not None]
+            if len(valid_order_fields) > 0:
+                order_fields = f'ORDER BY ({" + ".join(valid_order_fields)}) DESC'
         if bitmask is not None and len(bitmask) > 0:
             ids = as_ids(bitmask)
         if ids is not None and len(ids) > 0:
@@ -209,7 +212,7 @@ Comment:
 def convert_documents(rslt: Cursor, dataset: Dataset) -> Generator[AnnotatedDocument, None, None]:
     for row in rslt:
         base = {key: row[key] for key in dataset.document_columns}
-        labels = {key: row[key] for key in dataset.label_columns}
+        labels = {key: row[key] for key in dataset.label_columns if row[key] is not None}
         yield AnnotatedDocument(**base, labels=labels)
 
 

@@ -36,13 +36,12 @@ const {
   searchMask,
   keywords,
   pickedColour,
-  scheme,
+  labels: schemeLabels,
   info,
 } = dataset;
 
 const { scatter: scatterMask, geo: geoMask } = indexMasks.masks;
 const { documents } = results;
-const labels = ref(["sec", "ins", "gov", "econ"]);
 
 function startPauseResultFetching(active: boolean) {
   results.paused.value = !active;
@@ -64,9 +63,12 @@ function startPauseResultFetching(active: boolean) {
 
         <div class="filter-sidebar-container">
           <HistogramFilter v-model:mask="pyMask" />
-          <template v-for="label in labels" :key="label">
-            <SidebarLabelFilter v-model:group-mask="labelMaskGroups[label]" v-model:picked-colour="pickedColour" />
-          </template>
+
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['sec']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['ins']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['gov']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['econ']" v-model:picked-colour="pickedColour" />
+
           <SidebarSearchFilter v-model:mask="searchMask" />
         </div>
       </FluidContainer>
@@ -103,7 +105,7 @@ function startPauseResultFetching(active: boolean) {
           class="flex-grow-1"
           v-model:global-mask="globalMask"
           v-model:group-masks="labelMaskGroups"
-          :scheme="scheme"
+          :selectable-groups="Object.keys(labelMaskGroups)"
           :year-masks="pyMask"
         />
       </FluidContainer>
@@ -112,7 +114,13 @@ function startPauseResultFetching(active: boolean) {
       <FluidContainer title="Results" :initial-state="false" @visibility-updated="startPauseResultFetching">
         <template v-if="documents.length > 0">
           <div class="results-column-results">
-            <DocumentCard v-for="doc in documents" :key="doc.idx" :doc="doc" class="m-2" :scheme="scheme" />
+            <DocumentCard
+              v-for="doc in documents"
+              :key="doc.idx"
+              :doc="doc"
+              class="m-2"
+              :scheme-labels="schemeLabels"
+            />
           </div>
           <div class="results-column-pagination">
             <PaginationNav v-model:results="results" />

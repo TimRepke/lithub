@@ -4,22 +4,14 @@ import type { HSLColour, ReadonlyRef, SchemeLabelType } from "@/util/types";
 import { hslToHex, None } from "@/util";
 import { and, Bitmask } from "@/util/dataset/masks/bitmask.ts";
 import type { MaskBase } from "@/util/dataset/masks/base.ts";
-import { colKey, GroupMaskBase, useBase, useGroupBase } from "@/util/dataset/masks/base.ts";
+import { GroupMaskBase, useBase, useGroupBase } from "@/util/dataset/masks/base.ts";
 
 export const DEFAULT_THRESHOLD = 0.5;
-
-export interface MaskBufferEntry {
-  key: string;
-  name: string;
-  type: SchemeLabelType;
-  masks: LabelValueMask[];
-}
 
 export interface LabelValueMask extends MaskBase {
   name: string;
   key: string;
-  value: number | boolean;
-  column: string;
+  value: number;
   colourHSL: HSLColour;
   colourHex: string;
   threshold: ReadonlyRef<number>;
@@ -41,7 +33,7 @@ export function useLabelValueMask(params: {
   dataset: string;
   name: string;
   key: string;
-  value: number | boolean;
+  value: number;
   colour: HSLColour;
   bitmask: Bitmask;
 }): LabelValueMask {
@@ -50,12 +42,11 @@ export function useLabelValueMask(params: {
 
   const _threshold = ref(DEFAULT_THRESHOLD);
   const threshold = readonly(_threshold);
-  const column = colKey(params.key, params.value);
   const colourHex = hslToHex(...params.colour);
 
   async function setThreshold(threshold: number | null = null) {
     if (threshold !== null) _threshold.value = threshold;
-    bitmask.value = await loadMask(params.dataset, column, _threshold.value);
+    bitmask.value = await loadMask(params.dataset, params.key, _threshold.value);
 
     const newTotal = bitmask.value.count;
     setTotalCount(newTotal);
@@ -71,7 +62,6 @@ export function useLabelValueMask(params: {
 
   return {
     ...base,
-    column,
     colourHex,
     name: params.name,
     key: params.key,
@@ -87,12 +77,11 @@ export async function loadLabelValueMask(params: {
   dataset: string;
   name: string;
   key: string;
-  value: number | boolean;
+  value: number;
   colour: HSLColour;
   threshold?: number;
 }) {
-  const col = colKey(params.key, params.value);
-  const bitmask = await loadMask(params.dataset, col, DEFAULT_THRESHOLD);
+  const bitmask = await loadMask(params.dataset, params.key, DEFAULT_THRESHOLD);
   return useLabelValueMask({ ...params, bitmask });
 }
 
@@ -103,7 +92,7 @@ export function useLabelMaskGroup(params: {
   type: SchemeLabelType;
   masks: LabelValueMask[];
 }): LabelMaskGroup {
-  const masks = Object.fromEntries(params.masks.map((mask) => [+mask.value, mask]));
+  const masks = Object.fromEntries<LabelValueMask>(params.masks.map((mask) => [mask.value, mask]));
   const base = useGroupBase({ masks });
   const { active } = base;
 
@@ -159,7 +148,7 @@ export function useLabelMaskGroup(params: {
   };
 }
 
-function loadMask(dataset: string, col: string, threshold: number = 0.5) {
+function loadMask(dataset: string, col: string, threshold: number = DEFAULT_THRESHOLD) {
   return new Promise((resolve: (bitmask: Bitmask) => void, reject) => {
     request({
       method: "GET",

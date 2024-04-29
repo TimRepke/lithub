@@ -1,24 +1,45 @@
 import math
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 import pyarrow as pa
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, types
 
 CHUNK_SIZE = 10000
 
 
 def write(scheme_keys: list[str], df_slim: pd.DataFrame, df_full: pd.DataFrame,
-          out_sql: Path, out_slim: Path, out_full: Path):
-    df_slim[scheme_keys + ['x', 'y']] = df_slim[scheme_keys + ['x', 'y']].astype("float16")
+          out_sql: Path, out_slim: Path, extra_scheme: dict[str, Any]):
+    print(sorted(scheme_keys))
+    df_slim[['x', 'y']] = df_slim[['x', 'y']].astype("float16")
     df_full[scheme_keys + ['x', 'y']] = df_full[scheme_keys + ['x', 'y']].astype("float16")
     df_slim[['publication_year', 'idx']] = df_slim[['publication_year', 'idx']].astype("Int64")
     df_full[['publication_year', 'idx']] = df_full[['publication_year', 'idx']].astype("Int64")
 
     print('Creating sqlite db...')
     out_sql.unlink(missing_ok=True)
+    sql_schema = {
+        'idx': types.BIGINT,
+        'publication_year': types.INT,
+        'title': types.String,
+        'abstract': types.String,
+        'doi': types.String,
+        'openalex_id': types.String,
+        'authors': types.String,
+        'institutions': types.String,
+        'x': types.FLOAT,
+        'y': types.FLOAT,
+        **{
+            k: types.FLOAT
+            for k in scheme_keys
+        },
+        **extra_scheme
+    }
+    print('schema', len(sql_schema))
+    print('schema', sql_schema)
     engine = create_engine(f'sqlite:///{out_sql}', echo=False)
-    df_full.to_sql(name='documents', con=engine)
+    df_full.to_sql(name='documents', con=engine, dtype=sql_schema)
 
     print('Indexing data in sqlite...')
     con = engine.connect()
@@ -28,6 +49,14 @@ def write(scheme_keys: list[str], df_slim: pd.DataFrame, df_full: pd.DataFrame,
     con.execute(text('INSERT INTO search (idx, title, abstract, authors) '
                      'SELECT idx, title, abstract, authors FROM documents;'))
     con.commit()
+
+    rslt = con.execute(text('PRAGMA table_info(documents);')).fetchall()
+    db_cols = set([r[1] for r in rslt])
+
+    print('Checking column alignment...')
+    print(db_cols - set(scheme_keys))
+    print(set(scheme_keys) - db_cols)
+
     con.close()
 
     schema = pa.schema([
