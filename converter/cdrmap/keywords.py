@@ -90,6 +90,27 @@ for ci, kwds in enumerate(cluster_keywords):
         })
 
 df_kws = pd.DataFrame(keywords)
+df_kws["level"] = df_kws["level"]+1
+
+level_0_data = [
+    [30,-15,'Biochar'],
+    [-60,5,'CCS'],
+    [-20,-40,'DAC(CS)'],
+    [-10,50,'Afforestation/Reforestation'],
+    [0,2,'Ocean fertilization & Artificial upwelling'],
+    [-27,38,'BECCS'],
+    [-27,27,'General Literature on CDR'],
+    [-10,-20,'Enhanced Weathering (land based)'],
+    [-15,70,'Blue carbon'],
+    [0,7,'Ocean alkalinity enhancement'],
+    [30,55,'Soil Carbon Sequestration'],
+    [10,65,'Restoration of landscapes/peats'],
+]
+level_0 = pd.DataFrame(level_0_data, columns=['x','y','keyword'])
+level_0["level"] = 0
+
+df_kws = pd.concat([level_0[['x','y','level','keyword']],df_kws])
+
 df_kws['level'] = df_kws['level'].astype("Int64")
 df_kws[['x', 'y']] = df_kws[['x', 'y']].astype("float16")
 
