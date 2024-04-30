@@ -1,21 +1,153 @@
 {
-  "$schema" : "https://biomejs.dev/schemas/1.7.1/schema.json",
-  "organizeImports" : {
-    "enabled" : true
+	"$schema": "https://biomejs.dev/schemas/1.7.1/schema.json",
+  "files": {
+    "ignore": ["node_modules/*"]
   },
-  "linter" : {
-    "enabled" : true,
-    "rules" : {
-      "recommended" : true
-    }
-  },
-  "javascript" : {
-    "formatter" : {
-      "quoteStyle" : "double",
-      "trailingComma": "all",
-      "semicolons": "always",
-      "bracketSameLine": true,
-      "arrowParentheses" : "always"
-    }
-  }
+	"formatter": {
+		"enabled": true,
+		"formatWithErrors": false,
+		"indentStyle": "space",
+		"indentWidth": 2,
+		"lineEnding": "lf",
+		"lineWidth": 80,
+		"attributePosition": "auto"
+	},
+	"organizeImports": { "enabled": true },
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": false,
+			"complexity": {
+				"noBannedTypes": "error",
+				"noUselessThisAlias": "error",
+				"noUselessTypeConstraint": "error",
+				"useArrowFunction": "off"
+			},
+			"correctness": {
+				"noPrecisionLoss": "error",
+				"noUnusedVariables": "error"
+			},
+			"style": {
+				"noArguments": "error",
+				"noNamespace": "error",
+				"noVar": "error",
+				"useAsConstAssertion": "error",
+				"useBlockStatements": "off",
+				"useConst": "error"
+			},
+			"suspicious": {
+				"noConsoleLog": "off",
+				"noDebugger": "off",
+				"noExplicitAny": "off",
+				"noExtraNonNullAssertion": "error",
+				"noMisleadingInstantiator": "error",
+				"noUnsafeDeclarationMerging": "error"
+			}
+		},
+		"ignore": [
+			"src/util/filesaver.js",
+			"src/util/nql/*",
+			"src/views/ParseView.vue"
+		]
+	},
+	"javascript": {
+		"formatter": {
+			"jsxQuoteStyle": "double",
+			"quoteProperties": "asNeeded",
+			"trailingComma": "all",
+			"semicolons": "asNeeded",
+			"arrowParentheses": "always",
+			"bracketSpacing": true,
+			"bracketSameLine": false,
+			"quoteStyle": "single",
+			"attributePosition": "auto"
+		}
+	},
+	"overrides": [
+		{
+			"include": ["shims-tsx.d.ts"],
+			"linter": {
+				"rules": {
+					"correctness": { "noUnusedVariables": "off" },
+					"suspicious": { "noEmptyInterface": "off", "noExplicitAny": "off" }
+				}
+			}
+		},
+		{ "include": ["*.js", "*.cjs"], "linter": { "rules": {} } },
+		{
+			"include": ["*.ts", "*.cts", "*.mts", "*.tsx", "*.vue"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noUndeclaredVariables": "off",
+						"noUnusedVariables": "warn"
+					}
+				}
+			}
+		},
+		{
+			"include": ["*.ts", "*.tsx", "*.mts", "*.cts"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noConstAssign": "off",
+						"noGlobalObjectCalls": "off",
+						"noInvalidConstructorSuper": "off",
+						"noNewSymbol": "off",
+						"noSetterReturn": "off",
+						"noUndeclaredVariables": "off",
+						"noUnreachable": "off",
+						"noUnreachableSuper": "off"
+					},
+					"style": {
+						"noArguments": "error",
+						"noVar": "error",
+						"useConst": "error"
+					},
+					"suspicious": {
+						"noDuplicateClassMembers": "off",
+						"noDuplicateObjectKeys": "off",
+						"noDuplicateParameters": "off",
+						"noFunctionAssign": "off",
+						"noImportAssign": "off",
+						"noRedeclare": "off",
+						"noUnsafeNegation": "off",
+						"useGetterReturn": "off"
+					}
+				}
+			}
+		},
+		{
+			"include": ["*.ts", "*.tsx", "*.mts", "*.cts"],
+			"linter": {
+				"rules": {
+					"correctness": {
+						"noConstAssign": "off",
+						"noGlobalObjectCalls": "off",
+						"noInvalidConstructorSuper": "off",
+						"noNewSymbol": "off",
+						"noSetterReturn": "off",
+						"noUndeclaredVariables": "off",
+						"noUnreachable": "off",
+						"noUnreachableSuper": "off"
+					},
+					"style": {
+						"noArguments": "error",
+						"noVar": "error",
+						"useConst": "error"
+					},
+					"suspicious": {
+						"noDuplicateClassMembers": "off",
+						"noDuplicateObjectKeys": "off",
+						"noDuplicateParameters": "off",
+						"noFunctionAssign": "off",
+						"noImportAssign": "off",
+						"noRedeclare": "off",
+						"noUnsafeNegation": "off",
+						"useGetterReturn": "off"
+					}
+				}
+			}
+		}
+	]
 }

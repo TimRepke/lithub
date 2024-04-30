@@ -91,8 +91,7 @@ async function submitFeedback() {
                   class="form-control form-control-sm"
                   id="report-name"
                   placeholder="Name"
-                  v-model="name"
-                />
+                  v-model="name" />
               </div>
               <div class="col">
                 <label for="report-email" class="form-label">
@@ -103,8 +102,7 @@ async function submitFeedback() {
                   class="form-control form-control-sm"
                   id="report-email"
                   placeholder="name@example.com"
-                  v-model="email"
-                />
+                  v-model="email" />
               </div>
             </div>
             <div class="mb-3">
@@ -129,8 +127,7 @@ async function submitFeedback() {
                     type="checkbox"
                     role="switch"
                     :id="`report-mistake-${label.key}`"
-                    v-model="label.isWrong"
-                  />
+                    v-model="label.isWrong" />
                   <label class="form-check-label" :for="`report-mistake-${label.key}`">
                     <strong>{{ label.name }}</strong> has a mistake!
                   </label>

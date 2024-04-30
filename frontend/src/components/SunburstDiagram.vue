@@ -3,32 +3,70 @@ import { scaleOrdinal } from "d3-scale";
 import { create as d3create } from "d3-selection";
 import { interpolate, quantize } from "d3-interpolate";
 import { interpolateRainbow } from "d3-scale-chromatic";
-import { hierarchy as d3Hierarchy, partition as d3partition } from "d3-hierarchy";
 import { arc as d3arc } from "d3-shape";
 import { format as d3format } from "d3-format";
-import { computed, onMounted, ref } from "vue";
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import {type Leaf, type Node, constructTopicTree } from "@/projects/healthmap/TopicHierarchy.ts";
+import { hierarchy as d3Hierarchy, partition as d3partition, type HierarchyRectangularNode } from "d3-hierarchy";
+import { onMounted, PropType, ref } from "vue";
+import type { SchemeGroup, SchemeLabel } from "@/util/types";
+import { type LabelMaskGroup, LabelValueMask } from "@/util/dataset/masks/labels.ts";
+
+type Coords = { x0: number; x1: number; y0: number; y1: number };
+type Node = { name: string; children: Node[] | Leaf[] };
+type Leaf = { name: string; mask: LabelValueMask; value: number };
+type AnyNode = { name: string; current?: Coords; target?: Coords } & Partial<Node> & Partial<Leaf>;
+type HierarchyNode = HierarchyRectangularNode<AnyNode>;
+
 // heavily inspired by
 // https://observablehq.com/@d3/zoomable-sunburst
 
+const groupMasks = defineModel<Record<string, LabelMaskGroup>>("groupMasks", { required: true });
+const { rootKey, schemeLabels, schemeGroups } = defineProps({
+  schemeLabels: { type: Object as PropType<Record<string, SchemeLabel>>, required: true },
+  schemeGroups: { type: Object as PropType<Record<string, SchemeGroup>>, required: true },
+  rootKey: { type: String, required: true },
+});
+
+const selection = ref(["Meta-topic"]);
+
+function buildTree(key: string): Node {
+  const { labels, subgroups } = schemeGroups[key];
+  if (subgroups) {
+    return { name: schemeGroups[key].name, children: subgroups.map((group) => buildTree(group)) };
+  } else if (labels) {
+    return {
+      name: schemeGroups[key].name,
+      children: labels.map(
+        (label) =>
+          ({
+            name: schemeLabels[label].name,
+            mask: groupMasks.value[key].masks[schemeLabels[label].value],
+            value: groupMasks.value[key].masks[schemeLabels[label].value].counts.value.countFiltered,
+          }) as Leaf,
+      ),
+    };
+  }
+  throw new Error("Inconsistent data.");
+}
+
+const tree = buildTree(rootKey);
+
 // Specify the chart’s dimensions.
-const width = 400;
-const height = width;
-const radius = width / 6;
+const width = 500;
+const height = 500;
+const radius = 500 / 6;
 
 // Create the color scale.
-const color = scaleOrdinal(quantize(interpolateRainbow, data.children.length + 1));
+const color = scaleOrdinal(quantize(interpolateRainbow, tree.children.length + 1));
 
 // Compute the layout.
-const hierarchy = d3Hierarchy(data)
-  .sum((d: BurstLeaf) => d.value)
-  .sort((a, b) => b.value - a.value);
-const root = d3partition().size([2 * Math.PI, hierarchy.height + 1])(hierarchy);
-root.each((d) => (d.current = d));
+const hierarchy = d3Hierarchy<AnyNode>(tree)
+  .sum((d: AnyNode) => d.value as number)
+  .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
+const root = d3partition<AnyNode>().size([2 * Math.PI, hierarchy.height + 1])(hierarchy);
+root.each<AnyNode>((d) => (d.data.current = d));
 
 // Create the arc generator.
-const arc = d3arc()
+const arc = d3arc<Coords>()
   .startAngle((d) => d.x0)
   .endAngle((d) => d.x1)
   .padAngle((d) => Math.min((d.x1 - d.x0) / 2, 0.005))
@@ -37,7 +75,7 @@ const arc = d3arc()
   .outerRadius((d) => Math.max(d.y0 * radius, d.y1 * radius - 1));
 
 // Create the SVG container.
-const svg = d3create("svg")
+const svg = d3create<SVGSVGElement>("svg")
   .attr("viewBox", [-width / 2, -height / 2, width, width])
   .style("font", "10px sans-serif");
 
@@ -48,17 +86,17 @@ const path = svg
   .data(root.descendants().slice(1))
   .join("path")
   .attr("fill", (d) => {
-    while (d.depth > 1) d = d.parent;
+    while (d.depth > 1 && d.parent) d = d.parent;
     return color(d.data.name);
   })
-  .attr("fill-opacity", (d) => (arcVisible(d.current) ? (d.children ? 0.6 : 0.4) : 0))
-  .attr("pointer-events", (d) => (arcVisible(d.current) ? "auto" : "none"))
+  .attr("fill-opacity", (d) => (arcVisible(d.data.current!) ? (d.children ? 0.6 : 0.4) : 0))
+  .attr("pointer-events", (d) => (arcVisible(d.data.current!) ? "auto" : "none"))
 
-  .attr("d", (d) => arc(d.current));
+  .attr("d", (d) => arc(d.data.current as HierarchyNode) as string);
 
 // Make them clickable if they have children.
 path
-  .filter((d) => d.children)
+  .filter((d) => !!d.children)
   .style("cursor", "pointer")
   .on("click", clicked);
 
@@ -69,7 +107,7 @@ path.append("title").text(
       .ancestors()
       .map((d) => d.data.name)
       .reverse()
-      .join("/")}\n${format(d.value)}`,
+      .join("/")}\n${format(d.value as number)}`,
 );
 
 const label = svg
@@ -81,8 +119,8 @@ const label = svg
   .data(root.descendants().slice(1))
   .join("text")
   .attr("dy", "0.35em")
-  .attr("fill-opacity", (d) => +labelVisible(d.current))
-  .attr("transform", (d) => labelTransform(d.current))
+  .attr("fill-opacity", (d) => +labelVisible(d.data.current!))
+  .attr("transform", (d) => labelTransform(d.data.current!))
   .text((d) => d.data.name);
 
 const parent = svg
@@ -93,13 +131,19 @@ const parent = svg
   .attr("pointer-events", "all")
   .on("click", clicked);
 
+function getPath(n: HierarchyNode): string[] {
+  if (n.parent) return getPath(n.parent).concat([n.data.name]);
+  return [n.data.name];
+}
+
 // Handle zoom on click.
-function clicked(event, p) {
+function clicked(_event: MouseEvent, p: HierarchyNode) {
+  selection.value = getPath(p);
   parent.datum(p.parent || root);
 
   root.each(
     (d) =>
-      (d.target = {
+      (d.data.target = {
         x0: Math.max(0, Math.min(1, (d.x0 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
         x1: Math.max(0, Math.min(1, (d.x1 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
         y0: Math.max(0, d.y0 - p.depth),
@@ -115,52 +159,51 @@ function clicked(event, p) {
   path
     .transition(t)
     .tween("data", (d) => {
-      const i = interpolate(d.current, d.target);
-      return (t) => (d.current = i(t));
+      const i = interpolate(d.data.current as HierarchyNode, d.data.target as Coords);
+      return (t) => (d.data.current = i(t));
     })
-    .filter(function (d) {
-      return +this.getAttribute("fill-opacity") || arcVisible(d.target);
+    .filter((d: Coords) => {
+      return +this.getAttribute("fill-opacity") || arcVisible(d.data.target!);
     })
-    .attr("fill-opacity", (d) => (arcVisible(d.target) ? (d.children ? 0.6 : 0.4) : 0))
-    .attr("pointer-events", (d) => (arcVisible(d.target) ? "auto" : "none"))
-
-    .attrTween("d", (d) => () => arc(d.current));
+    .attr("fill-opacity", (d) => (arcVisible(d.data.target!) ? (d.children ? 0.6 : 0.4) : 0))
+    .attr("pointer-events", (d) => (arcVisible(d.data.target!) ? "auto" : "none"))
+    .attrTween("d", (d) => () => arc(d.data.current!) as string);
 
   label
     .filter(function (d) {
-      return +this.getAttribute("fill-opacity") || labelVisible(d.target);
+      return +((this as SVGTextElement).getAttribute("fill-opacity") ?? 0) > 0 || labelVisible(d.data.target!);
     })
     .transition(t)
-    .attr("fill-opacity", (d) => +labelVisible(d.target))
-    .attrTween("transform", (d) => () => labelTransform(d.current));
+    .attr("fill-opacity", (d) => +labelVisible(d.data.target!))
+    .attrTween("transform", (d) => () => labelTransform(d.data.current!));
 }
 
-function arcVisible(d) {
+function arcVisible(d: Coords) {
   return d.y1 <= 3 && d.y0 >= 1 && d.x1 > d.x0;
 }
 
-function labelVisible(d) {
+function labelVisible(d: Coords) {
   return d.y1 <= 3 && d.y0 >= 1 && (d.y1 - d.y0) * (d.x1 - d.x0) > 0.03;
 }
 
-function labelTransform(d) {
+function labelTransform(d: Coords) {
   const x = (((d.x0 + d.x1) / 2) * 180) / Math.PI;
   const y = ((d.y0 + d.y1) / 2) * radius;
   return `rotate(${x - 90}) translate(${y},0) rotate(${x < 180 ? 0 : 180})`;
 }
 
-function redraw(height: number, width: number) {
- // pass
-}
+// function redraw() {
+//   // pass
+// }
 
 const sunburstElement = ref<HTMLDivElement | null>(null);
-const containerObserver = new ResizeObserver((r) => {
-  redraw(r[0].contentRect.height, r[0].contentRect.width);
-});
+// const containerObserver = new ResizeObserver((r) => {
+//   // redraw(r[0].contentRect.height, r[0].contentRect.width);
+// });
 
 onMounted(async () => {
   if (sunburstElement.value) {
-    containerObserver.observe(sunburstElement.value);
+    // containerObserver.observe(sunburstElement.value);
     sunburstElement.value.appendChild(svg.node() as SVGSVGElement);
   }
 });
@@ -169,7 +212,7 @@ onMounted(async () => {
 
 <template>
   <div class="scatter-container">
-    <div class="ms-auto">Some very smart informatory text</div>
+    <div class="ms-auto">{{ selection.join(" ‣ ") }}</div>
     <div ref="sunburstElement" class="sunburst-wrapper" />
   </div>
 </template>
@@ -180,6 +223,7 @@ onMounted(async () => {
   flex-direction: column;
   flex-grow: 1;
   font-size: 0.85em;
+  margin: 1em;
 
   .scatter-wrapper {
     display: flex;

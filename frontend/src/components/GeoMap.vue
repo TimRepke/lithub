@@ -305,8 +305,7 @@ function clearAll() {
         <template v-for="place in annotatedPlaces" :key="place.geonameid">
           <li
             class="list-inline-item"
-            v-if="place.filterInclude && (!isSelectionActive || (isSelectionActive && place.inSelection))"
-          >
+            v-if="place.filterInclude && (!isSelectionActive || (isSelectionActive && place.inSelection))">
             {{ place.name }}
             ({{ place.filterCount }}/{{ place.count }})
           </li>

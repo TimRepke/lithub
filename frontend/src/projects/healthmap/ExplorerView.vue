@@ -21,8 +21,7 @@ import FluidContainer from "@/components/FluidContainer.vue";
 import ReportingModal from "@/components/ReportingModal.vue";
 import type { AnnotatedDocument } from "@/util/types";
 import HistogramFilter from "@/components/HistogramFilter.vue";
-// import { constructTopicTree } from "@/projects/healthmap/TopicHierarchy.ts";
-// import SunburstDiagram from "@/components/SunburstDiagram.vue";
+import SunburstDiagram from "@/components/SunburstDiagram.vue";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -78,13 +77,17 @@ onMounted(() => {
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cont" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cat" v-model:picked-colour="pickedColour" />
           <SidebarSearchFilter v-model:mask="searchMask" />
-          <!--          <SunburstDiagram />-->
+          <SunburstDiagram
+            root-key="t3"
+            :scheme-labels="schemeLabels"
+            :scheme-groups="schemeGroups"
+            v-model:group-masks="labelMaskGroups" />
         </div>
       </FluidContainer>
     </template>
 
     <template #cont2>
-      <FluidContainer title="Scatterplot" :initial-state="false">
+      <FluidContainer title="Scatterplot">
         <ScatterLandscape
           v-model:mask="scatterMask"
           v-model:global-mask="globalMask"
@@ -92,8 +95,7 @@ onMounted(() => {
           v-model:group-masks="labelMaskGroups"
           :arrow="arrow"
           v-model:keywords="keywords"
-          v-model:picked-colour="pickedColour"
-        />
+          v-model:picked-colour="pickedColour" />
       </FluidContainer>
     </template>
 
@@ -115,12 +117,12 @@ onMounted(() => {
           v-model:global-mask="globalMask"
           v-model:group-masks="labelMaskGroups"
           :selectable-groups="Object.keys(labelMaskGroups)"
-          :year-masks="pyMask"
-        />
+          :year-masks="pyMask" />
       </FluidContainer>
     </template>
+
     <template #cont5>
-      <FluidContainer title="Results" @visibility-updated="startPauseResultFetching">
+      <FluidContainer title="Results" @visibility-updated="startPauseResultFetching" :initial-state="false">
         <template v-if="documents.length > 0">
           <div class="results-column-results">
             <DocumentCard
@@ -128,8 +130,7 @@ onMounted(() => {
               :key="doc.idx"
               :doc="doc"
               :scheme-labels="schemeLabels"
-              @report="(doc) => (reportDoc = doc)"
-            />
+              @report="(doc) => (reportDoc = doc)" />
           </div>
           <div class="results-column-pagination">
             <PaginationNav v-model:results="results" />
@@ -155,8 +156,7 @@ onMounted(() => {
     :scheme-labels="schemeLabels"
     :scheme-groups="schemeGroups"
     @close="reportDoc = null"
-    :dataset="dataset.name"
-  />
+    :dataset="dataset.name" />
 </template>
 
 <style scoped lang="scss">

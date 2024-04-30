@@ -14,8 +14,7 @@ const { page: currentPage, pages, hasPrev, hasNext, prev, next } = results.value
           aria-label="Previous"
           :disabled="!hasPrev"
           :class="{ disabled: !hasPrev }"
-          @click="prev"
-        >
+          @click="prev">
           &laquo;
         </button>
       </li>

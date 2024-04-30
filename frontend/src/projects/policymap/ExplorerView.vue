@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { datasetStore } from "@/stores";
 
 import { Dataset, useResults } from "@/util/dataset";
@@ -83,8 +82,7 @@ function startPauseResultFetching(active: boolean) {
           v-model:group-masks="labelMaskGroups"
           :arrow="arrow"
           v-model:keywords="keywords"
-          v-model:picked-colour="pickedColour"
-        />
+          v-model:picked-colour="pickedColour" />
       </FluidContainer>
     </template>
 
@@ -95,8 +93,7 @@ function startPauseResultFetching(active: boolean) {
           v-model:mask="geoMask"
           v-model:global-mask="globalMask"
           :slim-url="`${DATA_BASE}/policymap/${info.slim_geo_filename}`"
-          :full-url="`${DATA_BASE}/policymap/${info.full_geo_filename}`"
-        />
+          :full-url="`${DATA_BASE}/policymap/${info.full_geo_filename}`" />
       </FluidContainer>
     </template>
     <template #cont4>
@@ -106,8 +103,7 @@ function startPauseResultFetching(active: boolean) {
           v-model:global-mask="globalMask"
           v-model:group-masks="labelMaskGroups"
           :selectable-groups="Object.keys(labelMaskGroups)"
-          :year-masks="pyMask"
-        />
+          :year-masks="pyMask" />
       </FluidContainer>
     </template>
     <template #cont5>
@@ -119,8 +115,7 @@ function startPauseResultFetching(active: boolean) {
               :key="doc.idx"
               :doc="doc"
               class="m-2"
-              :scheme-labels="schemeLabels"
-            />
+              :scheme-labels="schemeLabels" />
           </div>
           <div class="results-column-pagination">
             <PaginationNav v-model:results="results" />

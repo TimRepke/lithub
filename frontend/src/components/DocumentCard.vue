@@ -40,8 +40,7 @@ const labels = computed(() =>
         v-if="doc.openalex_id"
         :href="`https://api.openalex.org/works/${doc.openalex_id}`"
         class="me-2"
-        target="_blank"
-      >
+        target="_blank">
         <img src="@/assets/openalex.png" style="height: 1em" alt="OpenAlex" />OpenAlex
       </a>
 
@@ -57,8 +56,7 @@ const labels = computed(() =>
         icon="minus"
         v-model:model="showAllLabels"
         class="no-border"
-        style="display: inline"
-      />
+        style="display: inline" />
 
       <button class="btn ms-2" @click="$emit('report', doc)">
         <font-awesome-icon icon="flag" />

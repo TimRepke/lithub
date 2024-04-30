@@ -89,8 +89,7 @@ onMounted(() => {
           v-model:group-masks="labelMaskGroups"
           :arrow="arrow"
           v-model:keywords="keywords"
-          v-model:picked-colour="pickedColour"
-        />
+          v-model:picked-colour="pickedColour" />
       </FluidContainer>
     </template>
 
@@ -101,8 +100,7 @@ onMounted(() => {
           v-model:mask="geoMask"
           v-model:global-mask="globalMask"
           :slim-url="`${DATA_BASE}/cdrmap/${info.slim_geo_filename}`"
-          :full-url="`${DATA_BASE}/cdrmap/${info.full_geo_filename}`"
-        />
+          :full-url="`${DATA_BASE}/cdrmap/${info.full_geo_filename}`" />
       </FluidContainer>
     </template>
     <template #cont4>
@@ -112,8 +110,7 @@ onMounted(() => {
           v-model:global-mask="globalMask"
           v-model:group-masks="labelMaskGroups"
           :selectable-groups="Object.keys(labelMaskGroups)"
-          :year-masks="pyMask"
-        />
+          :year-masks="pyMask" />
       </FluidContainer>
     </template>
     <template #cont5>
@@ -125,8 +122,7 @@ onMounted(() => {
               :key="doc.idx"
               :doc="doc"
               :scheme-labels="schemeLabels"
-              @report="(doc) => (reportDoc = doc)"
-            />
+              @report="(doc) => (reportDoc = doc)" />
           </div>
           <div class="results-column-pagination">
             <PaginationNav v-model:results="results" />
@@ -152,8 +148,7 @@ onMounted(() => {
     :scheme-labels="schemeLabels"
     :scheme-groups="schemeGroups"
     @close="reportDoc = null"
-    :dataset="dataset.name"
-  />
+    :dataset="dataset.name" />
 </template>
 
 <style scoped lang="scss">

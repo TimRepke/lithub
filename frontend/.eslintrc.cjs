@@ -17,7 +17,18 @@ module.exports = {
     ecmaVersion: "latest",
   },
   rules: {
-    "no-mixed-operators": "error",
+    //"prettier/prettier": "off",
+    // "no-extra-parens": "off",
+    "no-extra-parens": [
+      "off",
+      "all",
+      {
+        conditionalAssign: true,
+        nestedBinaryExpressions: false,
+        returnAssign: false,
+      },
+    ],
+    // "no-mixed-operators": "error",
     "no-console": process.env.NODE_ENV === "production" ? "warn" : "off",
     "no-debugger": process.env.NODE_ENV === "production" ? "warn" : "off",
     "vue/max-len": [

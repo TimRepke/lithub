@@ -47,8 +47,7 @@ watch(threshold, delayedSetThresholds);
           :id="`colour-${maskKey}-${uniq}`"
           :value="maskKey"
           v-model="pickedColour"
-          name="colour-picker"
-        />
+          name="colour-picker" />
         <label :for="`colour-${maskKey}-${uniq}`" class="icon">
           <font-awesome-icon icon="palette" />
         </label>
@@ -69,8 +68,7 @@ watch(threshold, delayedSetThresholds);
         max="1"
         step="0.05"
         v-model="threshold"
-        :id="`th-${maskKey}-${uniq}`"
-      />
+        :id="`th-${maskKey}-${uniq}`" />
     </div>
 
     <div class="filter-masks">

@@ -32,8 +32,7 @@ const sortedDatasets = computed(() =>
                 :src="`${DATA_BASE}/${dataset.key}/${dataset.figure}`"
                 class="img-fluid rounded-start"
                 style="object-fit: cover; height: 100%"
-                :alt="dataset.name"
-              />
+                :alt="dataset.name" />
             </router-link>
           </div>
           <div :class="dataset.figure ? 'col-md-8' : 'col'">

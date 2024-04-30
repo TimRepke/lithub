@@ -111,8 +111,7 @@ function swapAxes() {
               type="checkbox"
               role="switch"
               :id="`logscale-${uniq}`"
-              v-model="useLogScale"
-            />
+              v-model="useLogScale" />
             <label class="form-check-label" :for="`logscale-${uniq}`">Use log-scale</label>
           </div>
           <div class="form-check form-switch">
@@ -121,8 +120,7 @@ function swapAxes() {
               type="checkbox"
               role="switch"
               :id="`incl-global-${uniq}`"
-              v-model="applyGlobalMask"
-            />
+              v-model="applyGlobalMask" />
             <label class="form-check-label" :for="`incl-global-${uniq}`">Apply global filter</label>
           </div>
         </div>
@@ -159,8 +157,7 @@ function swapAxes() {
             <td
               v-for="xValue in fullScheme[xKey].values"
               :key="+xValue.value"
-              :style="{ 'background-color': colours(counts[+yValue.value][+xValue.value]) }"
-            >
+              :style="{ 'background-color': colours(counts[+yValue.value][+xValue.value]) }">
               {{ counts[+yValue.value][+xValue.value] }}
             </td>
           </tr>
