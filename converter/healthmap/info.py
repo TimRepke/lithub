@@ -74,7 +74,7 @@ info = DatasetInfoFull(
     ],
     contact=['callaghan@mcc-berlin.net'],
     start_year=1990,
-    end_year=2024,
+    end_year=2024 + 1,
     default_colour='t3',
     created_date=datetime.date(year=2020, month=7, day=13),
     last_update=datetime.date(year=2024, month=4, day=26),
