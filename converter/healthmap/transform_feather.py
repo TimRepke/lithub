@@ -61,7 +61,7 @@ for _, row in df_exp.iterrows():
                                                  .replace({np.nan: 0})
                                                  .sort_values()
                                                  .index)[-10:]):
-            topics[TOPICS[top]] = max(0, 1.0 - (top_i / 12.0) - 0.25)
+            topics[TOPICS[top]] = max(0, 1.0 - (top_i / 20.0) - 0.48)
 
         rows.append({
             'idx': i,
@@ -105,3 +105,5 @@ write(
     out_sql=BASE / 'documents.sqlite',
     extra_scheme={}
 )
+
+df.to_feather(BASE/'raw/full.arrow')

@@ -7,41 +7,16 @@ import pyarrow as pa
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-df = pd.read_csv('../../.data/cdrmap/raw/literature_hub_cdrmap_full.csv', lineterminator='\n')
+KEYWORDS = Path('.data/healthmap/keywords.arrow')
+df = pd.read_feather('.data/healthmap/raw/full.arrow')
 df = df.replace({np.nan: None})
-
-VECTORS = Path('../../.data/cdrmap/raw/vectors.npy')
-KEYWORDS = Path('../../.data/cdrmap/keywords.arrow')
 
 CHUNK_SIZE = 1000
 N_CLUSTERS = 40
 CLUSTER_DEPTH = 20
 
-schema = pa.schema([
-    ('x', pa.float16()),
-    ('y', pa.float16()),
-    ('level', pa.uint8()),
-    ('keyword', pa.string())
-])
-
-with open(VECTORS, 'rb') as f:
-    embedding = np.load(f)
-
-maxs = embedding.max(axis=0)
-mins = embedding.min(axis=0)
-spans = np.sqrt(np.power(mins - maxs, 2))
-
-tmp = []
 df = df.replace({np.nan: None})
-for idx, ((_, row), vector) in enumerate(zip(df.iterrows(), embedding)):
-    tmp.append({
-        'idx': idx,
-        'x': (vector[0] - mins[0]) / spans[0],
-        'y': (vector[1] - mins[1]) / spans[1],
-        'title': row['title'],
-        'text': row['abstract'],
-    })
-dfs = pd.DataFrame(tmp)
+dfs = df[['idx', 'x', 'y', 'title']]
 dfs['idx'] = dfs['idx'].astype("Int64")
 dfs[['x', 'y']] = dfs[['x', 'y']].astype("float16")
 
@@ -70,20 +45,7 @@ cluster_keywords = [
 ]
 
 print('  - transform')
-keywords = [
-    {'x': 30, 'y': -15, 'keyword': 'Biochar', 'level': 0},
-    {'x': -60, 'y': 5, 'keyword': 'CCS', 'level': 0},
-    {'x': -20, 'y': -40, 'keyword': 'DAC(CS)', 'level': 0},
-    {'x': -10, 'y': 50, 'keyword': 'Afforestation/Reforestation', 'level': 0},
-    {'x': 0, 'y': 2, 'keyword': 'Ocean fertilization & Artificial upwelling', 'level': 0},
-    {'x': -27, 'y': 38, 'keyword': 'BECCS', 'level': 0},
-    {'x': -27, 'y': 27, 'keyword': 'General Literature on CDR', 'level': 0},
-    {'x': -10, 'y': -20, 'keyword': 'Enhanced Weathering (land based)', 'level': 0},
-    {'x': -15, 'y': 70, 'keyword': 'Blue carbon', 'level': 0},
-    {'x': 0, 'y': 7, 'keyword': 'Ocean alkalinity enhancement', 'level': 0},
-    {'x': 30, 'y': 55, 'keyword': 'Soil Carbon Sequestration', 'level': 0},
-    {'x': 10, 'y': 65, 'keyword': 'Restoration of landscapes/peats', 'level': 0}
-]
+keywords = []
 
 for ci, kwds in enumerate(cluster_keywords):
     centroid = [kmeans.cluster_centers_[ci, 0], kmeans.cluster_centers_[ci, 1]]
@@ -99,13 +61,18 @@ for ci, kwds in enumerate(cluster_keywords):
             'y': coordinates[1],
             'level': depth + 1,
             'keyword': keyword
-            # "cluster": ci,
-            # "size": 1000 + (size * 25000000 / (100 * (depth + 1)))
         })
 
 df_kws = pd.DataFrame(keywords)
 df_kws['level'] = df_kws['level'].astype("Int64")
 df_kws[['x', 'y']] = df_kws[['x', 'y']].astype("float16")
+
+schema = pa.schema([
+    ('x', pa.float16()),
+    ('y', pa.float16()),
+    ('level', pa.uint8()),
+    ('keyword', pa.string())
+])
 
 print(f'Writing {KEYWORDS}')
 with pa.OSFile(str(KEYWORDS), 'wb') as sink:
