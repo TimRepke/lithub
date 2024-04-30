@@ -71,18 +71,18 @@ cluster_keywords = [
 
 print('  - transform')
 keywords = [
-    {'x': 30, 'y': -15, 'keyword': 'Biochar', 'level': 0},
-    {'x': -60, 'y': 5, 'keyword': 'CCS', 'level': 0},
-    {'x': -20, 'y': -40, 'keyword': 'DAC(CS)', 'level': 0},
-    {'x': -10, 'y': 50, 'keyword': 'Afforestation/Reforestation', 'level': 0},
-    {'x': 0, 'y': 2, 'keyword': 'Ocean fertilization & Artificial upwelling', 'level': 0},
-    {'x': -27, 'y': 38, 'keyword': 'BECCS', 'level': 0},
-    {'x': -27, 'y': 27, 'keyword': 'General Literature on CDR', 'level': 0},
-    {'x': -10, 'y': -20, 'keyword': 'Enhanced Weathering (land based)', 'level': 0},
-    {'x': -15, 'y': 70, 'keyword': 'Blue carbon', 'level': 0},
-    {'x': 0, 'y': 7, 'keyword': 'Ocean alkalinity enhancement', 'level': 0},
-    {'x': 30, 'y': 55, 'keyword': 'Soil Carbon Sequestration', 'level': 0},
-    {'x': 10, 'y': 65, 'keyword': 'Restoration of landscapes/peats', 'level': 0}
+    {'x': 0.67413,  'y':  0.38381,  'keyword':  Biochar,  'level': 0}
+    {'x': 0.13162,  'y':  0.51505,  'keyword':  CCS,  'level': 0}
+    {'x': 0.37274,  'y':  0.21975,  'keyword':  DAC(CS),  'level': 0}
+    {'x': 0.43302,  'y':  0.81034,  'keyword':  Afforestation/Reforestation,  'level': 0}
+    {'x': 0.4933,  'y':  0.49536,  'keyword':  Ocean fertilization & Artificial upwelling,  'level': 0}
+    {'x': 0.33054,  'y':  0.7316,  'keyword':  BECCS,  'level': 0}
+    {'x': 0.33054,  'y':  0.65942,  'keyword':  General Literature on CDR,  'level': 0}
+    {'x': 0.43302,  'y':  0.351,  'keyword':  Enhanced Weathering (land based),  'level': 0}
+    {'x': 0.40288,  'y':  0.94159,  'keyword':  Blue carbon,  'level': 0}
+    {'x': 0.4933,  'y':  0.52817,  'keyword':  Ocean alkalinity enhancement,  'level': 0}
+    {'x': 0.67413,  'y':  0.84315,  'keyword':  Soil Carbon Sequestration,  'level': 0}
+    {'x': 0.55357,  'y':  0.90878,  'keyword':  Restoration of landscapes/peats,  'level': 0}
 ]
 
 for ci, kwds in enumerate(cluster_keywords):
