@@ -151,7 +151,7 @@ function clicked(_event: MouseEvent, p: HierarchyNode) {
       }),
   );
 
-  const t = svg.transition().duration(750);
+  const t = path.transition().duration(750);
 
   // Transition the data on all arcs, even the ones that aren’t visible,
   // so that if this transition is interrupted, entering arcs will start
@@ -159,11 +159,11 @@ function clicked(_event: MouseEvent, p: HierarchyNode) {
   path
     .transition(t)
     .tween("data", (d) => {
-      const i = interpolate(d.data.current as HierarchyNode, d.data.target as Coords);
+      const i = interpolate(d.data.current as HierarchyNode, d.data.target as HierarchyNode);
       return (t) => (d.data.current = i(t));
     })
-    .filter((d: Coords) => {
-      return +this.getAttribute("fill-opacity") || arcVisible(d.data.target!);
+    .filter((d: HierarchyNode) => {
+      return +this.getAttribute("fill-opacity") > 0 || arcVisible(d.data.target!);
     })
     .attr("fill-opacity", (d) => (arcVisible(d.data.target!) ? (d.children ? 0.6 : 0.4) : 0))
     .attr("pointer-events", (d) => (arcVisible(d.data.target!) ? "auto" : "none"))
