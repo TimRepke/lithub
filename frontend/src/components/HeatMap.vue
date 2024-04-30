@@ -20,12 +20,14 @@ const uniq = crypto.randomUUID();
 const globalMask = defineModel<Bitmask | None>("globalMask", { required: true });
 const groupMasks = defineModel<Record<string, LabelMaskGroup>>("groupMasks", { required: true });
 const yearMasks = defineModel<HistogramMask>("yearMasks", { required: false });
-const { selectableGroups } = defineProps({
+const { selectableGroups, initVert, initHori } = defineProps({
   selectableGroups: { type: Object as PropType<string[]>, required: true },
+  initVert: { type: String, required: false },
+  initHori: { type: String, required: false },
 });
 
-const xKey = ref<string>(selectableGroups[0]);
-const yKey = ref<string>(selectableGroups[1]);
+const xKey = ref<string>(initHori ?? selectableGroups[0]);
+const yKey = ref<string>(initVert ?? selectableGroups[1]);
 const applyGlobalMask = ref<boolean>(false);
 const useLogScale = ref<boolean>(false);
 
@@ -147,7 +149,7 @@ function swapAxes() {
       </div>
 
       <div class="overflow-auto">
-        <table>
+        <table v-if="fullScheme[xKey] && fullScheme[yKey]">
           <tr>
             <th></th>
             <th v-for="value in fullScheme[xKey].values" :key="+value.value">{{ value.name }}</th>

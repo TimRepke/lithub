@@ -20,6 +20,13 @@ dfs = df[['idx', 'x', 'y', 'title']]
 dfs['idx'] = dfs['idx'].astype("Int64")
 dfs[['x', 'y']] = dfs[['x', 'y']].astype("float16")
 
+maxs = dfs[['x', 'y']].max(axis=0)
+mins = dfs[['x', 'y']].min(axis=0)
+spans = np.sqrt(np.power(mins - maxs, 2))
+
+dfs['x'] = (dfs['x'] - mins['x']) / spans['x']
+dfs['y'] = (dfs['y'] - mins['y']) / spans['y']
+
 print('  - kmeans')
 positions = dfs[['x', 'y']]
 kmeans = KMeans(n_clusters=N_CLUSTERS, random_state=0, n_init='auto').fit(positions)

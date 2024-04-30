@@ -115,7 +115,7 @@ export function useDataset<K extends Indexes>(params: {
           _keywords[i] = { x: xs.get(i), y: ys.get(i), level: levels.get(i), keyword: kws.get(i) };
         }
         // sort by level so later on we can just grab the first N keywords and get from top to bottom
-        _keywords.sort((a, b) => b.level - a.level);
+        _keywords.sort((a, b) => a.level - b.level);
         keywords.value = _keywords;
       },
     );

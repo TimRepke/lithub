@@ -107,6 +107,11 @@ df_kws = pd.DataFrame(keywords)
 df_kws['level'] = df_kws['level'].astype("Int64")
 df_kws[['x', 'y']] = df_kws[['x', 'y']].astype("float16")
 
+print(df_kws.head(20))
+print()
+print(df_kws.tail(20))
+print()
+
 print(f'Writing {KEYWORDS}')
 with pa.OSFile(str(KEYWORDS), 'wb') as sink:
     with pa.ipc.new_stream(sink, schema) as writer:
@@ -114,5 +119,6 @@ with pa.OSFile(str(KEYWORDS), 'wb') as sink:
         for chunk in range(n_chunks):
             tmp = df_kws[chunk * CHUNK_SIZE:(chunk + 1) * CHUNK_SIZE]
             batch = pa.record_batch(tmp, schema)
+            print(batch)
             writer.write(batch)
 print(f'Wrote {KEYWORDS}')

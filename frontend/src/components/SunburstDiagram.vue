@@ -151,20 +151,20 @@ function clicked(_event: MouseEvent, p: HierarchyNode) {
       }),
   );
 
-  const t = path.transition().duration(750);
+  const t = svg.transition().duration(750);
 
   // Transition the data on all arcs, even the ones that aren’t visible,
   // so that if this transition is interrupted, entering arcs will start
   // the next transition from the desired position.
   path
-    .transition(t)
+    .transition(t as unknown as string)
     .tween("data", (d) => {
       const i = interpolate(d.data.current as HierarchyNode, d.data.target as HierarchyNode);
       return (t) => (d.data.current = i(t));
     })
-    .filter((d: HierarchyNode) => {
-      return +this.getAttribute("fill-opacity") > 0 || arcVisible(d.data.target!);
-    })
+    // .filter((d: HierarchyNode) => {
+    //   return +this.getAttribute("fill-opacity") > 0 || arcVisible(d.data.target!);
+    // })
     .attr("fill-opacity", (d) => (arcVisible(d.data.target!) ? (d.children ? 0.6 : 0.4) : 0))
     .attr("pointer-events", (d) => (arcVisible(d.data.target!) ? "auto" : "none"))
     .attrTween("d", (d) => () => arc(d.data.current!) as string);
@@ -173,7 +173,7 @@ function clicked(_event: MouseEvent, p: HierarchyNode) {
     .filter(function (d) {
       return +((this as SVGTextElement).getAttribute("fill-opacity") ?? 0) > 0 || labelVisible(d.data.target!);
     })
-    .transition(t)
+    .transition(t as unknown as string)
     .attr("fill-opacity", (d) => +labelVisible(d.data.target!))
     .attrTween("transform", (d) => () => labelTransform(d.data.current!));
 }
@@ -223,7 +223,7 @@ onMounted(async () => {
   flex-direction: column;
   flex-grow: 1;
   font-size: 0.85em;
-  margin: 1em;
+  margin: 3em;
 
   .scatter-wrapper {
     display: flex;
