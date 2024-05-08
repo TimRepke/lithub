@@ -87,7 +87,8 @@ info = DatasetInfoFull(
     # @fietzfotos, pixabay
     figure='teaser.jpg',
     groups=groups,
-    labels=labels
+    labels=labels,
+    hidden=True,
 )
 
 if __name__ == '__main__':

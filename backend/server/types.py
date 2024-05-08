@@ -35,6 +35,8 @@ class DatasetInfo(BaseModel):
 
     figure: str | None = None
 
+    hidden: bool = False  # if True, dataset will not be displayed in the frontend
+
 
 class _DatasetInfoFull(DatasetInfo):
     model_config = ConfigDict(extra='ignore')

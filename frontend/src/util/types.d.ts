@@ -38,6 +38,7 @@ export interface DatasetInfo {
 
   created_date: date;
   last_update: date;
+  hidden: boolean;
 
   db_filename: string;
   arrow_filename: string;
