@@ -41,7 +41,7 @@ function hideWarning(e: MouseEvent) {
 
     <router-link class="navbar-brand ms-auto" :to="{ name: 'landing' }">Home</router-link>
     <router-link class="navbar-brand" :to="{ name: 'about' }">About</router-link>
-    <router-link class="navbar-brand" :to="{ name: 'privacy' }">Legal/Privacy</router-link>
+    <router-link class="navbar-brand" :to="{ name: 'privacy' }">License/Privacy</router-link>
   </nav>
 
   <router-view></router-view>

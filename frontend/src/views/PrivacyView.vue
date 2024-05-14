@@ -22,10 +22,13 @@
       always appreciate it if you let us know when you are planning to use our data.
     </p>
     <p>
-      All bibliometric data <i>(e.g. title, abstract, publication year, authors, ...)</i> is based on
-      <a href="https://openalex.org/" target="_blank">OpenAlex</a>. All auxiliary information was annotated by hand,
-      using automated classifiers, or in some (semi-/un-)supervised manner. Usually, the datasets are linked to a
-      specific publication.
+      All bibliographic data <i>(e.g. title, abstract, publication year, authors, ...)</i> is based on
+      <a href="https://openalex.org/" target="_blank">OpenAlex</a> (licensed
+      <a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a>). All auxiliary information was annotated by
+      hand, using automated classifiers we developed, or in some (semi-/un-)supervised manner. Usually, the datasets are
+      linked to a specific publication, which shall cited if any data is used. Citations may be done prominently in the
+      text or, in case of figures, the citation has to be part of the figure. Beyond that, all our curated datasets and
+      annotations are <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA</a>.
     </p>
     <h1>Privacy Policy</h1>
     <p>
