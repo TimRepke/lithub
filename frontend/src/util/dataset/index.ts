@@ -8,7 +8,7 @@ import type {
   SchemeGroup,
   SchemeLabel,
 } from "@/util/types";
-import { type Bitmask, and, or, isNew } from "@/util/dataset/masks/bitmask.ts";
+import { type Bitmask, and, or, isNew } from "@/util/dataset/filters/bitmask.ts";
 import { DATA_BASE, POST, request, RequestWithProgress } from "@/util/api.ts";
 import { type Ref, type ComputedRef, readonly, ref, toRef, watch, computed } from "vue";
 import { type Table, tableFromIPC } from "apache-arrow";
@@ -31,7 +31,7 @@ import { Counts } from "@/util/dataset/masks/base.ts";
 // }
 export type AnyMask = IndexMask | HistogramMask | LabelMaskGroup | SearchMask;
 
-export interface Dataset<K extends Indexes> {
+export interface Dataset {
   info: DatasetInfo;
   name: string;
   arrow: Table<ArrowSchema>;

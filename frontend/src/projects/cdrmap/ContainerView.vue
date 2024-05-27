@@ -66,6 +66,12 @@ async function download(mask?: string) {
         </router-link>
       </li>
       <li class="nav-item">
+        <a href="https://www.stateofcdr.org/" target="_blank" class="nav-link">State of CDR</a>
+      </li>
+      <li class="nav-item">
+        <a href="https://www.stateofcdr.org/" target="_blank" class="nav-link">SoCDR Data Hub</a>
+      </li>
+      <li class="nav-item">
         <router-link :to="{ name: route.children![1].name }" class="nav-link" exact-active-class="active">
           <font-awesome-icon icon="info-circle" />
           Info

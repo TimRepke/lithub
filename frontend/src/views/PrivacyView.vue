@@ -1,4 +1,5 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+</script>
 
 <template>
   <div>
@@ -20,6 +21,10 @@
       open science. Research should be accessible to all! Thus, we share our data and findings for full transparency,
       replication, or re-usability on this platform. It is free for everyone to use (limitations apply)! In any case, we
       always appreciate it if you let us know when you are planning to use our data.
+    </p>
+    <p>
+      It is <strong>not</strong> permitted to use this data as training data for any sort of commercial language model
+      or classifier. If you are unsure if you can use the data in any commercial context, feel free to contact us.
     </p>
     <p>
       All bibliographic data <i>(e.g. title, abstract, publication year, authors, ...)</i> is based on
