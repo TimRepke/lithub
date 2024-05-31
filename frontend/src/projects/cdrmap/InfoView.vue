@@ -10,9 +10,9 @@
     Smith, Daniela Thrän, Tiffany G. Troxler, Volker Sick, Mijndert van der Spek, Jan C. Minx
   </p>
 
-
   <h5>Preprint</h5>
-<a href="https://www.researchsquare.com/article/rs-4109712/v1" target="_blank">Scientific literature on carbon dioxide removal much larger than previously suggested: insights from an AI-enhanced systematic map</a>
+<a href="https://www.researchsquare.com/article/rs-4109712/v1" target="_blank">Scientific literature on carbon dioxide removal much larger than previously suggested: 
+insights from an AI-enhanced systematic map</a>
 
 
   <h5>Data and Methods</h5>
@@ -20,14 +20,16 @@
 We use an approach assisted by machine learning to provide the first comprehensive evidence map of CDR research. We
  follow the well established guidelines for systematic mapping (Collaboration for Environmental Evidence 2018), 
  wherever possible, and adjust them as needed to align with our machine learning approach. We document all steps in 
- a detailed <a href="https://docs.google.com/document/d/1OJzGj21Y5B33r85TDwKk2VKhgsR2KakA/edit" target="_blank">systematic map protocol</a> for transparency and reproducibility.
+ a detailed <a href="https://docs.google.com/document/d/1OJzGj21Y5B33r85TDwKk2VKhgsR2KakA/edit" target="_blank">
+ systematic map protocol</a> for transparency and reproducibility.
 
 We started by developing, for each CDR method, search strings with high levels of recall to make sure that as few 
 scientific articles are missed as possible. The search strings include keywords describing the CDR technology. 
 For long established methods such as afforestation we included keywords that make sure the method is evaluated with 
 a focus on carbon sequestration. The development of search strings was done iteratively by validating against an 
 independent list of publications on the various CDR methods ensuring that all documents are returned. The validation 
-dataset was extracted from IPCC AR6 and 50 randomly selected publications from the <a href="https://www.american.edu/sis/centers/carbon-removal/carbon-removal-glossary.cfm" target="_blank">CDR bibliography</a> 
+dataset was extracted from IPCC AR6 and 50 randomly selected publications from the 
+<a href="https://www.american.edu/sis/centers/carbon-removal/carbon-removal-glossary.cfm" target="_blank">CDR bibliography</a> 
 published by the Climate Protection and Restoration Initiative. We then ran the final search strings on Open Alex and 
 retrieved 100,000 bibliographic records. 
 
