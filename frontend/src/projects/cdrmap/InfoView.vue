@@ -11,8 +11,8 @@
   </p>
 
   <h5>Preprint</h5>
-<a href="https://www.researchsquare.com/article/rs-4109712/v1" target="_blank">Scientific literature on carbon dioxide removal much larger than previously suggested: 
-insights from an AI-enhanced systematic map</a>
+<a href="https://www.researchsquare.com/article/rs-4109712/v1" target="_blank">Scientific literature on carbon dioxide 
+removal much larger than previously suggested: insights from an AI-enhanced systematic map</a>
 
 
   <h5>Data and Methods</h5>
