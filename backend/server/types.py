@@ -9,6 +9,7 @@ class SchemeLabel(BaseModel):
     name: str  # Humanly readable name
     value: int  # label value (e.g. technology = 1)
     colour: tuple[float, float, float]  # label colour in HSL
+    desc: str | None = None  # Description
 
 
 class SchemeGroup(BaseModel):
@@ -16,6 +17,7 @@ class SchemeGroup(BaseModel):
     key: str
     type: Literal['single', 'bool', 'multi']
     colour: tuple[float, float, float] | None = None  # if this is a subgroup, this needs to be set
+    desc: str | None = None  # Description
 
     labels: list[str] | None = None  # list of SchemeLabel.key (if empty, will be inferred from subgroups)
     subgroups: list[str] | None = None  # list of SchemeGroup.key

@@ -6,7 +6,7 @@
     <strong>Authors:</strong>
     Niklas Döbbeling-Hildebrandt, Tim Repke, Jan Minx
   </p>
-  <p class="teaser">Comprehensive map of carbon pricing evaluations</p>
+  <p class="teaser">Comprehensive map of carbon pricing ex-post analyses</p>
   <p>Longer description</p>
 </template>
 
