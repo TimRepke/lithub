@@ -6,10 +6,12 @@ import pyarrow as pa
 from converter.iso31661 import lookup
 from converter.geonames import FEATURE_LOOKUP
 
-PLACES = Path('../../.data/cdrmap/raw/cdr_places.jsonl')
-OUT_CSV = Path('../../.data/cdrmap/raw/cdr_places.csv')
-OUT_SLIM = Path('../../.data/cdrmap/geocodes.minimal.arrow')
-OUT_FULL = Path('../../.data/cdrmap/geocodes.full.arrow')
+BASE = Path('.data/cdrmap')
+
+PLACES = Path(BASE / 'raw/cdr_places.jsonl')
+OUT_CSV = Path(BASE / 'raw/cdr_places.csv')
+OUT_SLIM = Path(BASE / 'geocodes.minimal.arrow')
+OUT_FULL = Path(BASE / 'geocodes.full.arrow')
 
 keys = set()
 values = []

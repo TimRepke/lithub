@@ -1,3 +1,7 @@
+import { type Ref, type ComputedRef, readonly, ref, toRef, watch, computed } from "vue";
+import { type Table, tableFromIPC } from "apache-arrow";
+import { None, useDelay } from "@/util/index.ts";
+import { DATA_BASE, POST, request } from "@/util/api.ts";
 import type {
   ReadonlyRef,
   AnnotatedDocument,
@@ -5,72 +9,53 @@ import type {
   DatasetInfo,
   Keyword,
   KeywordArrowSchema,
-  SchemeGroup,
   SchemeLabel,
 } from "@/util/types";
-import { type Bitmask, and, or, isNew } from "@/util/dataset/filters/bitmask.ts";
-import { DATA_BASE, POST, request, RequestWithProgress } from "@/util/api.ts";
-import { type Ref, type ComputedRef, readonly, ref, toRef, watch, computed } from "vue";
-import { type Table, tableFromIPC } from "apache-arrow";
-import { type HistogramMask, useHistogramMask } from "@/util/dataset/masks/histogram.ts";
-import { None, useDelay } from "@/util/index.ts";
-import { Indexes, type IndexMask, IndexMasks, useIndexMasks } from "@/util/dataset/masks/ids.ts";
-import {
-  type LabelMaskGroup,
-  type LabelValueMask,
-  loadLabelValueMask,
-  useLabelMaskGroup,
-  useLabelValueMask,
-} from "@/util/dataset/masks/labels.ts";
-import { SearchMask, useSearchMask } from "@/util/dataset/masks/search.ts";
-import { Counts } from "@/util/dataset/masks/base.ts";
+import { type Bitmask, and, or, isSame, loadMask } from "@/util/dataset/filters/bitmask.ts";
+import type { Mask } from "@/util/dataset/filters/types";
+
+export type BufferEntry = SchemeLabel & { mask: Bitmask };
 
 // get filtered array from mask (like np.array([1,2,3,4])[[True, True, False, True]]
 // Array.prototype.maskFilter = function(mask) {
 //   return this.filter((item, i) => mask[i]);
 // }
-export type AnyMask = IndexMask | HistogramMask | LabelMaskGroup | SearchMask;
 
 export interface Dataset {
   info: DatasetInfo;
-  name: string;
   arrow: Table<ArrowSchema>;
-  counts: ReadonlyRef<Counts>;
-  version: ReadonlyRef<number>;
-  groups: Record<string, SchemeGroup>;
-  labels: Record<string, SchemeLabel>;
+  masks: Ref<Record<string, Mask>>;
 
-  labelMaskGroups: Record<string, LabelMaskGroup>; // masks for all the annotations
-  pyMask: HistogramMask; // masks for publication years
-  indexMasks: IndexMasks<K>; // masks for document ids (esp. for scatterplot)
-  searchMask: SearchMask; // mask for title/abstract search (server-side filtering)
-  // doiMask: SearchMask;// mask for DOI search (server-side filtering)
+  countTotal: ReadonlyRef<number>;
+  countFiltered: ReadonlyRef<number>;
+  version: ReadonlyRef<number>;
+
+  registerMask: () => void;
+  registerGroup: () => void;
 
   bitmask: Ref<Bitmask | None>; // aggregate global mask
   inclusive: Ref<boolean>; // when true, use OR for combination, else AND
   keywords: Ref<Keyword[]>;
   pickedColour: Ref<string>;
 
-  hasActiveMask(): boolean;
+  documents: (docParams: { ids?: string[] | null; page?: number; limit?: number }) => Promise<AnnotatedDocument[]>;
+  /*
+    hasActiveMask(): boolean;
 
-  masks(): Generator<AnyMask, void, any>;
+    masks(): Generator<AnyMask, void, any>;
 
-  activeMasks(): Generator<AnyMask, void, any>;
+    activeMasks(): Generator<AnyMask, void, any>;
 
-  activeLabelMasks(): Generator<LabelValueMask, void, any>;
+    activeLabelMasks(): Generator<LabelValueMask, void, any>;
 
-  activeBitmasks(): Generator<Bitmask | None, void, any>;
+    activeBitmasks(): Generator<Bitmask | None, void, any>;
 
-  activeLabelMaskColumns(): Generator<string, void, any>;
+    activeLabelMaskColumns(): Generator<string, void, any>;
 
-  documents(dparams: { ids?: string[] | null; page?: number; limit?: number }): Promise<AnnotatedDocument[]>;
+    */
 }
 
-export function useDataset<K extends Indexes>(params: {
-  info: DatasetInfo;
-  labelMasks: Record<string, LabelMaskGroup>;
-  arrow: Table<ArrowSchema>;
-}): Dataset<K> {
+export function useDataset(params: { info: DatasetInfo; arrow: Table<ArrowSchema>; masks: BufferEntry[] }): Dataset {
   const {
     groups,
     labels,
@@ -170,22 +155,22 @@ export function useDataset<K extends Indexes>(params: {
     for (const mask of activeLabelMasks()) yield mask.key;
   }
 
-  async function documents(dparams: {
+  async function documents(docParams: {
     ids?: string[] | null;
     page?: number;
     limit?: number;
   }): Promise<AnnotatedDocument[]> {
     const orderBy = [...activeLabelMaskColumns()];
-    const mask = (!dparams.ids || dparams.ids.length === 0) && hasActiveMask() ? bitmask.value?.toBase64() : undefined;
+    const mask = (!docParams.ids || docParams.ids.length === 0) && hasActiveMask() ? bitmask.value?.toBase64() : undefined;
     return await POST<AnnotatedDocument[]>({
       path: "/basic/documents",
       params: {
-        limit: dparams.limit ?? 10,
-        page: dparams.page ?? 0,
+        limit: docParams.limit ?? 10,
+        page: docParams.page ?? 0,
         dataset: name,
       },
       payload: {
-        ids: dparams.ids,
+        ids: docParams.ids,
         bitmask: mask,
         order_by: orderBy,
       },
@@ -223,172 +208,4 @@ export function useDataset<K extends Indexes>(params: {
     activeLabelMaskColumns,
     documents,
   };
-}
-
-export interface Results {
-  documents: Ref<AnnotatedDocument[]>;
-  page: Ref<number>;
-  limit: Ref<number>;
-  paused: Ref<boolean>;
-  numPages: ComputedRef<number>;
-  pages: ComputedRef<number[]>;
-  next: () => void;
-  prev: () => void;
-  update: () => void;
-  delayedUpdate: () => void;
-  hasPrev: ComputedRef<boolean>;
-  hasNext: ComputedRef<boolean>;
-}
-
-export function useResults<K extends Indexes>(dataset: Dataset<K>): Results {
-  // const dataStore = useDatasetStore();
-  const REQUEST_DELAY = 250;
-  const MAX_PAGES = 8;
-
-  const paused = ref(false);
-  const page = ref(0);
-  const limit = ref(10);
-  const documents = ref<AnnotatedDocument[]>([]);
-
-  const { call: update, delayedCall: delayedUpdate } = useDelay(async () => {
-    if (!paused.value) {
-      documents.value = await dataset.documents({ page: page.value, limit: limit.value });
-    }
-    return documents.value;
-  }, REQUEST_DELAY);
-
-  const hasNext = computed(() => page.value < numPages.value - 1);
-
-  function next() {
-    if (hasNext.value) page.value += 1;
-  }
-
-  const hasPrev = computed(() => page.value > 0);
-
-  function prev() {
-    if (hasPrev.value) page.value -= 1;
-  }
-
-  const numPages = computed(() => {
-    const total = dataset.counts.value.countFiltered;
-    return Math.ceil((total ?? 0) / limit.value);
-  });
-  const pages = computed(() => {
-    if (numPages.value <= MAX_PAGES) {
-      return [...Array(numPages.value).keys()];
-    }
-    if (page.value + MAX_PAGES / 2 > numPages.value) {
-      const firstPage = Math.max(0, numPages.value - MAX_PAGES);
-      return [...Array(MAX_PAGES).keys()].map((p) => p + firstPage);
-    }
-    const firstPage = Math.max(0, page.value - MAX_PAGES / 2);
-    return [...Array(Math.min(MAX_PAGES)).keys()].map((p) => p + firstPage);
-  });
-
-  watch(dataset.version, delayedUpdate);
-  watch([page, limit], update);
-
-  return {
-    documents: toRef(documents),
-    paused: toRef(paused),
-    page: toRef(page),
-    limit: toRef(limit),
-    numPages: toRef(numPages),
-    pages: toRef(pages),
-    hasPrev: toRef(hasPrev),
-    hasNext: toRef(hasNext),
-    next,
-    prev,
-    update,
-    delayedUpdate,
-  };
-}
-
-type BufferEntry = SchemeLabel & { mask: LabelValueMask };
-
-export async function loadDataset<K extends Indexes>(params: {
-  info: DatasetInfo;
-  maskCallback: (colsLoaded: number) => void;
-  dataCallback: (bytesLoaded: number) => void;
-  threshold?: number;
-}): Promise<Dataset<K>> {
-  const { labels, groups, key: dataset, arrow_filename: arrowFile } = params.info;
-
-  return new Promise(async (resolve: (res: Dataset<K>) => void, reject) => {
-    // request all masks
-    let numLoadedMasks = 0;
-    const maskBuffer: Record<string, BufferEntry> = {};
-    const maskPromises = Object.values(labels) //
-      .map(async (label) => {
-        maskBuffer[label.key] = {
-          ...label,
-          mask: await loadLabelValueMask({
-            dataset: dataset,
-            name: label.name,
-            key: label.key,
-            value: label.value,
-            colour: label.colour,
-            threshold: params.threshold,
-          }),
-        };
-        params.maskCallback(++numLoadedMasks);
-      });
-
-    // request arrow base
-    const arrowRaw = await RequestWithProgress({
-      method: "GET",
-      path: DATA_BASE + `/${dataset}/${arrowFile}`,
-      progressCallback: params.dataCallback,
-      keepPath: true,
-    });
-    const arrow = tableFromIPC<ArrowSchema>(await arrowRaw.arrayBuffer());
-
-    // wait for all requests to finish and return dataset
-    Promise.all(maskPromises)
-      .then(() => {
-        const groupedLabelMasks = Object.fromEntries(
-          Object.values(groups).map((group) => {
-            let masks: LabelValueMask[];
-
-            if (group.subgroups && group.subgroups.length > 0) {
-              masks = group.subgroups.map((subgroup, i) => {
-                const sg = groups[subgroup];
-                return useLabelValueMask({
-                  dataset,
-                  name: sg.name,
-                  key: sg.key,
-                  value: i,
-                  colour: sg.colour,
-                  bitmask: or(...(sg.labels?.map((label) => maskBuffer[label].mask.bitmask.value) ?? [])) as Bitmask,
-                });
-              });
-            } else if (group.labels && group.labels.length > 0) {
-              masks = group.labels.map((label) => maskBuffer[label].mask);
-            } else {
-              throw new Error("Inconsistent data received!");
-            }
-
-            return [
-              group.key,
-              useLabelMaskGroup({
-                dataset,
-                key: group.key,
-                name: group.name,
-                type: group.type,
-                masks,
-              }),
-            ];
-          }),
-        );
-
-        resolve(
-          useDataset<K>({
-            info: params.info,
-            labelMasks: groupedLabelMasks,
-            arrow,
-          }),
-        );
-      })
-      .catch(reject);
-  });
 }

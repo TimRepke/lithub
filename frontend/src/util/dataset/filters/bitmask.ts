@@ -1,4 +1,7 @@
 import { is, isNone, None } from "@/util";
+import { request } from "@/util/api.ts";
+
+const DEFAULT_THRESHOLD = 0.5;
 
 export class Bitmask {
   public readonly length: number;
@@ -177,4 +180,18 @@ export function isSame(mask: Bitmask | None, otherMask: Bitmask | None): boolean
   if (isNone(mask) && isNone(otherMask)) return false;
   if (is<Bitmask>(mask) && is<Bitmask>(otherMask)) return !!otherMask.isSame(otherMask);
   return true;
+}
+
+export function loadMask(dataset: string, col: string, threshold: number = DEFAULT_THRESHOLD) {
+  return new Promise((resolve: (bitmask: Bitmask) => void, reject) => {
+    request({
+      method: "GET",
+      path: "/basic/bitmask",
+      params: { key: col, min_score: threshold, dataset },
+    })
+      .then(async (result) => {
+        resolve(Bitmask.fromBase64(await result.text()));
+      })
+      .catch(reject);
+  });
 }

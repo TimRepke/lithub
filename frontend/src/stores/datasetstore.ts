@@ -1,7 +1,10 @@
 import { defineStore } from "pinia";
 import { computed, type ComputedRef, readonly, type Ref, ref, toRef } from "vue";
-import { Dataset, loadDataset } from "@/util/dataset";
-import { DatasetInfo } from "@/util/types";
+import { BufferEntry, Dataset, useDataset } from "@/util/dataset";
+import { ArrowSchema, DatasetInfo } from "@/util/types";
+import { loadMask } from "@/util/dataset/filters/bitmask.ts";
+import { DATA_BASE, RequestWithProgress } from "@/util/api.ts";
+import { tableFromIPC } from "apache-arrow";
 
 type LoadInfo = { progressCols: number; progressArrow: number };
 
@@ -85,3 +88,44 @@ export const useDatasetStore = defineStore<"dataset", DatasetStore>("dataset", (
     isLoaded: toRef(isLoaded),
   } as DatasetStore;
 });
+
+
+export async function loadDataset(params: {
+  info: DatasetInfo;
+  maskCallback: (colsLoaded: number) => void;
+  dataCallback: (bytesLoaded: number) => void;
+  threshold?: number;
+}): Promise<Dataset> {
+  const { labels, key: dataset, arrow_filename: arrowFile } = params.info;
+
+  return new Promise(async (resolve: (res: Dataset) => void, reject) => {
+    // request all masks
+    let numLoadedMasks = 0;
+    const maskPromises = Object.values(labels).map(async (label) => {
+      params.maskCallback(++numLoadedMasks);
+      return { ...label, mask: await loadMask(dataset, label.key, params.threshold) } as BufferEntry;
+    });
+
+    // request arrow base
+    const arrowRaw = await RequestWithProgress({
+      method: "GET",
+      path: DATA_BASE + `/${dataset}/${arrowFile}`,
+      progressCallback: params.dataCallback,
+      keepPath: true,
+    });
+    const arrow = tableFromIPC<ArrowSchema>(await arrowRaw.arrayBuffer());
+
+    // wait for all requests to finish and return dataset
+    Promise.all(maskPromises)
+      .then((masks) => {
+        resolve(
+          useDataset({
+            info: params.info,
+            masks,
+            arrow,
+          }),
+        );
+      })
+      .catch(reject);
+  });
+}

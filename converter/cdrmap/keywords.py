@@ -7,11 +7,13 @@ import pyarrow as pa
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-df = pd.read_csv('../../.data/cdrmap/raw/literature_hub_cdrmap_full.csv', lineterminator='\n')
+BASE = Path('.data/cdrmap')
+
+df = pd.read_csv(BASE / 'raw/literature_hub_cdrmap_3.csv', lineterminator='\n')
 df = df.replace({np.nan: None})
 
-VECTORS = Path('../../.data/cdrmap/raw/vectors.npy')
-KEYWORDS = Path('../../.data/cdrmap/keywords.arrow')
+VECTORS = Path(BASE / 'raw/vectors.npy')
+KEYWORDS = Path(BASE / 'keywords.arrow')
 
 CHUNK_SIZE = 1000
 N_CLUSTERS = 40
@@ -82,7 +84,15 @@ keywords = [
     {'x': 0.40288,  'y':  0.94159,  'keyword':  'Blue carbon',  'level': 0},
     {'x': 0.4933,  'y':  0.52817,  'keyword':  'Ocean alkalinity enhancement',  'level': 0},
     {'x': 0.67413,  'y':  0.84315,  'keyword':  'Soil Carbon Sequestration',  'level': 0},
-    {'x': 0.55357,  'y':  0.90878,  'keyword':  'Restoration of landscapes/peats',  'level': 0}
+    {'x': 0.55357,  'y':  0.90878,  'keyword':  'Restoration of landscapes/peats',  'level': 0},
+    {'x': 0.0,  'y':  0.0,  'keyword':  '',  'level': 0},
+    {'x': 0.0,  'y':  0.0,  'keyword':  '',  'level': 0},
+    {'x': 0.0,  'y':  0.0,  'keyword':  '',  'level': 0},
+    {'x': 0.0,  'y':  0.0,  'keyword':  '',  'level': 0},
+    {'x': 0.0,  'y':  0.0,  'keyword':  '',  'level': 0},
+    {'x': 0.0,  'y':  0.0,  'keyword':  '',  'level': 0},
+    {'x': 0.0,  'y':  0.0,  'keyword':  '',  'level': 0},
+    {'x': 0.0,  'y':  0.0,  'keyword':  '',  'level': 0}
 ]
 
 for ci, kwds in enumerate(cluster_keywords):

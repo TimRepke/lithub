@@ -5,3 +5,4 @@ opentsne==1.0.1
 numpy==1.26.4
 sqlalchemy==2.0.29
 toml==0.10.2
+tqdm==4.66.4

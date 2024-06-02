@@ -6,9 +6,7 @@ import type { Extent, Filter, FilterParams, Mask } from "@/util/dataset/filters/
 export function useFilter(params: FilterParams): Filter {
   const inclusive = ref(params.inclusive ?? true);
   const base = useMask({
-    name: params.name,
     key: params.key,
-    colour: params.colour,
     active: params.active,
     bitmask: getCombinedMasks(),
   });

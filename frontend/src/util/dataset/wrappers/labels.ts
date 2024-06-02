@@ -8,7 +8,6 @@ import { request } from "@/util/api.ts";
 import { FilterParams, MaskParams } from "@/util/dataset/filters/types";
 
 const DEFAULT_COLOUR: HSLColour = [60, 14.94, 82.94];
-const DEFAULT_THRESHOLD = 0.5;
 const LOAD_TIMEOUT = 100;
 
 export interface LabelMaskParams extends MaskParams {
@@ -48,16 +47,3 @@ function useLabelFilter(params: LabelFilterParams) : LabelFilter {
 
 }
 
-function loadMask(dataset: string, col: string, threshold: number = DEFAULT_THRESHOLD) {
-  return new Promise((resolve: (bitmask: Bitmask) => void, reject) => {
-    request({
-      method: "GET",
-      path: "/basic/bitmask",
-      params: { key: col, min_score: threshold, dataset },
-    })
-      .then(async (result) => {
-        resolve(Bitmask.fromBase64(await result.text()));
-      })
-      .catch(reject);
-  });
-}

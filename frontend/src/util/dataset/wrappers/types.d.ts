@@ -31,6 +31,7 @@ export interface LabelMask extends Mask {
   value: number;
   colour: HSLColour;
   hexColour: string;
+  threshold: Ref<number>;
 }
 
 export interface LabelFilter extends Filter {}
