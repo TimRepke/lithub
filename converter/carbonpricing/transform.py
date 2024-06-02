@@ -38,7 +38,7 @@ embedding, mins, maxs, spans = get_vectors(
     cache=VECTORS,
     df=df,
     to_txt=lambda r: (r['text'] or '') + (r['title'] or ''),
-    dof=0.9, max_df=0.85
+    dof=0.9, max_df=0.85  # , metric='euclidean'
 )
 
 print('Transforming rows...')

@@ -70,6 +70,8 @@ onMounted(() => {
         <div class="filter-sidebar-container">
           <HistogramFilter v-model:mask="pyMask" />
           <SidebarSearchFilter v-model:mask="searchMask" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['imp']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['exp']" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups['outc']" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups['sect']" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups['meth']" v-model:picked-colour="pickedColour" />
