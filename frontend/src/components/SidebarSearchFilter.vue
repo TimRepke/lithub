@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { SearchMask } from "@/util/dataset/masks/search.ts";
+import ToolTip from "@/components/ToolTip.vue";
 
 const uniq = crypto.randomUUID();
 const mask = defineModel<SearchMask>("mask", { required: true });
@@ -12,33 +13,41 @@ const { counts, active, fields, search, fetch } = mask.value;
     <div class="filter-head">
       <div>Full-text search</div>
       <div>
-        <input type="checkbox" :id="`active-fts-${uniq}`" v-model="active" />
-        <label :for="`active-fts-${uniq}`" class="icon">
-          <font-awesome-icon icon="filter" />
-        </label>
+        <ToolTip text="Toggle text search filter" position="left">
+          <input type="checkbox" :id="`active-fts-${uniq}`" v-model="active" />
+          <label :for="`active-fts-${uniq}`" class="icon">
+            <font-awesome-icon icon="filter" />
+          </label>
+        </ToolTip>
       </div>
     </div>
     <div class="d-flex flex-row mb-1">
       <div>{{ counts.countFiltered.toLocaleString() }} / {{ counts.countTotal.toLocaleString() }}</div>
       <div class="ms-auto">
-        <span class="icon-toggle">
-          <input type="checkbox" :id="`field-title-${uniq}`" value="title" v-model="fields" />
-          <label :for="`field-title-${uniq}`" class="icon">
-            <font-awesome-icon icon="heading" />
-          </label>
-        </span>
-        <span class="icon-toggle">
-          <input type="checkbox" :id="`field-abs-${uniq}`" value="abstract" v-model="fields" />
-          <label :for="`field-abs-${uniq}`" class="icon">
-            <font-awesome-icon icon="align-left" />
-          </label>
-        </span>
-        <span class="icon-toggle">
-          <input type="checkbox" :id="`field-author-${uniq}`" value="authors" v-model="fields" />
-          <label :for="`field-author-${uniq}`" class="icon">
-            <font-awesome-icon icon="user-pen" />
-          </label>
-        </span>
+        <ToolTip text="Title search on/off" position="left">
+          <span class="icon-toggle">
+            <input type="checkbox" :id="`field-title-${uniq}`" value="title" v-model="fields" />
+            <label :for="`field-title-${uniq}`" class="icon">
+              <font-awesome-icon icon="heading" />
+            </label>
+          </span>
+        </ToolTip>
+        <ToolTip text="Abstract search on/off" position="left">
+          <span class="icon-toggle">
+            <input type="checkbox" :id="`field-abs-${uniq}`" value="abstract" v-model="fields" />
+            <label :for="`field-abs-${uniq}`" class="icon">
+              <font-awesome-icon icon="align-left" />
+            </label>
+          </span>
+        </ToolTip>
+        <ToolTip text="Author search on/off" position="left">
+          <span class="icon-toggle">
+            <input type="checkbox" :id="`field-author-${uniq}`" value="authors" v-model="fields" />
+            <label :for="`field-author-${uniq}`" class="icon">
+              <font-awesome-icon icon="user-pen" />
+            </label>
+          </span>
+        </ToolTip>
       </div>
     </div>
     <div class="input-group input-group-sm">
@@ -55,6 +64,7 @@ const { counts, active, fields, search, fetch } = mask.value;
   &:last-of-type {
     margin-bottom: 4em;
   }
+
   .filter-masks {
     display: flex;
     flex-direction: row;

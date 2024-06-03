@@ -34,7 +34,8 @@ const labels = computed(() =>
       <p class="card-text">{{ doc.abstract }}</p>
     </div>
     <div class="card-footer">
-      <font-awesome-icon icon="location-crosshairs" class="me-2" />
+      <!-- TODO add "jump to" crosshairs -->
+      <!-- <font-awesome-icon icon="location-crosshairs" class="me-2" />-->
       <a v-if="doc.doi" :href="`https:/doi.org/${doc.doi}`" class="me-2" target="_blank">DOI</a>
       <a
         v-if="doc.openalex_id"

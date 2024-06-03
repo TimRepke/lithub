@@ -4,6 +4,7 @@ import { computed, ref, watch } from "vue";
 import InclusiveIcon from "@/components/InclusiveIcon.vue";
 import { DEFAULT_THRESHOLD, type LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
 import { useDelay } from "@/util";
+import ToolTip from "@/components/ToolTip.vue";
 
 const uniq = crypto.randomUUID();
 const groupMask = defineModel<LabelMaskGroup>("groupMask", { required: true });
@@ -37,30 +38,39 @@ watch(threshold, delayedSetThresholds);
       <div>
         <InclusiveIcon v-model:inclusive="inclusive" />
 
-        <input type="checkbox" :id="`eth-${maskKey}-${uniq}`" v-model="editThreshold" />
-        <label :for="`eth-${maskKey}-${uniq}`" class="icon">
-          <font-awesome-icon icon="sliders" />
-        </label>
+        <ToolTip text="Set minimum label score" position="left">
+          <input type="checkbox" :id="`eth-${maskKey}-${uniq}`" v-model="editThreshold" />
+          <label :for="`eth-${maskKey}-${uniq}`" class="icon">
+            <font-awesome-icon icon="sliders" />
+          </label>
+        </ToolTip>
 
-        <input
-          type="radio"
-          :id="`colour-${maskKey}-${uniq}`"
-          :value="maskKey"
-          v-model="pickedColour"
-          name="colour-picker" />
-        <label :for="`colour-${maskKey}-${uniq}`" class="icon">
-          <font-awesome-icon icon="palette" />
-        </label>
+        <ToolTip text="Use in map colour" position="left">
+          <input
+            type="radio"
+            :id="`colour-${maskKey}-${uniq}`"
+            :value="maskKey"
+            v-model="pickedColour"
+            name="colour-picker" />
+          <label :for="`colour-${maskKey}-${uniq}`" class="icon">
+            <font-awesome-icon icon="palette" />
+          </label>
+        </ToolTip>
 
-        <input type="checkbox" :id="`active-${maskKey}-${uniq}`" v-model="active" />
-        <label :for="`active-${maskKey}-${uniq}`" class="icon">
-          <font-awesome-icon icon="filter" />
-        </label>
+        <ToolTip :text="`Toggle '${name}' filter`" position="left">
+          <input type="checkbox" :id="`active-${maskKey}-${uniq}`" v-model="active" />
+          <label :for="`active-${maskKey}-${uniq}`" class="icon">
+            <font-awesome-icon icon="filter" />
+          </label>
+        </ToolTip>
       </div>
     </div>
 
     <div v-if="editThreshold">
       <label :for="`th-${maskKey}-${uniq}`" class="form-label">Threshold >= {{ threshold }}</label>
+      <div class="form-text" id="basic-addon4">
+        Human annotations exactly 0 or 1; automated annotations scores 0.01-0.99.
+      </div>
       <input
         type="range"
         class="form-range"

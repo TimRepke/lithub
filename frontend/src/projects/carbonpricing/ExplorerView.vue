@@ -19,6 +19,7 @@ import FluidContainer from "@/components/FluidContainer.vue";
 import ReportingModal from "@/components/ReportingModal.vue";
 import type { AnnotatedDocument } from "@/util/types";
 import HistogramFilter from "@/components/HistogramFilter.vue";
+import ToolTip from "@/components/ToolTip.vue";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -70,8 +71,8 @@ onMounted(() => {
         <div class="filter-sidebar-container">
           <HistogramFilter v-model:mask="pyMask" />
           <SidebarSearchFilter v-model:mask="searchMask" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['imp']" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['exp']" v-model:picked-colour="pickedColour" />
+          <!-- <SidebarLabelFilter v-model:group-mask="labelMaskGroups['imp']" v-model:picked-colour="pickedColour" />-->
+          <!-- <SidebarLabelFilter v-model:group-mask="labelMaskGroups['exp']" v-model:picked-colour="pickedColour" />-->
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups['outc']" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups['sect']" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups['meth']" v-model:picked-colour="pickedColour" />
