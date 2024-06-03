@@ -37,6 +37,10 @@ function hideWarning(e: MouseEvent) {
       <span class="text-muted small ms-1">Loading...</span>
     </span>
 
+    <span v-if="info && isProjectRoute && info.hidden" class="fw-bold bg-danger text-bg-warning ms-auto ps-2 pe-2">
+      Early Prototype / Do not share!
+    </span>
+
     <router-link class="navbar-brand ms-auto" :to="{ name: 'landing' }">Home</router-link>
     <router-link class="navbar-brand" :to="{ name: 'about' }">About</router-link>
     <router-link class="navbar-brand" :to="{ name: 'privacy' }">License/Privacy</router-link>
