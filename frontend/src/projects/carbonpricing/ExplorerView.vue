@@ -81,7 +81,7 @@ onMounted(() => {
     </template>
 
     <template #cont2>
-      <FluidContainer title="Scatterplot">
+      <FluidContainer title="Scatterplot" :initial-state="false">
         <ScatterLandscape
           v-model:mask="scatterMask"
           v-model:global-mask="globalMask"
@@ -94,13 +94,15 @@ onMounted(() => {
     </template>
 
     <template #cont4>
-      <FluidContainer title="Label correlation" :initial-state="false">
+      <FluidContainer title="Label correlation">
         <HeatMap
           class="flex-grow-1"
           v-model:global-mask="globalMask"
           v-model:group-masks="labelMaskGroups"
           :selectable-groups="Object.keys(labelMaskGroups)"
-          :year-masks="pyMask" />
+          :year-masks="pyMask"
+          init-vert="polname"
+          init-hori="outc" />
       </FluidContainer>
     </template>
 

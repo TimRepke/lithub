@@ -9,7 +9,7 @@ from backend.server.types import DatasetInfoFull
 from converter.project import get_vectors
 from converter.write import write
 
-FULL = True
+FULL = False
 
 BASE = Path('../../.data/carbonpricing')
 print('Reading original data...')
@@ -20,6 +20,7 @@ if FULL:
 else:
     df = pd.read_csv(BASE / 'raw/table_incl.csv')
 df = df.replace({np.nan: None})
+print(df.shape)
 
 CHUNK_SIZE = 10000
 INFO = Path(BASE / 'info.toml')
@@ -72,14 +73,21 @@ for idx, ((_, row), vector) in enumerate(zip(df.iterrows(), embedding)):
     })
 
 print('Form new dataframe...')
-df = pd.DataFrame(rows)
-print(len(df.columns))
-print(df.columns)
+df_trans = pd.DataFrame(rows)
+print(len(df_trans.columns))
+print(list(df_trans.columns))
+
+if not FULL:
+    print(df_trans.shape)
+    mask = ~df['meth'].isna()
+    df_trans = df_trans[~df['meth'].isna()]
+    print(df_trans.shape)
+    df_trans.reset_index(inplace=True)
 
 print('Saving to files...')
 write(
-    df_full=df,
-    df_slim=df[['idx', 'x', 'y', 'publication_year']],
+    df_full=df_trans,
+    df_slim=df_trans[['idx', 'x', 'y', 'publication_year']],
     scheme_keys=scheme_keys,
     out_slim=OUT_SLIM,
     out_sql=OUT_SQL,

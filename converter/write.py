@@ -52,6 +52,7 @@ def write(scheme_keys: list[str], df_slim: pd.DataFrame, df_full: pd.DataFrame,
 
     rslt = con.execute(text('PRAGMA table_info(documents);')).fetchall()
     db_cols = set([r[1] for r in rslt])
+    print(f'Wrote sqlite file to {out_sql}')
 
     print('Checking column alignment...')
     print(db_cols - set(scheme_keys))
