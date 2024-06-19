@@ -19,6 +19,14 @@
     shown in the box below. You will also have the opportunity to download the complete selection of documents,
     including the machine-learning generated labels.
   </p>
+  <p>
+    This dataset was compiled as part of the <a href="https://capableclimate.eu/" target="_blank">CAPABLE project</a>.
+    CAPABLE is a project funded by the European Union’s Horizon Europe programme (grant agreement No 101056891) and
+    carried out by a transdisciplinary European consortium consisting of 10 partner institutions and universities across
+    Europe and is coordinated by the Euro-Mediterranean Center on Climate Change (CMCC). CAPABLE will provide robust,
+    resilient and actionable recommendations for the design of socially and economically acceptable climate policy
+    measures for 2030 and beyond
+  </p>
   <p class="text-muted">
     <a href="https://www.researchsquare.com/article/rs-3817176/v1" target="_blank">
       [1] https://www.researchsquare.com/article/rs-3817176/v1
