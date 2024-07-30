@@ -22,8 +22,9 @@ const globalVersion = defineModel<number>("globalVersion", { required: true });
 const pickedColour = defineModel<string>("pickedColour", { required: true });
 const groupMasks = defineModel<Record<string, LabelMaskGroup>>("groupMasks", { required: true });
 const keywords = defineModel<Keyword[]>("keywords", { required: true });
-const { arrow } = defineProps({
+const { arrow, maxKeywordsInView } = defineProps({
   arrow: { type: Object as PropType<Table<ArrowSchema>>, required: true },
+  maxKeywordsInView: { type: Number, required: false, default: 20 },
 });
 
 const { selectIds, clear: clearSelection, active, counts } = mask.value;
@@ -34,8 +35,6 @@ const keywordsVisible = ref(true);
 
 let points: Point[];
 let scatterplot: ReglScatterplot;
-
-const MAX_KEYWORDS_IN_VIEW = 20;
 
 const OPACITY_DEFAULT = 1;
 const OPACITY_HIDDEN = 0.2;
@@ -153,7 +152,7 @@ onMounted(async () => {
               textOverlayCtx.fillStyle = "black";
               textOverlayCtx.fillText(keyword.keyword, x, y);
             }
-            if (cnt > MAX_KEYWORDS_IN_VIEW) break;
+            if (cnt > maxKeywordsInView) break;
           }
         }
       }

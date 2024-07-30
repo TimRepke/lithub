@@ -21,7 +21,7 @@ import FluidContainer from "@/components/FluidContainer.vue";
 import ReportingModal from "@/components/ReportingModal.vue";
 import type { AnnotatedDocument } from "@/util/types";
 import HistogramFilter from "@/components/HistogramFilter.vue";
-import SunburstDiagram from "@/components/SunburstDiagram.vue";
+// import SunburstDiagram from "@/components/SunburstDiagram.vue";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -74,26 +74,33 @@ onMounted(() => {
         <div class="filter-sidebar-container">
           <HistogramFilter v-model:mask="pyMask" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.t3" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-0']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-1']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-2']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-3']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t1-4-0']" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cont" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cat" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cat" v-model:picked-colour="pickedColour" />
           <SidebarSearchFilter v-model:mask="searchMask" />
-          <SunburstDiagram
-            root-key="t3"
-            :scheme-labels="schemeLabels"
-            :scheme-groups="schemeGroups"
-            v-model:group-masks="labelMaskGroups" />
+          <!--          <SunburstDiagram-->
+          <!--            root-key="t3"-->
+          <!--            :scheme-labels="schemeLabels"-->
+          <!--            :scheme-groups="schemeGroups"-->
+          <!--            v-model:group-masks="labelMaskGroups" />-->
         </div>
       </FluidContainer>
     </template>
 
     <template #cont2>
-      <FluidContainer title="Scatterplot" :initial-state="false">
+      <FluidContainer title="Scatterplot">
         <ScatterLandscape
           v-model:mask="scatterMask"
           v-model:global-mask="globalMask"
           v-model:global-version="globalVersion"
           v-model:group-masks="labelMaskGroups"
           :arrow="arrow"
+          :max-keywords-in-view="30"
           v-model:keywords="keywords"
           v-model:picked-colour="pickedColour" />
       </FluidContainer>
@@ -111,7 +118,7 @@ onMounted(() => {
     <!--      </FluidContainer>-->
     <!--    </template>-->
     <template #cont4>
-      <FluidContainer title="Label correlation">
+      <FluidContainer title="Label correlation" :initial-state="false">
         <HeatMap
           class="flex-grow-1"
           v-model:global-mask="globalMask"

@@ -28,7 +28,7 @@ const { selectableGroups, initVert, initHori } = defineProps({
 
 const xKey = ref<string>(initHori ?? selectableGroups[0]);
 const yKey = ref<string>(initVert ?? selectableGroups[1]);
-const applyGlobalMask = ref<boolean>(false);
+const applyGlobalMask = ref<boolean>(true);
 const useLogScale = ref<boolean>(false);
 
 const isAvailable = computed(() => Object.keys(groupMasks).length > 1);
