@@ -73,6 +73,7 @@ onMounted(() => {
 
         <div class="filter-sidebar-container">
           <HistogramFilter v-model:mask="pyMask" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cat" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.t3" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-0']" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-1']" v-model:picked-colour="pickedColour" />
@@ -80,8 +81,6 @@ onMounted(() => {
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-3']" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t1-4-0']" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cont" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cat" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cat" v-model:picked-colour="pickedColour" />
           <SidebarSearchFilter v-model:mask="searchMask" />
           <!--          <SunburstDiagram-->
           <!--            root-key="t3"-->
