@@ -5,7 +5,7 @@ from pydantic import ValidationError
 
 from .logging import get_logger
 from .config import settings
-from .types import Document, DatasetInfoFull, SchemeLabel, DatasetInfoWeb, SchemeGroup
+from .types import Document, DatasetInfoFull, DatasetInfoWeb, SchemeGroup
 
 logger = get_logger('util.datasets')
 
@@ -90,7 +90,19 @@ class Dataset:
             self._document_columns = self.columns.intersection(Document.model_fields.keys())
         return self._document_columns
 
-    def safe_col_silent(self, col:str):
+    def unwrap_column(self, col: str) -> list[str]:
+        if col in self.columns:
+            return [col]
+        group = self.full_info.groups.get(col)
+        if group is None:
+            return []
+        if group.labels is not None:
+            return group.labels
+        if group.subgroups is not None:
+            return [lab for sg in group.subgroups for lab in self.unwrap_column(sg)]
+        return []
+
+    def safe_col_silent(self, col: str):
         if col not in self.columns:
             return None
         return f'"{col}"'

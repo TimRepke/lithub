@@ -88,9 +88,12 @@ async def get_documents(dataset: Annotated[Dataset, Depends(ensure_dataset)],
         order_fields = ''  # TODO: Do we want default ordering on something?
         where = ''
         if order_by is not None and len(order_by) > 0:
+            logger.debug(f'Checking if some ')
+            order_by = [lab for ob in order_by for lab in dataset.unwrap_column(ob)]
             valid_order_fields = [field
-                                  for field in [db.safe_col_silent(field) for field in order_by]
+                                  for field in [db.safe_col_silent(ob) for ob in order_by]
                                   if field is not None]
+            logger.debug(f'Requested order fields: {order_by} / valid of order fields: {valid_order_fields}')
             if len(valid_order_fields) > 0:
                 order_fields = f'ORDER BY ({" + ".join(valid_order_fields)}) DESC'
         if bitmask is not None and len(bitmask) > 0:
