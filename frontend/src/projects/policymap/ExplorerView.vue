@@ -86,18 +86,7 @@ function startPauseResultFetching(active: boolean) {
       </FluidContainer>
     </template>
 
-    <!--<template #cont3>-->
-    <!--  <FluidContainer title="Geographic map">-->
-    <!--    <GeoMap-->
-    <!--      class="flex-grow-1"-->
-    <!--      v-model:mask="geoMask"-->
-    <!--      v-model:global-mask="globalMask"-->
-    <!--      :slim-url="`${DATA_BASE}/policymap/${info.slim_geo_filename}`"-->
-    <!--      :full-url="`${DATA_BASE}/policymap/${info.full_geo_filename}`" />-->
-    <!--  </FluidContainer>-->
-    <!--</template>-->
-
-    <template #cont4>
+    <template #cont3>
       <FluidContainer title="Label correlation" :initial-state="false">
         <HeatMap
           class="flex-grow-1"
@@ -108,7 +97,7 @@ function startPauseResultFetching(active: boolean) {
       </FluidContainer>
     </template>
 
-    <template #cont5>
+    <template #cont4>
       <FluidContainer title="Results" :initial-state="true" @visibility-updated="startPauseResultFetching">
         <template v-if="documents.length > 0">
           <div class="results-column-results">
@@ -134,6 +123,17 @@ function startPauseResultFetching(active: boolean) {
             </div>
           </div>
         </div>
+      </FluidContainer>
+    </template>
+
+    <template #cont5>
+      <FluidContainer title="Geographic map" :initial-state="false">
+        <GeoMap
+          class="flex-grow-1"
+          v-model:mask="geoMask"
+          v-model:global-mask="globalMask"
+          :slim-url="`${DATA_BASE}/policymap/${info.slim_geo_filename}`"
+          :full-url="`${DATA_BASE}/policymap/${info.full_geo_filename}`" />
       </FluidContainer>
     </template>
   </FluidContainerGrid>
