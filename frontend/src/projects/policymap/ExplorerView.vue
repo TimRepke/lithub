@@ -74,7 +74,7 @@ function startPauseResultFetching(active: boolean) {
     </template>
 
     <template #cont2>
-      <FluidContainer title="Scatterplot">
+      <FluidContainer title="Scatterplot" :initial-state="true">
         <ScatterLandscape
           v-model:mask="scatterMask"
           v-model:global-mask="globalMask"
@@ -86,16 +86,17 @@ function startPauseResultFetching(active: boolean) {
       </FluidContainer>
     </template>
 
-    <template #cont3>
-      <FluidContainer title="Geographic map">
-        <GeoMap
-          class="flex-grow-1"
-          v-model:mask="geoMask"
-          v-model:global-mask="globalMask"
-          :slim-url="`${DATA_BASE}/policymap/${info.slim_geo_filename}`"
-          :full-url="`${DATA_BASE}/policymap/${info.full_geo_filename}`" />
-      </FluidContainer>
-    </template>
+    <!--<template #cont3>-->
+    <!--  <FluidContainer title="Geographic map">-->
+    <!--    <GeoMap-->
+    <!--      class="flex-grow-1"-->
+    <!--      v-model:mask="geoMask"-->
+    <!--      v-model:global-mask="globalMask"-->
+    <!--      :slim-url="`${DATA_BASE}/policymap/${info.slim_geo_filename}`"-->
+    <!--      :full-url="`${DATA_BASE}/policymap/${info.full_geo_filename}`" />-->
+    <!--  </FluidContainer>-->
+    <!--</template>-->
+
     <template #cont4>
       <FluidContainer title="Label correlation" :initial-state="false">
         <HeatMap
@@ -106,8 +107,9 @@ function startPauseResultFetching(active: boolean) {
           :year-masks="pyMask" />
       </FluidContainer>
     </template>
+
     <template #cont5>
-      <FluidContainer title="Results" :initial-state="false" @visibility-updated="startPauseResultFetching">
+      <FluidContainer title="Results" :initial-state="true" @visibility-updated="startPauseResultFetching">
         <template v-if="documents.length > 0">
           <div class="results-column-results">
             <DocumentCard
