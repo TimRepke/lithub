@@ -7,8 +7,9 @@
     <p>More details</p>
     <p>Even more details</p>
     <p>
-      The literature hub was developed by Tim Repke at <a href="https://mcc-berlin.net" target="_blank">MCC Berlin</a>.
-      Cite as
+      The literature hub was developed by Tim Repke at
+      <a href="https://mcc-berlin.net" target="_blank">MCC Berlin</a> and is now continued at
+      <a href="https://pik-potsdam.de" target="_blank">PIK Potsdam</a>. Cite as
     </p>
     <p>
       This project is fully open source and is hosted at:

@@ -102,6 +102,42 @@
       hyperparameters of our model. Finally, we test the complete training strategy in a 3-fold cross validation
       providing us with comprehensive estimates of how the classifiers perform on the complete dataset.
     </p>
+    <h5>Export format</h5>
+    <ul>
+      <li><strong>tech|0:</strong> CCS</li>
+      <li><strong>tech|1:</strong> BECCS</li>
+      <li><strong>tech|2:</strong> DAC(CS)</li>
+      <li><strong>tech|3:</strong> CCUS</li>
+      <li><strong>tech|4:</strong> Soil Carbon Sequestration</li>
+      <li><strong>tech|5:</strong> AR</li>
+      <li><strong>tech|6:</strong> restoration of landscapes/peats</li>
+      <li><strong>tech|7:</strong> Agroforestry</li>
+      <li><strong>tech|8:</strong> Forest Management</li>
+      <li><strong>tech|9:</strong> Biochar</li>
+      <li><strong>tech|10:</strong> Enhanced Weathering (land based)</li>
+      <li><strong>tech|11:</strong> Ocean alkalinity enhancement</li>
+      <li><strong>tech|12:</strong> Blue Carbon</li>
+      <li><strong>tech|13:</strong> Algae farming</li>
+      <li><strong>tech|14:</strong> Ocean fertilization & Artificial upwelling</li>
+      <li><strong>tech|15:</strong> General Literature on CDR/NET</li>
+      <li><strong>tech|16:</strong> Other technologies</li>
+      <li><strong>meth|0:</strong> experimental - field / fieldstudy</li>
+      <li><strong>meth|1:</strong> experimental - laboratory</li>
+      <li><strong>meth|2:</strong> modelling</li>
+      <li><strong>meth|3:</strong> data analysis / statistical analysis / econometrics</li>
+      <li><strong>meth|4:</strong> Life Cycle Assessments</li>
+      <li><strong>meth|5:</strong> review</li>
+      <li><strong>meth|6:</strong> systematic reviews</li>
+      <li><strong>meth|7:</strong> survey</li>
+      <li><strong>meth|8:</strong> qualitative research</li>
+      <li><strong>meth|9:</strong> Unknown Method</li>
+      <li><strong>cont|0:</strong> earth system</li>
+      <li><strong>cont|1:</strong> equity & ethics</li>
+      <li><strong>cont|2:</strong> policy/government</li>
+      <li><strong>cont|3:</strong> public perception</li>
+      <li><strong>cont|4:</strong> socio-economic pathways</li>
+      <li><strong>cont|5:</strong> technology</li>
+    </ul>
   </div>
 </template>
 
