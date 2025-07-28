@@ -64,7 +64,7 @@
     "npm-check-updates": "^16.14.20",
     "prettier": "^3.2.5",
     "typescript": "^5.2.2",
-    "vite": "^5.1.4",
-    "vue-tsc": "^1.8.27"
+    "vite": "^7.0.6",
+    "vue-tsc": "^3.0.4"
   }
 }
