@@ -24,7 +24,7 @@ export function useHistogramValueMask(initMask: Bitmask, year: number | null = n
   const { active, counts, bitmask } = base;
 
   function updateCounts(globalMask: Bitmask | None) {
-    base.setFilterCount(active.value ? and(globalMask, bitmask.value)?.count ?? counts.value.countTotal : 0);
+    base.setFilterCount(active.value ? (and(globalMask, bitmask.value)?.count ?? counts.value.countTotal) : 0);
   }
 
   function clear() {

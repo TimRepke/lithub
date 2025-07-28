@@ -175,7 +175,7 @@ onMounted(async () => {
 
     async function redrawMask() {
       for (let i = 0; i < points.length; i++) {
-        points[i][3] = globalMask.value?.get(i) ?? true ? 1 : 0;
+        points[i][3] = (globalMask.value?.get(i) ?? true) ? 1 : 0;
       }
       await scatterplot.draw(points);
     }

@@ -42,7 +42,7 @@ export function useIndexMask(length: number): IndexMask {
 
   function updateCounts(globalMask: Bitmask | None): void {
     setTotalCount(ids.value.length);
-    setFilterCount(globalMask ? and(bitmask, globalMask)?.count ?? counts.value.countTotal : counts.value.countTotal);
+    setFilterCount(globalMask ? (and(bitmask, globalMask)?.count ?? counts.value.countTotal) : counts.value.countTotal);
   }
 
   return {
