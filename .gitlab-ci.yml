@@ -38,12 +38,14 @@ test-lint:
   stage: test
   script:
     - cd frontend
+    - node -v
     - npm run lint
 
 test-typing:
   stage: test
   script:
     - cd frontend
+    - node -v
     - npm run type-check
 
 .deployment:
