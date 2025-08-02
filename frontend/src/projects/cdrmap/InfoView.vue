@@ -11,38 +11,28 @@
       Thrän, Tiffany G. Troxler, Volker Sick, Mijndert van der Spek, Jan C. Minx
     </p>
 
-    <h5>Preprint</h5>
+    <h5>Citation</h5>
     <p>
-      <i>Sarah Lück, Max Callaghan, Malgorzata Borchers et al.</i>
-      Scientific literature on carbon dioxide removal much larger than previously suggested: insights from an
-      AI-enhanced systematic map, 17 March 2024, PREPRINT available at Research Square [
-      <a href="https://www.researchsquare.com/article/rs-4109712/v1" target="_blank">
-        https://doi.org/10.21203/rs.3.rs-4109712/v1
+      <i>Sarah Lück, et al.</i>
+      Scientific literature on carbon dioxide removal revealed as much larger through AI-enhanced systematic mapping.
+      Nat Commun 16, 6632 (2025).
+      <a href="https://www.nature.com/articles/s41467-025-61485-8" target="_blank">
+        https://doi.org/10.1038/s41467-025-61485-8
       </a>
-      ]
     </p>
 
     <h5>Abstract</h5>
     <p>
-      Carbon dioxide removal (CDR) is a critical component of any strategy to limit global warming to well below 2°C and
-      rapidly gaining attention in climate research and policymaking. Despite its importance, there have been few
-      attempts to systematically evaluate the scientific evidence on CDR. Here we use an approach rooted in artificial
-      intelligence to produce a comprehensive systematic map of the CDR literature. In particular, we hand-label 5,339
-      documents to train machine learning classifiers with high levels of precision and recall to identify a total of
-      <strong>
-        28,976 CDR studies across different technology domains and disciplines published in the period 1990-2022 which
-        is at least 2-3 times more than previous studies suggested </strong
-      >. We paint a granular picture of available CDR research in terms of the CDR methods studied, the geographical
-      focus of research, the research method applied, and the broad area of research. The field has grown considerably
-      faster than the climate change literature as a whole. This is driven mainly by the rapid expansion of literature
-      on biochar, which made up about 62% of CDR publications in 2022. Beyond this stark concentration of CDR research
-      on a few individual CDR methods, we find that most studies (86%) focus on improving the CDR methods themselves,
-      but there is little research on their societal implications and ethical foundations. Citations patterns from the
-      most recent IPCC report strongly differ from publication patterns on CDR in terms of its attention to CDR methods,
-      research design and methodological context, as does attention to CDR methods in policy and practice in terms of
-      real-world deployments, patenting activity, as well as public investments. As the importance of CDR grows for
-      meeting the Paris climate goals, we believe that the accompanying literature database will be of additional value
-      for the upcoming IPCC assessment, but also for science, policy and practice.
+      Carbon dioxide removal plays an important role in any strategy to limit global warming to well below 2°C. Keeping
+      abreast with the scientific evidence using rigorous evidence synthesis methods is an important prerequisite for
+      sustainably scaling these methods. Here, we use artificial intelligence to provide a comprehensive systematic map
+      of carbon dioxide removal research. We find a total of 28,976 studies on carbon dioxide removal—3–4 times more
+      than previously suggested. Growth in research is faster than for the field of climate change research as a whole,
+      but very concentrated in specific areas—such as biochar, certain research methods like lab and field experiments,
+      and particular regions like China. Patterns of carbon dioxide removal research contrast with trends in patenting
+      and deployment, highlighting the differing development stages of these technologies. As carbon dioxide removal
+      gains importance for the Paris climate goals, our systematic map can support rigorous evidence synthesis for the
+      IPCC and other assessments.
     </p>
 
     <h5>Data and Methods</h5>
