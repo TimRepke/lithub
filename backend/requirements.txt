@@ -1,11 +1,11 @@
 # pip list --outdated
 
-fastapi==0.110.1
-pydantic[dotenv]==2.7.0
-pydantic_settings==2.2.1
-uvicorn==0.29.0
-hypercorn==0.16.0
-aiofiles==23.2.1
+fastapi==0.116.1
+pydantic[dotenv]==2.11.7
+pydantic_settings==2.10.1
+uvicorn==0.35.0
+hypercorn==0.17.3
+aiofiles==24.1.0
 toml==0.10.2
 pyarrow==15.0.2
-aiosmtplib==3.0.1
+aiosmtplib==4.0.1

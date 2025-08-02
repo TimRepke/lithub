@@ -78,8 +78,13 @@ const countryFilterCounts = computed<Record<number, number>>(() => {
   );
 });
 
-const countryCounts = computed<Record<number, number>>(() => {
-  return showTotalCounts.value ? countryTotalCounts : countryFilterCounts.value;
+const countryCounts = computed<Record<number, number>>({
+  get() {
+    return showTotalCounts.value ? countryTotalCounts : countryFilterCounts.value;
+  },
+  set(v) {
+    this._value = v;
+  },
 });
 
 const width = 928;
@@ -257,8 +262,11 @@ onMounted(async () => {
         [{ counts: countryTotalCounts, documents: countryDocuments }, topo] = prom;
 
         // force recomputing of `countryCounts` (this also implicitly triggers initial drawing of map)
-        countryCounts.effect.trigger();
-        countryCounts.effect.dirty = true;
+        // countryCounts.effect.trigger();
+        // countryCounts.effect.dirty = true;
+        showTotalCounts.value = false;
+        countryCounts.value = showTotalCounts.value ? countryTotalCounts : countryFilterCounts.value;
+        showTotalCounts.value = true;
 
         // mark data as loaded, so map will be revealed
         loading.value = false;

@@ -30,7 +30,12 @@ export function useDatasetStore<K extends Indexes>() {
       progressArrow: 0,
     });
     const _dataset = { value: null } as { value: Dataset<K> | null };
-    const dataset = computed(() => _dataset.value);
+    const dataset = computed({
+      get: () => _dataset.value,
+      set(v) {
+        this._value = v;
+      },
+    });
 
     async function awaitReady() {
       if (loadingPromise) return loadingPromise;
@@ -64,8 +69,9 @@ export function useDatasetStore<K extends Indexes>() {
         });
 
         // force refresh
-        dataset.effect.trigger();
-        dataset.effect.dirty = true;
+        dataset.value = _dataset.value;
+        // dataset.effect.trigger();
+        // dataset.effect.dirty = true;
 
         // Stop loading counter
         isLoading.value = false;

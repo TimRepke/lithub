@@ -83,6 +83,7 @@ onMounted(async () => {
     const overlayFontSize = 12;
     const textOverlayCtx = textOverlayEl.getContext("2d");
 
+    //@ts-ignore
     scatterplot = createScatterplot({
       canvas: canvas,
       lassoMinDelay,

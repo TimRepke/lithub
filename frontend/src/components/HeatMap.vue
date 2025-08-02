@@ -150,19 +150,21 @@ function swapAxes() {
 
       <div class="overflow-auto">
         <table v-if="fullScheme[xKey] && fullScheme[yKey]">
-          <tr>
-            <th></th>
-            <th v-for="value in fullScheme[xKey].values" :key="+value.value">{{ value.name }}</th>
-          </tr>
-          <tr v-for="yValue in fullScheme[yKey].values" :key="+yValue.value">
-            <th>{{ yValue.name }}</th>
-            <td
-              v-for="xValue in fullScheme[xKey].values"
-              :key="+xValue.value"
-              :style="{ 'background-color': colours(counts[+yValue.value][+xValue.value]) }">
-              {{ counts[+yValue.value][+xValue.value] }}
-            </td>
-          </tr>
+          <tbody>
+            <tr>
+              <th></th>
+              <th v-for="value in fullScheme[xKey].values" :key="+value.value">{{ value.name }}</th>
+            </tr>
+            <tr v-for="yValue in fullScheme[yKey].values" :key="+yValue.value">
+              <th>{{ yValue.name }}</th>
+              <td
+                v-for="xValue in fullScheme[xKey].values"
+                :key="+xValue.value"
+                :style="{ 'background-color': colours(counts[+yValue.value][+xValue.value]) }">
+                {{ counts[+yValue.value][+xValue.value] }}
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
     </template>
