@@ -1,121 +1,144 @@
-# Official language image. Look for the different tagged releases at:
-# https://hub.docker.com/r/library/python/tags/
-image: node:22-alpine
-
 variables:
   VITE_LITHUB_API_URL: "/lithub/api"
   VITE_LITHUB_DATA_URL: "/lithub/data"
   VITE_LITHUB_BASE: "/lithub/"
-  LITHUB_LOCAL_PATH: "/var/www/lithub/literature-hub"
+  UV_PROJECT_ENVIRONMENT: ".venv"
+  UV_CACHE_DIR: ".uv-cache"
+  NODE_ENV: "development"
+  UV_LINK_MODE: "copy"
+  LITHUB_FRONTEND_PATH: "/var/www/lithub"
+  LITHUB_BACKEND_PATH: "/srv/literature-hub"
+  LITHUB_SERVICE: "literature-hub"
+  LITHUB_USER: "lithub"
 
 stages:
-  - build
+  - prepare
   - test
+  - build
   - deploy
 
-cache:
-  paths:
-    - backend/venv/
-    - backend/.cache/pip/
-    - frontend/node_modules/
+.npm:
+  image: node:24-alpine
+  tags:
+    - se164-docker
+  before_script:
+    - cd frontend/
+    - npm ci --cache ../.npm
+    - npm ls
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .npm/
 
-build-job:
-  stage: build
-  script:
-    - echo "Building frontend"
+.uv:
+  image: python:3.13
+  stage: test
+  tags:
+    - se164-docker
+  cache:
+    - key:
+        files:
+          - uv.lock
+      paths:
+        - $UV_CACHE_DIR
+  before_script:
     - echo $VITE_LITHUB_API_URL
     - echo $VITE_LITHUB_DATA_URL
     - echo $VITE_LITHUB_BASE
-    - cd frontend
-    - npm install
-    - npm run build-only
-  artifacts:
-    paths:
-      - frontend/dist/
-    expire_in: 24 hours
+    - pip install uv
+    - python -V
+    - pwd
+    - ls -lisah
+    - uv sync  --all-groups --all-extras
+  after_script:
+    - uv cache prune --ci
 
-test-lint:
+prepare-js:
+  extends: .npm
+  stage: prepare
+  script:
+    - echo "Preparing and checking node environment"
+    - npx npm-check-updates
+
+prepare-py:
+  extends: .py
+  stage: prepare
+  script:
+    - echo "Preparing and checking python environment"
+    - uv pip freeze
+    - uv pip list --outdated
+
+test-py:
+  extends: .py
   stage: test
   script:
-    - cd frontend
-    - node -v
+    - uv run ruff check
+    - uv run ruff format --check
+
+test-vite-lint:
+  stage: test
+  extends: .npm
+  script:
     - npm run lint
 
-test-typing:
+test-vite-typing:
   stage: test
+  extends: .npm
   script:
-    - cd frontend
-    - node -v
     - npm run type-check
 
-.deployment:
-  stage: deploy
-  tags:
-    - metal,lithub
-  when: manual
+build-frontend:
+  extends: .npm
+  stage: build
   script:
-    - echo "noop"
+    - export NODE_ENV=production
+    - ls -lisah
+    - npm run build-only
+  artifacts:
+    expire_in: 24 hours
+    paths:
+      - frontend/dist/
 
 deploy-frontend:
-  extends: .deployment
+  when: manual
+  stage: deploy
+  tags:
+    - se164-bare
+  dependencies:
+    - build-frontend
   script:
     - echo "Deploying to production"
-    - pwd
-    - whoami
-    - groups
-    - echo $HOME
-    - echo $VITE_LITHUB_API_URL
-    - echo $VITE_LITHUB_DATA_URL
-    - echo $VITE_LITHUB_BASE
-    - echo $LITHUB_LOCAL_PATH
-    - cd $LITHUB_LOCAL_PATH
-    - sudo chown -R gitlab-runner:gitlab-runner $LITHUB_LOCAL_PATH
-    - cd frontend/
-    - ls -lisah dist/
-    - rm -rf dist/*
-    - echo $CI_JOB_TOKEN
-    - echo $CI_PROJECT_ID
-    - echo $CI_PIPELINE_ID
-    - 'JOB_ID=$(curl -s --location --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.pik-potsdam.de/api/v4/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs" | jq ''.[] | select( [ .name == "build-job" ] | any) .id'')'
-    - echo $JOB_ID
-    - 'curl --location --output artifacts.zip --header "JOB-TOKEN: $CI_JOB_TOKEN" "https://gitlab.pik-potsdam.de/api/v4/projects/$CI_PROJECT_ID/jobs/$JOB_ID/artifacts"'
-    - unzip artifacts.zip -d dist/
-    - mv dist/frontend/dist/* dist/
-    - rm -rf dist/frontend/
-    - rm artifacts.zip
-    - ls -lisah dist/
-    - sudo chown -R lithub:lithub $LITHUB_LOCAL_PATH
+    - echo $LITHUB_FRONTEND_PATH
+    - ls -lisah
+    - ls -lisah frontend/dist/
+    - sudo /usr/bin/chown -R gitlab-runner "${LITHUB_FRONTEND_PATH}"
+    - ls -lisah
+    - rsync -av frontend/dist/ "${LITHUB_FRONTEND_PATH}"
+    - ls -lisah
+    - sudo /usr/bin/chown -R $LITHUB_USER "${LITHUB_FRONTEND_PATH}"
 
 deploy-backend:
-  extends: .deployment
+  when: manual
+  stage: deploy
+  tags:
+    - se164-bare
   script:
-    - echo "Deploying to production"
-    - pwd
-    - whoami
-    - groups
-    - echo $HOME
-    - echo $VITE_LITHUB_API_URL
-    - echo $VITE_LITHUB_DATA_URL
-    - echo $VITE_LITHUB_BASE
-    - echo $LITHUB_LOCAL_PATH
-    - cd $LITHUB_LOCAL_PATH
-    - sudo chown -R gitlab-runner:gitlab-runner $LITHUB_LOCAL_PATH
-    - sudo /usr/bin/systemctl stop lithub.service
+    - echo "Go to deployment location"
+    - cd $LITHUB_BACKEND_PATH
     - ls -lisah
-    - echo "Update repository"
+    - sudo chown -R gitlab-runner $LITHUB_BACKEND_PATH
+    - ls -lisah
+    - echo "Stopping service"
+    - sudo systemctl stop $LITHUB_SERVICE.service
+    - echo "Dropping virtual environment"
+    - rm -rf "${LITHUB_BACKEND_PATH}/${UV_PROJECT_ENVIRONMENT}"
+    - export UV_PROJECT_ENVIRONMENT="${LITHUB_BACKEND_PATH}/${UV_PROJECT_ENVIRONMENT}"
+    - echo "Fetching updated source"
     - git stash  # "reset" softly by stashing (in case files changed)
-    - git pull origin main  # pull from origin
-    - echo "Set up environment"
-    - cd backend
-    - rm -rf venv/
-    - python3.12 -m venv venv
-    - source venv/bin/activate
-    - which python
-    - python -V
-    - echo "Installing requirements"
-    - pip install -r requirements.txt
-    - echo "Restart service"
-    - sudo chown -R lithub:lithub $LITHUB_LOCAL_PATH
-    - sudo /usr/bin/systemctl start lithub.service
-    - sleep 5
-    - sudo /usr/bin/systemctl status lithub.service
+    - git pull origin main
+    - echo "Creating new virtual environment"
+    - uv sync --cache-dir $UV_CACHE_DIR --project "${LITHUB_BACKEND_PATH}" --extra server
+    - uv pip freeze --project "${LITHUB_BACKEND_PATH}"
+    - sudo chown -R $LITHUB_USER $LITHUB_BACKEND_PATH
+    - echo "Starting service"
+    - sudo systemctl start $LITHUB_SERVICE.service

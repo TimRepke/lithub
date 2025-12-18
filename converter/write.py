@@ -30,10 +30,7 @@ def write(scheme_keys: list[str], df_slim: pd.DataFrame, df_full: pd.DataFrame,
         'institutions': types.String,
         'x': types.FLOAT,
         'y': types.FLOAT,
-        **{
-            k: types.FLOAT
-            for k in scheme_keys
-        },
+        **dict.fromkeys(scheme_keys, types.FLOAT),
         **extra_scheme
     }
     print('schema', len(sql_schema))

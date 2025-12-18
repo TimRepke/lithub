@@ -201,3 +201,5 @@ scratch/
 .data
 !.data/*/info.toml
 !.data/README.md
+
+uv.lock

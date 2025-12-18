@@ -52,10 +52,7 @@ Set up environment
 ```bash
 cd /var/www/lithub/literature-hub/backend
 git pull origin main
-rm -rf venv
-python3.11 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+uv sync --all-groups --all-extras
 ```
 
 ### systemd

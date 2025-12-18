@@ -1,3 +1,0 @@
--r backend/requirements.txt
--r backend/requirements_dev.txt
--r converter/requirements.txt

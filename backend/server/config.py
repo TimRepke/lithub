@@ -58,7 +58,7 @@ class Settings(BaseSettings):
 
 conf_file = os.environ.get('LITHUB_CONFIG')
 if not conf_file:
-    print(f'Config file not specified!')
+    print('Config file not specified!')
 
 settings = Settings(_env_file=conf_file or 'config/default.env', _env_file_encoding='utf-8')
 

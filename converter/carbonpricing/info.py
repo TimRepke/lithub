@@ -1,6 +1,5 @@
 import toml
 import datetime
-import ast
 
 from backend.server.types import DatasetInfoFull, SchemeLabel, SchemeGroup
 

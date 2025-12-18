@@ -1,4 +1,4 @@
-import toml
+import json
 import sqlite3
 from pathlib import Path
 from pydantic import ValidationError
@@ -137,12 +137,12 @@ class DatasetCache:
         # Iterate the dataset folder
         for entry in self.base_path.iterdir():
             logger.info(f'Checking if folder {entry} is a dataset')
-            # Only consider folders (excl. those starting with ".") that contain a 'info.toml' file
-            if entry.is_dir() and not entry.name.startswith('.') and (entry / 'info.toml').exists():
+            # Only consider folders (excl. those starting with ".") that contain a 'info.json' file
+            if entry.is_dir() and not entry.name.startswith('.') and (entry / 'info.json').exists():
                 try:
-                    with open(entry / 'info.toml', 'r') as f:
+                    with open(entry / 'info.json', 'r') as f:
                         # Read meta-data from info file
-                        info = DatasetInfoFull.model_validate(toml.loads(f.read()))
+                        info = DatasetInfoFull.model_validate(json.loads(f.read()))
 
                     # verify files exist
                     if not (entry / info.db_filename).exists():

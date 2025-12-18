@@ -45,7 +45,7 @@ for idx, ((_, row), vector) in enumerate(zip(df.iterrows(), embedding)):
     }
     out_slim.append(out)
 
-    blank = {key: None for key in scheme_keys}
+    blank = dict.fromkeys(scheme_keys)
 
     for key in scheme_keys:
         out[key] = row.get(key)

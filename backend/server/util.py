@@ -1,6 +1,6 @@
 import base64
 from array import array
-from typing import Iterable, Any, TypeVar
+from typing import Iterable, TypeVar
 
 
 def as_bitmask(ids: Iterable[int], total: int) -> bytes:

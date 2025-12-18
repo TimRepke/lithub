@@ -54,7 +54,7 @@ i = 0
 missing_keys = []
 for _, row in df_exp.iterrows():
     try:
-        topics: dict[str, float | None] = {c: None for c in topic_cols}
+        topics: dict[str, float | None] = dict.fromkeys(topic_cols)
 
         for top_i, top in enumerate(list(row[TOPICS.keys()]
                                                  .infer_objects(copy=False)
