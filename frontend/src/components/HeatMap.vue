@@ -10,12 +10,17 @@ import { interpolateYlGn } from "d3-scale-chromatic";
 import { HistogramMask } from "@/util/dataset/masks/histogram.ts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
+interface SCMValue {
+  name: string;
+  value: boolean | number;
+  mask: Bitmask;
+}
+
 interface SCM {
   name: string;
   key: string;
-  values: Record<number, { name: string; value: boolean | number; mask: Bitmask }>;
+  values: Record<number, SCMValue>;
 }
-
 const uniq = crypto.randomUUID();
 const globalMask = defineModel<Bitmask | None>("globalMask", { required: true });
 const groupMasks = defineModel<Record<string, LabelMaskGroup>>("groupMasks", { required: true });
@@ -100,6 +105,22 @@ function swapAxes() {
   xKey.value = yKey.value;
   yKey.value = tmp;
 }
+
+function selectCell(x: SCMValue, y: SCMValue) {
+  groupMasks.value[xKey.value].active.value = true;
+  for (let mask of Object.values(groupMasks.value[xKey.value].masks)) {
+    if (mask.name === x.name) {
+      mask.active.value = !mask.active.value;
+    }
+  }
+
+  groupMasks.value[yKey.value].active.value = true;
+  for (let mask of Object.values(groupMasks.value[yKey.value].masks)) {
+    if (mask.name === y.name) {
+      mask.active.value = !mask.active.value;
+    }
+  }
+}
 </script>
 
 <template>
@@ -160,7 +181,8 @@ function swapAxes() {
               <td
                 v-for="xValue in fullScheme[xKey].values"
                 :key="+xValue.value"
-                :style="{ 'background-color': colours(counts[+yValue.value][+xValue.value]) }">
+                :style="{ 'background-color': colours(counts[+yValue.value][+xValue.value]) }"
+                @click="selectCell(xValue, yValue)">
                 {{ counts[+yValue.value][+xValue.value] }}
               </td>
             </tr>
