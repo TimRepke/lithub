@@ -61,7 +61,7 @@ prepare-js:
     - npx npm-check-updates
 
 prepare-py:
-  extends: .py
+  extends: .uv
   stage: prepare
   script:
     - echo "Preparing and checking python environment"
@@ -69,7 +69,7 @@ prepare-py:
     - uv pip list --outdated
 
 test-py:
-  extends: .py
+  extends: .uv
   stage: test
   script:
     - uv run ruff check
