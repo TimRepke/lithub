@@ -30,10 +30,10 @@ class Settings(BaseSettings):
     MAILING_ENABLED: bool = False
     MAILING_SENDER: str | None = 'Literature Hub <noreply@climateliterature.org>'
     SMTP_TLS: bool = True
-    SMTP_START_TLS: bool | None = None
+    SMTP_START_TLS: bool = False
     SMTP_CHECK_CERT: bool = True
-    SMTP_PORT: int | None = None
-    SMTP_HOST: str | None = None
+    SMTP_PORT: int = 587
+    SMTP_HOST: str = 'localhost'
     SMTP_USER: str | None = None
     SMTP_PASSWORD: str | None = None
 

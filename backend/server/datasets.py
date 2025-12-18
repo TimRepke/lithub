@@ -50,7 +50,7 @@ class Dataset:
             **{
                 **self.full_info.dict(),
                 'groups': self.groups,
-            }
+            },
         )
 
     @property
@@ -90,6 +90,10 @@ class Dataset:
             self._document_columns = self.columns.intersection(Document.model_fields.keys())
         return self._document_columns
 
+    @property
+    def mailing_active(self) -> bool:
+        return settings.MAILING_ENABLED and self.full_info.contact and len(self.full_info.contact) > 0
+
     def unwrap_column(self, col: str) -> list[str]:
         if col in self.columns:
             return [col]
@@ -125,7 +129,6 @@ class Dataset:
 
 
 class DatasetCache:
-
     def __init__(self, base_path: Path):
         logger.info(f'Setting up dataset cache for {base_path}')
         self.base_path = base_path

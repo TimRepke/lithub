@@ -85,9 +85,7 @@ class InMemoryBackend(Backend):
     async def set(self, key: str, value: bytes, expire: int | None = None) -> None:
         async with self._lock:
             self._ensure_capacity(value)
-            self._store[key] = Value(data=value,
-                                     ttl_ts=None if expire is None else self._now + expire,
-                                     ts=self._now)
+            self._store[key] = Value(data=value, ttl_ts=None if expire is None else self._now + expire, ts=self._now)
 
     async def clear(self, namespace: str | None = None, key: str | None = None) -> int:
         count = 0

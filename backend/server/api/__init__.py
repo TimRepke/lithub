@@ -17,9 +17,9 @@ class FilteredStaticFiles(StaticFiles):
         super().__init__(*args, **kwargs)
 
     async def __call__(self, scope, receive, send) -> None:
-        assert scope["type"] == "http"
+        assert scope['type'] == 'http'
 
-        path = scope.get('path', '')[len(scope.get('root_path', '')) + 1:]
+        path = scope.get('path', '')[len(scope.get('root_path', '')) + 1 :]
         if path.endswith('info.toml') or path.count('/') > 1:
             logger.warning(f'Someone tried to access: {path}, which is forbidden.')
             raise HTTPException(status_code=http_status.HTTP_403_FORBIDDEN)

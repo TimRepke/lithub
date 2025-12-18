@@ -11,4 +11,3 @@ from server.__main__ import app  # noqa: E402
 async def init_system() -> None:
     logger.info('[startup hook] Collecting models...')
     # TODO cache models stored in /data
-

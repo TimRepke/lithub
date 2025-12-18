@@ -17,9 +17,7 @@ mimetypes.init()
 
 logger = get_logger('server')
 
-app = FastAPI(openapi_url=settings.OPENAPI_FILE,
-              openapi_prefix=settings.OPENAPI_PREFIX,
-              root_path=settings.ROOT_PATH)
+app = FastAPI(openapi_url=settings.OPENAPI_FILE, openapi_prefix=settings.OPENAPI_PREFIX, root_path=settings.ROOT_PATH)
 
 logger.debug('Setting up server and middlewares')
 mimetypes.add_type('application/javascript', '.js')
@@ -29,11 +27,9 @@ if settings.HEADER_TRUSTED_HOST:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.TRUSTED_HOSTS)
     logger.info(f'TrustedHostMiddleware allows the following hosts: {settings.TRUSTED_HOSTS}')
 if settings.HEADER_CORS:
-    app.add_middleware(CORSMiddleware,
-                       allow_origins=['*'],
-                       allow_methods=['GET', 'POST', 'DELETE', 'POST', 'PUT', 'PATCH'],
-                       allow_headers=['*'],
-                       allow_credentials=True)
+    app.add_middleware(
+        CORSMiddleware, allow_origins=['*'], allow_methods=['GET', 'POST', 'DELETE', 'POST', 'PUT', 'PATCH'], allow_headers=['*'], allow_credentials=True
+    )
     logger.info(f'CORSMiddleware will accept the following origins: {settings.CORS_ORIGINS}')
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(TimingMiddleware)

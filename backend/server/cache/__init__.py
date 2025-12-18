@@ -27,8 +27,8 @@ from .key_builders import KeyBuilder, default_key_builder
 
 logger: logging.Logger = logging.getLogger('cache')
 logger.addHandler(logging.NullHandler())
-P = ParamSpec("P")
-R = TypeVar("R")
+P = ParamSpec('P')
+R = TypeVar('R')
 
 memory = InMemoryBackend()
 
@@ -45,17 +45,13 @@ def _augment_signature(signature: Signature, *extra: Parameter) -> Signature:
     return signature.replace(parameters=[*parameters, *extra, *variadic_keyword_params])
 
 
-def _locate_param(
-        sig: Signature, dep: Parameter, to_inject: List[Parameter]
-) -> Parameter:
+def _locate_param(sig: Signature, dep: Parameter, to_inject: List[Parameter]) -> Parameter:
     """Locate an existing parameter in the decorated endpoint
 
     If not found, returns the injectable parameter, and adds it to the to_inject list.
 
     """
-    param = next(
-        (p for p in sig.parameters.values() if p.annotation is dep.annotation), None
-    )
+    param = next((p for p in sig.parameters.values() if p.annotation is dep.annotation), None)
     if param is None:
         to_inject.append(dep)
         param = dep
@@ -73,17 +69,17 @@ def _uncacheable(request: Optional[Request]) -> bool:
     """
     if request is None:
         return False
-    if request.method != "GET":
+    if request.method != 'GET':
         return True
-    return request.headers.get("Cache-Control") in ("no-store", "no-cache")
+    return request.headers.get('Cache-Control') in ('no-store', 'no-cache')
 
 
 def cache(
-        expire: Optional[int] = None,
-        coder: Optional[Type[Coder]] = None,
-        key_builder: Optional[KeyBuilder] = None,
-        namespace: str = "",
-        injected_dependency_namespace: str = "__api_cache",
+    expire: Optional[int] = None,
+    coder: Optional[Type[Coder]] = None,
+    key_builder: Optional[KeyBuilder] = None,
+    namespace: str = '',
+    injected_dependency_namespace: str = '__api_cache',
 ) -> Callable[[Callable[P, Awaitable[R]]], Callable[P, Awaitable[Union[R, Response]]]]:
     """
     cache all function
@@ -96,19 +92,17 @@ def cache(
     """
 
     injected_request = Parameter(
-        name=f"{injected_dependency_namespace}_request",
+        name=f'{injected_dependency_namespace}_request',
         annotation=Request,
         kind=Parameter.KEYWORD_ONLY,
     )
     injected_response = Parameter(
-        name=f"{injected_dependency_namespace}_response",
+        name=f'{injected_dependency_namespace}_response',
         annotation=Response,
         kind=Parameter.KEYWORD_ONLY,
     )
 
-    def wrapper(
-            func: Callable[P, Awaitable[R]]
-    ) -> Callable[P, Awaitable[Union[R, Response]]]:
+    def wrapper(func: Callable[P, Awaitable[R]]) -> Callable[P, Awaitable[Union[R, Response]]]:
         # get_typed_signature ensures that any forward references are resolved first
         wrapped_signature = get_typed_signature(func)
         to_inject: List[Parameter] = []
@@ -153,11 +147,11 @@ def cache(
             expire = expire
             key_builder = key_builder or default_key_builder
             backend = memory
-            cache_status_header = "X-API-Cache"
+            cache_status_header = 'X-API-Cache'
 
             cache_key = key_builder(
                 func,
-                f"{prefix}:{namespace}",
+                f'{prefix}:{namespace}',
                 request=request,
                 response=response,
                 args=args,
@@ -191,24 +185,24 @@ def cache(
                 if response:
                     response.headers.update(
                         {
-                            "Cache-Control": f"max-age={expire}",
-                            "ETag": f"W/{hash(to_cache)}",
-                            cache_status_header: "MISS",
+                            'Cache-Control': f'max-age={expire}',
+                            'ETag': f'W/{hash(to_cache)}',
+                            cache_status_header: 'MISS',
                         }
                     )
 
             else:  # cache hit
                 if response:
-                    etag = f"W/{hash(cached)}"
+                    etag = f'W/{hash(cached)}'
                     response.headers.update(
                         {
-                            "Cache-Control": f"max-age={ttl}",
-                            "ETag": etag,
-                            cache_status_header: "HIT",
+                            'Cache-Control': f'max-age={ttl}',
+                            'ETag': etag,
+                            cache_status_header: 'HIT',
                         }
                     )
 
-                    if_none_match = request and request.headers.get("if-none-match")
+                    if_none_match = request and request.headers.get('if-none-match')
                     if if_none_match == etag:
                         response.status_code = HTTP_304_NOT_MODIFIED
                         return response

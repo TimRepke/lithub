@@ -19,30 +19,30 @@ from pydantic_core import core_schema
 from starlette.responses import JSONResponse, PlainTextResponse
 from starlette.templating import _TemplateResponse as TemplateResponse
 
-_T = TypeVar("_T", bound=type)
+_T = TypeVar('_T', bound=type)
 
 
 class JsonEncoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:
         if isinstance(o, datetime.datetime):
-            return {"val": str(o), "_spec_type": "datetime"}
+            return {'val': str(o), '_spec_type': 'datetime'}
         elif isinstance(o, datetime.date):
-            return {"val": str(o), "_spec_type": "date"}
+            return {'val': str(o), '_spec_type': 'date'}
         elif isinstance(o, Decimal):
-            return {"val": str(o), "_spec_type": "decimal"}
+            return {'val': str(o), '_spec_type': 'decimal'}
         else:
             return jsonable_encoder(o)
 
 
 def object_hook(obj: Any) -> Any:
-    _spec_type = obj.get("_spec_type")
+    _spec_type = obj.get('_spec_type')
     if not _spec_type:
         return obj
 
     # if _spec_type in CONVERTERS:
     #     return CONVERTERS[_spec_type](obj["val"])
     else:
-        raise TypeError(f"Unknown {_spec_type}")
+        raise TypeError(f'Unknown {_spec_type}')
 
 
 class Coder:
@@ -63,13 +63,11 @@ class Coder:
 
     @overload
     @classmethod
-    def decode_as_type(cls, value: bytes, *, type_: _T) -> _T:
-        ...
+    def decode_as_type(cls, value: bytes, *, type_: _T) -> _T: ...
 
     @overload
     @classmethod
-    def decode_as_type(cls, value: bytes, *, type_: None) -> Any:
-        ...
+    def decode_as_type(cls, value: bytes, *, type_: None) -> Any: ...
 
     @classmethod
     def decode_as_type(cls, value: bytes, *, type_: Optional[_T]) -> Union[_T, Any]:
@@ -84,9 +82,7 @@ class Coder:
                 field = cls._type_field_cache[type_]
             except KeyError as e:
                 logging.debug(f'decode_as_type KeyError: {e}')
-                field = cls._type_field_cache[type_] = core_schema.ModelField(
-                    name="body", type_=type_, class_validators=None, model_config=BaseConfig
-                )
+                field = cls._type_field_cache[type_] = core_schema.ModelField(name='body', type_=type_, class_validators=None, model_config=BaseConfig)
             result, errors = field.validate(result, {}, loc=())
             if errors is not None:
                 if not isinstance(errors, list):
