@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from ..config import settings
 from ..datasets import DatasetInfoWeb, datasets as dataset_cache, Dataset
-from ..mails import send_message, EmailNotSentError, mailing_active
+from ..mails import send_message, EmailNotSentError
 from ..types import AnnotatedDocument
 from ..util import as_bitmask, as_ids
 from ..cache import cache
@@ -70,9 +70,9 @@ async def get_search_mask(
 @router.post('/documents', response_model=list[AnnotatedDocument])
 async def get_documents(
     dataset: Annotated[Dataset, Depends(ensure_dataset)],
-    bitmask: Annotated[str | None, Body(default=None)],
-    ids: Annotated[list[int] | None, Body(default=None)],
-    order_by: Annotated[list[str] | None, Body(default=None)],
+    bitmask: Annotated[str | None, Body()]=None,
+    ids: Annotated[list[int] | None, Body()]=None,
+    order_by: Annotated[list[str] | None, Body()]=None,
     limit: int = 10,
     page: int = 0,
 ) -> list[AnnotatedDocument]:
@@ -162,14 +162,14 @@ async def report(
     dataset: Annotated[Dataset, Depends(ensure_dataset)],
     background_tasks: BackgroundTasks,
     kind: Annotated[Literal['MISSING', 'ERROR'], Query()],
-    document: Annotated[int | None, Query(default=None)],
     name: Annotated[str, Body()],
     email: Annotated[str, Body()],
     comment: Annotated[str, Body()],
     relevant: Annotated[bool, Body()],
     feedback: Annotated[list[Feedback], Body()],
+document: Annotated[int | None, Query()]=None,
 ) -> None:
-    if mailing_active(dataset) and dataset.full_info.contact and len(dataset.full_info.contact) > 0:
+    if dataset.mailing_active:
         try:
             message = f"""
 Hi,

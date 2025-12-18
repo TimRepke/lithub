@@ -1,9 +1,9 @@
+import json
 import math
 import traceback
 import logging
 import logging.config
 
-import toml
 from uvicorn.logging import DefaultFormatter
 
 from .config import settings
@@ -11,7 +11,7 @@ from .config import settings
 
 def get_logger(name: str | None = None):
     with open(settings.LOG_CONF_FILE, 'r') as f:
-        log_conf = toml.loads(f.read())
+        log_conf = json.load(f)
     logging.config.dictConfig(log_conf)
     return logging.getLogger(name)
 

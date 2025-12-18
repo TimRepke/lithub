@@ -4,4 +4,4 @@ access_log_format = '%(s)s | "%(R)s" |  Size: %(b)s | Referrer: "%(f)s"'
 workers = 1
 accesslog = '../.logs/hypercorn.access'
 errorlog = '../.logs/hypercorn.error'
-logconfig = 'toml:../.config/logging.toml'
+logconfig = 'json:../.config/logging.json'

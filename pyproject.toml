@@ -7,8 +7,8 @@ license = { file = "LICENSE" }
 requires-python = ">=3.13"
 
 dependencies = [
-    "pydantic[dotenv]==2.12.5",
-    "pydantic_settings==2.10.1",
+    "pydantic==2.12.5",
+    "pydantic_settings==2.12.0",
     "sqlalchemy==2.0.45",
 ]
 
@@ -21,9 +21,10 @@ server = [
     "pyarrow==22.0.0",
     "aiosmtplib==5.0.0",
 ]
+
 converter = [
     "pandas[excel]==2.3.3",
-    "typer[all]==0.20.0",
+    "typer==0.20.0",
     "opentsne==1.0.4",
     "numpy==2.3.5",
 ]
