@@ -34,8 +34,6 @@ onMounted(async () => {
         </router-link>
       </li>
     </ul>
-
-    <DownloadControl />
   </div>
 
   <div v-if="!datasetStore.isLoaded || !datasetStore.dataset || !isReady" id="loading">

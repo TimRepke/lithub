@@ -46,7 +46,7 @@ async function download(mask?: string) {
 </script>
 
 <template>
-  <div class="ms-auto">
+  <div>
     <button class="btn btn-sm text-muted" @click="downloadSecondary = !downloadSecondary">
       <font-awesome-icon icon="download" />
       Download

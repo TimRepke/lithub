@@ -26,7 +26,7 @@ function hideWarning(e: MouseEvent) {
 </script>
 
 <template>
-  <nav class="lh-nav">
+  <nav class="lh-nav" :class="{ 'lh-nav-pathfinder': $route.matched.some(r => r.name == 'ds-healthmap')}" >
     <span class="fw-bold">Literature Hub</span>
     <span v-if="info && isProjectRoute">—{{ info.name }}</span>
 
@@ -58,6 +58,11 @@ function hideWarning(e: MouseEvent) {
 </template>
 
 <style scoped>
+.lh-nav-pathfinder {
+  background-color: rgba(4, 106, 56, 1.0) !important;
+  color: white;
+}
+
 .lh-nav {
   background-color: hsl(var(--accent-hsl));
   width: 100%;

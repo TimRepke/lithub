@@ -7,6 +7,7 @@ import { type None } from "@/util";
 import type { Bitmask } from "@/util/dataset/masks/bitmask.ts";
 import { scaleLinear, type ScaleContinuousNumeric } from "d3-scale";
 import createScatterplot from "regl-scatterplot";
+import { createRenderer } from "regl-scatterplot";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
 
@@ -35,6 +36,7 @@ const keywordsVisible = ref(true);
 
 let points: Point[];
 let scatterplot: ReglScatterplot;
+let renderer;
 
 const OPACITY_DEFAULT = 1;
 const OPACITY_HIDDEN = 0.2;
@@ -57,146 +59,159 @@ onMounted(async () => {
 
   const canvas = canvasElement.value;
   const canvasContainer = canvasContainerElement.value;
-  if (canvas && canvasContainer) {
-    const textOverlayEl: HTMLCanvasElement = document.createElement("canvas");
-    textOverlayEl.id = "#text-overlay";
-    textOverlayEl.style.position = "absolute";
-    textOverlayEl.style.top = "0";
-    textOverlayEl.style.right = "0";
-    textOverlayEl.style.bottom = "0";
-    textOverlayEl.style.left = "0";
-    textOverlayEl.style.pointerEvents = "none";
 
-    canvasContainer.appendChild(textOverlayEl);
+  if (!canvas || !canvasContainer) return;
+  if (!canvas.getContext("webgl") || !canvas.getContext("webgl2")) {
+    canvasContainer.innerHTML =
+      "The scatterplot cannot be displayed because your browser does not appeat to support WebGL.";
+    return;
+  }
+  renderer = createRenderer({ canvas });
 
-    const resizeTextOverlay = () => {
-      const { width, height } = canvasContainer.getBoundingClientRect();
-      textOverlayEl.width = width * window.devicePixelRatio;
-      textOverlayEl.height = height * window.devicePixelRatio;
-      textOverlayEl.style.width = `${width}px`;
-      textOverlayEl.style.height = `${height}px`;
-    };
-    resizeTextOverlay();
+  const textOverlayEl: HTMLCanvasElement = document.createElement("canvas");
+  textOverlayEl.id = "#text-overlay";
+  textOverlayEl.style.position = "absolute";
+  textOverlayEl.style.top = "0";
+  textOverlayEl.style.right = "0";
+  textOverlayEl.style.bottom = "0";
+  textOverlayEl.style.left = "0";
+  textOverlayEl.style.pointerEvents = "none";
 
-    window.addEventListener("resize", resizeTextOverlay);
+  canvasContainer.appendChild(textOverlayEl);
 
-    const overlayFontSize = 12;
-    const textOverlayCtx = textOverlayEl.getContext("2d");
+  const resizeTextOverlay = () => {
+    const { width, height } = canvasContainer.getBoundingClientRect();
+    textOverlayEl.width = width * window.devicePixelRatio;
+    textOverlayEl.height = height * window.devicePixelRatio;
+    textOverlayEl.style.width = `${width}px`;
+    textOverlayEl.style.height = `${height}px`;
+  };
+  resizeTextOverlay();
 
-    //@ts-ignore
-    scatterplot = createScatterplot({
-      canvas: canvas,
-      lassoMinDelay,
-      lassoMinDist,
-      showReticle: true,
-      reticleColor: [1, 1, 0.878431373, 0.0],
-      xScale: scaleLinear().domain([0, 1]),
-      yScale: scaleLinear().domain([0, 1]),
-      opacity: [OPACITY_HIDDEN, OPACITY_DEFAULT],
-      pointSize: [POINT_SIZE_HIDDEN, POINT_SIZE_DEFAULT],
-      lassoInitiator: true,
-      // opacityBy: "density",
-      // backgroundColor: "#333333",
-    });
-    scatterplot.set({
-      colorBy: "valueA",
-      opacityBy: "valueB",
-      sizeBy: "valueB",
-    });
-    console.time("first draw");
-    await scatterplot.draw(points);
-    console.timeEnd("first draw");
+  window.addEventListener("resize", resizeTextOverlay);
 
-    // await scatterplot.zoomToLocation([0.5, 0.5], 0.5);
+  const overlayFontSize = 12;
+  const textOverlayCtx = textOverlayEl.getContext("2d");
 
-    function getViewBounds(xScale: Scale, yScale: Scale): ViewBounds {
-      const rect = canvas!.getBoundingClientRect();
-      const topRight: [number, number] = [xScale.invert(rect.width / window.devicePixelRatio), yScale.invert(0)];
-      const bottomLeft: [number, number] = [xScale.invert(0), yScale.invert(rect.height / window.devicePixelRatio)];
-      return { topRight, bottomLeft };
-    }
+  //@ts-ignore
+  scatterplot = createScatterplot({
+    canvas: canvas,
+    renderer: renderer,
+    lassoMinDelay,
+    lassoMinDist,
+    showReticle: true,
+    reticleColor: [1, 1, 0.878431373, 0.0],
+    xScale: scaleLinear().domain([0, 1]),
+    yScale: scaleLinear().domain([0, 1]),
+    opacity: [OPACITY_HIDDEN, OPACITY_DEFAULT],
+    pointSize: [POINT_SIZE_HIDDEN, POINT_SIZE_DEFAULT],
+    lassoInitiator: true,
+    width: 500,
+    height: 500,
+    // opacityBy: "density",
+    // backgroundColor: "#333333",
+  });
+  scatterplot.set({
+    colorBy: "valueA",
+    opacityBy: "valueB",
+    sizeBy: "valueB",
+  });
+  console.time("first draw");
+  await scatterplot.draw(points);
+  console.timeEnd("first draw");
 
-    function inBounds(bounds: ViewBounds, x: number, y: number): boolean {
-      const { topRight, bottomLeft } = bounds;
-      return x > bottomLeft[0] && x < topRight[0] && y < topRight[1] && y > bottomLeft[1];
-    }
+  // await scatterplot.zoomToLocation([0.5, 0.5], 0.5);
 
-    function redrawKeywords() {
-      if (textOverlayCtx && canvas && scatterplot) {
-        textOverlayCtx.clearRect(0, 0, canvas.width, canvas.height);
+  function getViewBounds(xScale: Scale, yScale: Scale): ViewBounds {
+    const rect = canvas!.getBoundingClientRect();
+    const topRight: [number, number] = [xScale.invert(rect.width / window.devicePixelRatio), yScale.invert(0)];
+    const bottomLeft: [number, number] = [xScale.invert(0), yScale.invert(rect.height / window.devicePixelRatio)];
+    return { topRight, bottomLeft };
+  }
 
-        const xScale: Scale | null = scatterplot.get("xScale");
-        const yScale: Scale | null = scatterplot.get("yScale");
+  function inBounds(bounds: ViewBounds, x: number, y: number): boolean {
+    const { topRight, bottomLeft } = bounds;
+    return x > bottomLeft[0] && x < topRight[0] && y < topRight[1] && y > bottomLeft[1];
+  }
 
-        if (keywordsVisible.value && xScale && yScale) {
-          xScale.domain();
-          textOverlayCtx.font = "1.2em bold, sans-serif";
-          textOverlayCtx.textAlign = "center";
-          textOverlayCtx.lineWidth = 4;
-          textOverlayCtx.miterLimit = 2;
+  function redrawKeywords() {
+    if (textOverlayCtx && canvas && scatterplot) {
+      textOverlayCtx.clearRect(0, 0, canvas.width, canvas.height);
 
-          const viewBounds = getViewBounds(xScale, yScale);
+      const xScale: Scale | null = scatterplot.get("xScale");
+      const yScale: Scale | null = scatterplot.get("yScale");
 
-          let cnt = 0;
-          let x;
-          let y;
-          const scaling = window.devicePixelRatio;
+      if (keywordsVisible.value && xScale && yScale) {
+        xScale.domain();
+        textOverlayCtx.font = "1.2em bold, sans-serif";
+        textOverlayCtx.textAlign = "center";
+        textOverlayCtx.lineWidth = 4;
+        textOverlayCtx.miterLimit = 2;
 
-          for (const keyword of keywords.value) {
-            if (inBounds(viewBounds, keyword.x, keyword.y)) {
-              cnt += 1;
-              x = xScale(keyword.x) * scaling;
-              y = yScale(keyword.y) * scaling - overlayFontSize * 1.2 * scaling;
+        const viewBounds = getViewBounds(xScale, yScale);
 
-              textOverlayCtx.strokeStyle = "white";
-              textOverlayCtx.strokeText(keyword.keyword, x, y);
-              textOverlayCtx.fillStyle = "black";
-              textOverlayCtx.fillText(keyword.keyword, x, y);
-            }
-            if (cnt > maxKeywordsInView) break;
+        let cnt = 0;
+        let x;
+        let y;
+        const scaling = window.devicePixelRatio;
+
+        for (const keyword of keywords.value) {
+          if (inBounds(viewBounds, keyword.x, keyword.y)) {
+            cnt += 1;
+            x = xScale(keyword.x) * scaling;
+            y = yScale(keyword.y) * scaling - overlayFontSize * 1.2 * scaling;
+
+            textOverlayCtx.strokeStyle = "white";
+            textOverlayCtx.strokeText(keyword.keyword, x, y);
+            textOverlayCtx.fillStyle = "black";
+            textOverlayCtx.fillText(keyword.keyword, x, y);
           }
+          if (cnt > maxKeywordsInView) break;
         }
       }
     }
-
-    scatterplot.subscribe("view", redrawKeywords);
-    scatterplot.subscribe("select", async ({ points: selectedPoints }) => selectIds(selectedPoints));
-    scatterplot.subscribe("deselect", clearSelection);
-
-    async function redrawColour() {
-      const colours = groupMasks.value[pickedColour.value].colours.value;
-      for (let i = 0; i < points.length; i++) {
-        points[i][2] = colours[i];
-      }
-      scatterplot.set({
-        pointColor: groupMasks.value[pickedColour.value].hexColours.value,
-      });
-      await scatterplot.draw(points);
-    }
-
-    async function redrawMask() {
-      for (let i = 0; i < points.length; i++) {
-        points[i][3] = (globalMask.value?.get(i) ?? true) ? 1 : 0;
-      }
-      await scatterplot.draw(points);
-    }
-
-    // initial drawing of keywords (possible redundant to the watch, but make exta sure...)
-    redrawKeywords();
-    await redrawColour();
-
-    watch(keywords, redrawKeywords);
-    watch(keywordsVisible, redrawKeywords);
-    watch(pickedColour, redrawColour);
-    watch(globalVersion, redrawMask);
-
-    // In case resizing becomes an issue again:
-    // https://github.com/flekschas/regl-scatterplot?tab=readme-ov-file#resizing-the-scatterplot
-    // const containerObserver = new ResizeObserver((r) => {
-    //   console.log(r[0].contentRect.width, r[0].contentRect.height);
-    // });
-    // containerObserver.observe(canvasContainer);
   }
+
+  scatterplot.subscribe("view", redrawKeywords);
+  scatterplot.subscribe("select", async ({ points: selectedPoints }) => selectIds(selectedPoints));
+  scatterplot.subscribe("deselect", clearSelection);
+
+  async function redrawColour() {
+    const colours = groupMasks.value[pickedColour.value].colours.value;
+    for (let i = 0; i < points.length; i++) {
+      points[i][2] = colours[i];
+    }
+    scatterplot.set({
+      pointColor: groupMasks.value[pickedColour.value].hexColours.value,
+    });
+    await scatterplot.draw(points);
+  }
+
+  async function redrawMask() {
+    for (let i = 0; i < points.length; i++) {
+      points[i][3] = (globalMask.value?.get(i) ?? true) ? 1 : 0;
+    }
+    await scatterplot.draw(points);
+  }
+
+  // initial drawing of keywords (possibly redundant to the watch, but make extra sure...)
+  redrawKeywords();
+  await redrawColour();
+
+  watch(keywords, redrawKeywords);
+  watch(keywordsVisible, redrawKeywords);
+  watch(pickedColour, redrawColour);
+  watch(globalVersion, redrawMask);
+  /*
+    const { width, height } = canvas.getBoundingClientRect();
+    scatterplot.set({ width, height });
+    */
+  // In case resizing becomes an issue again:
+  // https://github.com/flekschas/regl-scatterplot?tab=readme-ov-file#resizing-the-scatterplot
+  // const containerObserver = new ResizeObserver((r) => {
+  //   console.log(r[0].contentRect.width, r[0].contentRect.height);
+  // });
+  // containerObserver.observe(canvasContainer);
 });
 </script>
 
@@ -218,7 +233,7 @@ onMounted(async () => {
       </span>
     </div>
     <div ref="canvasContainerElement" class="scatter-wrapper">
-      <canvas ref="canvasElement" />
+      <canvas ref="canvasElement" height="500" width="500" />
     </div>
   </div>
 </template>

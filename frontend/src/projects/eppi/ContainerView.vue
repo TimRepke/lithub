@@ -6,7 +6,6 @@ import { onMounted, ref } from "vue";
 import { GET } from "@/util/api.ts";
 import { DatasetInfo } from "@/util/types";
 import { datasetStore } from "@/stores";
-import DownloadControl from "@/components/DownloadControl.vue";
 
 const isReady = ref(false);
 onMounted(async () => {
@@ -34,8 +33,6 @@ onMounted(async () => {
         </router-link>
       </li>
     </ul>
-
-    <DownloadControl />
   </div>
 
   <div v-if="!datasetStore.isLoaded || !datasetStore.dataset || !isReady" id="loading">
