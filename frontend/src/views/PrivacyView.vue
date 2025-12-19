@@ -1,15 +1,10 @@
-<script setup lang="ts">
-</script>
-
 <template>
   <div class="m-4 col-lg-6 col">
     <h1>Imprint</h1>
     <p>
-      This project is developed and maintained by the ECS research group at PIK Potsdam. To this end, for the most
-      part, the PIK imprint applies:
-      <a href="https://www.pik-potsdam.de/de/impressum" target="_blank">
-        https://www.pik-potsdam.de/de/impressum
-      </a>
+      This project is developed and maintained by the ECS research group at PIK Potsdam. To this end, for the most part,
+      the PIK imprint applies:
+      <a href="https://www.pik-potsdam.de/de/impressum" target="_blank">https://www.pik-potsdam.de/de/impressum </a>
     </p>
     <h1>Data licensing</h1>
     <p>

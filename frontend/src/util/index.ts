@@ -4,7 +4,6 @@ import { interpolateRgbBasis } from "d3-interpolate";
 // inspired by https://github.com/jashkenas/underscore/blob/master/modules/_shallowProperty.js
 // Internal helper to generate a function to obtain property `key` from `obj`.
 export function shallowProperty<T>(key: string) {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   return (obj: unknown): T | undefined => (obj == null ? undefined : obj[key]);
 }
@@ -32,7 +31,6 @@ export const keys = (obj: unknown) => {
   if (!isObject(obj)) return [];
   if (nativeKeys) return nativeKeys(obj as object);
   const objKeys = [];
-  // eslint-disable-next-line no-restricted-syntax
   for (const key in obj as object) if (has(obj as object, key)) objKeys.push(key);
   return objKeys;
 };

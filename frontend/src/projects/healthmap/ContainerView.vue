@@ -21,23 +21,33 @@ onMounted(async () => {
     <!--  ms-auto -->
     <ul class="nav nav-underline me-4 ms-2">
       <li class="nav-item">
-        <router-link :to="{ name: route.children![0].name }" class="nav-link" exact-active-class="active" style="margin-top: 1em">
+        <router-link
+          :to="{ name: route.children![0].name }"
+          class="nav-link"
+          exact-active-class="active"
+          style="margin-top: 1em">
           <font-awesome-icon :icon="['far', 'map']" />
           Explorer
         </router-link>
       </li>
       <li class="nav-item">
-        <router-link :to="{ name: route.children![1].name }" class="nav-link" exact-active-class="active" style="margin-top: 1em">
+        <router-link
+          :to="{ name: route.children![1].name }"
+          class="nav-link"
+          exact-active-class="active"
+          style="margin-top: 1em">
           <font-awesome-icon icon="info-circle" />
           Info
         </router-link>
       </li>
     </ul>
-    <div class="ms-auto m-2" >
-        <a href="https://climatehealthevidence.org/" target="_blank" class="me-2"
-          ><img src="./assets/pathfinder.svg" alt="Part of the Pathfinder Initiative" style="height: 3rem"
-        /></a>
-        <a href="https://wellcome.org" class="me-1"><img src="./assets/wellcome.svg" alt="Funded by the WellcomeTrust" style="height: 3em;" /></a>
+    <div class="ms-auto m-2">
+      <a href="https://climatehealthevidence.org/" target="_blank" class="me-2">
+        <img src="./assets/pathfinder.svg" alt="Part of the Pathfinder Initiative" style="height: 3rem" />
+      </a>
+      <a href="https://wellcome.org" class="me-1">
+        <img src="./assets/wellcome.svg" alt="Funded by the WellcomeTrust" style="height: 3em" />
+      </a>
     </div>
   </div>
 

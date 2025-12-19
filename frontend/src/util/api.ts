@@ -88,7 +88,6 @@ export async function DELETE<T>(params: {
 export async function POST<T>(params: {
   path: string;
   params?: URLParams;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: Record<string, any>;
   headers?: HeadersInit;
   keepPath?: boolean;

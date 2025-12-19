@@ -108,14 +108,14 @@ function swapAxes() {
 
 function selectCell(x: SCMValue, y: SCMValue) {
   groupMasks.value[xKey.value].active.value = true;
-  for (let mask of Object.values(groupMasks.value[xKey.value].masks)) {
+  for (const mask of Object.values(groupMasks.value[xKey.value].masks)) {
     if (mask.name === x.name) {
       mask.active.value = !mask.active.value;
     }
   }
 
   groupMasks.value[yKey.value].active.value = true;
-  for (let mask of Object.values(groupMasks.value[yKey.value].masks)) {
+  for (const mask of Object.values(groupMasks.value[yKey.value].masks)) {
     if (mask.name === y.name) {
       mask.active.value = !mask.active.value;
     }
