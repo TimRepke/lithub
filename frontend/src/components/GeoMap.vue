@@ -87,13 +87,13 @@ const countryCounts = computed<Record<number, number>>({
   },
 });
 
-const width = 928;
+const width = 1500;
 const height = width / 1.61803;
 
 const { projection, path } = data;
 projection
-  .scale(70)
-  .center([0, 20])
+  .scale(300)
+  .center([0, 0])
   .translate([width / 2, height / 2]);
 
 const svg = d3create("svg")
