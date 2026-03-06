@@ -109,13 +109,13 @@ deploy-frontend:
   script:
     - echo "Deploying to production"
     - echo $LITHUB_FRONTEND_PATH
-    - ls -lisah
+    - ls -lisah "${LITHUB_FRONTEND_PATH}"
     - ls -lisah frontend/dist/
-    - sudo /usr/bin/chown -R gitlab-runner "${LITHUB_FRONTEND_PATH}"
-    - ls -lisah
+    #- sudo /usr/bin/chown -R gitlab-runner "${LITHUB_FRONTEND_PATH}"
+    #- ls -lisah
     - rsync -av frontend/dist/ "${LITHUB_FRONTEND_PATH}"
-    - ls -lisah
-    - sudo /usr/bin/chown -R $LITHUB_USER "${LITHUB_FRONTEND_PATH}"
+    - ls -lisah "${LITHUB_FRONTEND_PATH}"
+    #- sudo /usr/bin/chown -R $LITHUB_USER "${LITHUB_FRONTEND_PATH}"
 
 deploy-backend:
   when: manual
