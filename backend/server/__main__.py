@@ -38,7 +38,8 @@ logger.debug('Setup routers')
 app.include_router(api_router, prefix='/api')
 
 logger.info(f'Dataset files to {settings.DATASETS_FOLDER}')
-app.mount('/data', FilteredStaticFiles(directory=Path(settings.DATASETS_FOLDER).absolute()), name='data')
+app.mount('/api/data', FilteredStaticFiles(directory=Path(settings.DATASETS_FOLDER).absolute()), name='data')
 
-#logger.info(f'Static files to {settings.STATIC_FILES}')
-#app.mount('/', StaticFiles(directory=settings.STATIC_FILES, html=True), name='static')
+if settings.SERVE_STATIC:
+    logger.info(f'Static files to {settings.STATIC_FILES}')
+    app.mount('/', StaticFiles(directory=settings.STATIC_FILES, html=True), name='static')
