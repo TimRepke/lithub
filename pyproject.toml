@@ -9,7 +9,7 @@ requires-python = ">=3.13"
 dependencies = [
     "pydantic==2.13.0b2",
     "pydantic_settings==2.13.1",
-    "sqlalchemy==2.1.0b1",
+    "sqlalchemy[mypy]==2.0.48",
 ]
 
 [project.optional-dependencies]
@@ -31,7 +31,7 @@ converter = [
 [dependency-groups]
 dev = [
     "ruff==0.15.5",
-    "mypy==1.19.1",
+    "mypy[faster-cache]==1.19.1",
 ]
 
 [tool.ruff]

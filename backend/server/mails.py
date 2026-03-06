@@ -70,7 +70,7 @@ async def send_message(
 
 
 async def send_email(email: EmailMessage, quiet: bool) -> bool:
-    if not settings.mailing_active:
+    if not settings.MAILING_ENABLED:
         if quiet:
             return False
         raise EmailNotSentError(f'Mailing system inactive, email with subject "{email["Subject"]}" not sent to {email["To"]}')

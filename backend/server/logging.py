@@ -9,7 +9,7 @@ from uvicorn.logging import DefaultFormatter
 from .config import settings
 
 
-def get_logger(name: str | None = None):
+def get_logger(name: str | None = None) -> logging.Logger:
     with open(settings.LOG_CONF_FILE, 'r') as f:
         log_conf = json.load(f)
     logging.config.dictConfig(log_conf)
@@ -17,7 +17,7 @@ def get_logger(name: str | None = None):
 
 
 class ColourFormatter(DefaultFormatter):
-    def formatMessage(self, record):
+    def formatMessage(self, record: logging.LogRecord) -> str:
         pad = (8 - len(record.levelname)) / 2
         levelname = ' ' * math.ceil(pad) + record.levelname + ' ' * math.floor(pad)
         if self.use_colors:
@@ -28,7 +28,7 @@ class ColourFormatter(DefaultFormatter):
         return super().formatMessage(record)
 
 
-def except2str(e, logger=None):
+def except2str(e: Exception, logger: logging.Logger | None = None) -> str:
     tb = traceback.format_exc()
     if logger:
         logger.error(tb)

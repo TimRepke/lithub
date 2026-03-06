@@ -68,7 +68,7 @@ class InMemoryBackend(Backend):
                 return v.data
             return None
 
-    def _ensure_capacity(self, new_value: bytes):
+    def _ensure_capacity(self, new_value: bytes) -> None:
         headroom = settings.CACHE_LIMIT - self._size - len(new_value)
         if headroom < 0:
             logger.info(f'Cache is full, overhead is {headroom}')

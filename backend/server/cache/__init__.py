@@ -87,6 +87,7 @@ def cache(
     :param expire:
     :param coder:
     :param key_builder:
+    :param injected_dependency_namespace:
 
     :return:
     """
@@ -143,7 +144,7 @@ def cache(
                 return await ensure_async_func(*args, **kwargs)
 
             prefix = 'api'
-            coder = coder or JsonCoder()
+            coder_instance = (coder or JsonCoder)()
             expire = expire
             key_builder = key_builder or default_key_builder
             backend = memory
@@ -172,7 +173,7 @@ def cache(
 
             if cached is None:  # cache miss
                 result = await ensure_async_func(*args, **kwargs)
-                to_cache = coder.encode(result)
+                to_cache = coder_instance.encode(result)
 
                 try:
                     await backend.set(cache_key, to_cache, expire)
@@ -207,9 +208,9 @@ def cache(
                         response.status_code = HTTP_304_NOT_MODIFIED
                         return response
                 try:
-                    result = cast(R, coder.decode_as_type(cached, type_=return_type))
+                    result = cast(R, coder_instance.decode_as_type(cached, type_=return_type))
                 except:
-                    return cached
+                    return cached  # type: ignore[return-value]
 
             return result
 

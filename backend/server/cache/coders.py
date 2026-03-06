@@ -59,7 +59,7 @@ class Coder:
     # decode_as_type method and then stores a different kind of field for a
     # given type, do make sure that the subclass provides its own class
     # attribute for this cache.
-    _type_field_cache: ClassVar[Dict[Any, fields.Field]] = {}
+    _type_field_cache: ClassVar[Dict[Any, fields.Field]] = {}  # type: ignore[valid-type]
 
     @overload
     @classmethod
@@ -82,8 +82,8 @@ class Coder:
                 field = cls._type_field_cache[type_]
             except KeyError as e:
                 logging.debug(f'decode_as_type KeyError: {e}')
-                field = cls._type_field_cache[type_] = core_schema.ModelField(name='body', type_=type_, class_validators=None, model_config=BaseConfig)
-            result, errors = field.validate(result, {}, loc=())
+                field = cls._type_field_cache[type_] = core_schema.ModelField(name='body', type_=type_, class_validators=None, model_config=BaseConfig)  # type: ignore[typeddict-item,typeddict-unknown-key]
+            result, errors = field.validate(result, {}, loc=())  # type: ignore[attr-defined]
             if errors is not None:
                 if not isinstance(errors, list):
                     errors = [errors]
@@ -95,7 +95,7 @@ class JsonCoder(Coder):
     @classmethod
     def encode(cls, value: Any) -> bytes:
         if isinstance(value, JSONResponse):
-            return value.body
+            return value.body  # type: ignore[return-value]
         return json.dumps(value, cls=JsonEncoder).encode()
 
     @classmethod
@@ -112,10 +112,10 @@ class BytesCoder(Coder):
         if isinstance(value, PlainTextResponse):
             if type(value.body) is bytes:
                 return value.body
-            return value.body.encode()
+            return value.body.encode()  # type: ignore[no-any-return,union-attr]
         if type(value) is bytes:
             return value
-        return value.encode()
+        return value.encode()  # type: ignore[no-any-return]
 
     @classmethod
     def decode(cls, value: bytes) -> Any:

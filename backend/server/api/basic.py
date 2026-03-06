@@ -70,9 +70,9 @@ async def get_search_mask(
 @router.post('/documents', response_model=list[AnnotatedDocument])
 async def get_documents(
     dataset: Annotated[Dataset, Depends(ensure_dataset)],
-    bitmask: Annotated[str | None, Body()]=None,
-    ids: Annotated[list[int] | None, Body()]=None,
-    order_by: Annotated[list[str] | None, Body()]=None,
+    bitmask: Annotated[str | None, Body()] = None,
+    ids: Annotated[list[int] | None, Body()] = None,
+    order_by: Annotated[list[str] | None, Body()] = None,
     limit: int = 10,
     page: int = 0,
 ) -> list[AnnotatedDocument]:
@@ -118,7 +118,7 @@ async def get_download(
 
     cols = list(dataset.document_columns) + list(dataset.label_columns)
 
-    def streamer():
+    def streamer() -> Generator[str, None, None]:
         with dataset as db:
             rslt = db.cur.execute(stmt)
             stream = io.StringIO()
@@ -167,7 +167,7 @@ async def report(
     comment: Annotated[str, Body()],
     relevant: Annotated[bool, Body()],
     feedback: Annotated[list[Feedback], Body()],
-document: Annotated[int | None, Query()]=None,
+    document: Annotated[int | None, Query()] = None,
 ) -> None:
     if dataset.mailing_active:
         try:
@@ -190,7 +190,7 @@ Comment:
 
             logger.debug(message)
 
-            recipients = dataset.full_info.contact
+            recipients = dataset.full_info.contact or []
             if email:
                 recipients.append(email)
 

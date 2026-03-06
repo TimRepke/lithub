@@ -24,8 +24,8 @@ mimetypes.add_type('application/javascript', '.js')
 
 app.add_middleware(ErrorHandlingMiddleware)
 if settings.HEADER_TRUSTED_HOST:
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.TRUSTED_HOSTS)
-    logger.info(f'TrustedHostMiddleware allows the following hosts: {settings.TRUSTED_HOSTS}')
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.CORS_ORIGINS)
+    logger.info(f'TrustedHostMiddleware allows the following hosts: {settings.CORS_ORIGINS}')
 if settings.HEADER_CORS:
     app.add_middleware(
         CORSMiddleware, allow_origins=['*'], allow_methods=['GET', 'POST', 'DELETE', 'POST', 'PUT', 'PATCH'], allow_headers=['*'], allow_credentials=True

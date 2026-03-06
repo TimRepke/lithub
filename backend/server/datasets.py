@@ -1,6 +1,8 @@
 import json
 import sqlite3
 from pathlib import Path
+from typing import Any
+
 from pydantic import ValidationError
 
 from .logging import get_logger
@@ -30,9 +32,11 @@ class Dataset:
 
             def rec(grp: str) -> list[str]:
                 group = groups[grp]
-                if group.labels is None:
+                if group.labels is not None:
+                    return group.labels
+                if group.subgroups is not None:
                     return [gi for g in group.subgroups for gi in rec(g)]
-                return group.labels
+                raise RuntimeError(f'No labels or subgroups for {group.key}')
 
             for subgroup in groups.values():
                 subgroup.labels = rec(subgroup.key)
@@ -92,7 +96,8 @@ class Dataset:
 
     @property
     def mailing_active(self) -> bool:
-        return settings.MAILING_ENABLED and self.full_info.contact and len(self.full_info.contact) > 0
+        # FIXME error: Incompatible return value type (got "list[str] | bool | None", expected "bool")  [return-value]
+        return settings.MAILING_ENABLED and self.full_info.contact and len(self.full_info.contact) > 0  # type: ignore[return-value]
 
     def unwrap_column(self, col: str) -> list[str]:
         if col in self.columns:
@@ -106,17 +111,17 @@ class Dataset:
             return [lab for sg in group.subgroups for lab in self.unwrap_column(sg)]
         return []
 
-    def safe_col_silent(self, col: str):
+    def safe_col_silent(self, col: str) -> str | None:
         if col not in self.columns:
             return None
         return f'"{col}"'
 
-    def safe_col(self, col: str):
+    def safe_col(self, col: str) -> str:
         if col not in self.columns:
             raise ValueError(f'Invalid column name: {col}')
         return f'"{col}"'
 
-    def __enter__(self):
+    def __enter__(self) -> 'Dataset':
         self.con: sqlite3.Connection = sqlite3.connect(self.db_file)
         self.con.row_factory = sqlite3.Row
         self.con.set_trace_callback(self.logger.debug)
@@ -124,7 +129,7 @@ class Dataset:
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.con.close()
 
 
@@ -134,7 +139,7 @@ class DatasetCache:
         self.base_path = base_path
         self.datasets: dict[str, Dataset] = {}
 
-    def reload(self):
+    def reload(self) -> None:
         # Reset list of datasets
         self.datasets = {}
         # Iterate the dataset folder
@@ -168,8 +173,7 @@ class DatasetCache:
                     logger.warning(f'Failed to validate dataset info at {entry.name}')
                     logger.exception(e)
             else:
-                logger.info(f'Ignoring data in {entry.name} '
-                            f'(info.json: {(entry / 'info.json').exists()}, entry_name: {entry.name})')
+                logger.info(f'Ignoring data in {entry.name} (info.json: {(entry / "info.json").exists()}, entry_name: {entry.name})')
 
 
 datasets = DatasetCache(base_path=Path(settings.DATASETS_FOLDER))

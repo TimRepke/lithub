@@ -1,6 +1,10 @@
+from typing import Any
+
 from fastapi import APIRouter, HTTPException, status as http_status
 from starlette.staticfiles import StaticFiles
 import logging
+
+from starlette.types import Send, Receive, Scope
 
 from . import basic
 
@@ -13,10 +17,10 @@ router.include_router(basic.router, prefix='/basic', tags=['basic'])
 
 
 class FilteredStaticFiles(StaticFiles):
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
-    async def __call__(self, scope, receive, send) -> None:
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         assert scope['type'] == 'http'
 
         path = scope.get('path', '')[len(scope.get('root_path', '')) + 1 :]

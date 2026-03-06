@@ -1,6 +1,6 @@
 import base64
 from array import array
-from typing import Iterable, TypeVar
+from typing import Iterable, TypeVar, Generator
 
 
 def as_bitmask(ids: Iterable[int], total: int) -> bytes:
@@ -11,20 +11,20 @@ def as_bitmask(ids: Iterable[int], total: int) -> bytes:
     bitmask = array('I')  # 'I' = unsigned 32-bit integer
     bitmask.extend((0,) * intSize)
 
-    def set_bit(idx):
+    def set_bit(idx: int) -> None:
         record = idx >> 5
         offset = idx & 31
         mask = 1 << offset
         bitmask[record] |= mask
 
-    [set_bit(idx_) for idx_ in ids]
+    [set_bit(idx_) for idx_ in ids]  # type: ignore[func-returns-value]
     return base64.b64encode(bitmask)
 
 
-def as_ids(bitmask_str: str):
+def as_ids(bitmask_str: str) -> list[int]:
     bitmask = array('I', base64.b64decode(bitmask_str))
 
-    def is_set(idx):
+    def is_set(idx: int) -> bool:
         record = idx >> 5
         offset = idx & 31
         mask = 1 << offset
@@ -33,7 +33,7 @@ def as_ids(bitmask_str: str):
     return [idx for idx in range(len(bitmask) * 32) if is_set(idx)]
 
 
-def as_ids_lim(bitmask_str: str, limit: int | None = None):
+def as_ids_lim(bitmask_str: str, limit: int | None = None) -> list[int]:
     """
     Same as `as_ids`, but it will stop after it found `limit` ids.
     In case you don't need them all, this saves memory and may have some speed benefits.
@@ -46,13 +46,13 @@ def as_ids_lim(bitmask_str: str, limit: int | None = None):
     if limit is None:
         limit = len(bitmask) * 32
 
-    def is_set(idx):
+    def is_set(idx: int) -> bool:
         record = idx >> 5
         offset = idx & 31
         mask = 1 << offset
         return bool(bitmask[record] & mask)
 
-    def gen():
+    def gen() -> Generator[int, None, None]:
         cnt = 0
         for idx in range(len(bitmask) * 32):
             if is_set(idx):
@@ -60,7 +60,7 @@ def as_ids_lim(bitmask_str: str, limit: int | None = None):
                 if cnt > limit:
                     break
 
-    return [idx for idx in gen()]
+    return list(gen())
 
 
 T = TypeVar('T')
