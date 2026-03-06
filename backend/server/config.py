@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     API_URL: str = 'http://localhost:8000/api'
     WEB_URL: str = 'http://localhost'  # URL to the web frontend (without trailing /)
 
+    SERVE_STATIC: bool = False  # when using nginx for static file serving, set to False
     STATIC_FILES: str = './frontend/dist/'  # path to the static files to be served
     DATASETS_FOLDER: str = './data/'
 

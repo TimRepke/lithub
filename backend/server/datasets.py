@@ -141,7 +141,7 @@ class DatasetCache:
         for entry in self.base_path.iterdir():
             logger.info(f'Checking if folder {entry} is a dataset')
             # Only consider folders (excl. those starting with ".") that contain a 'info.json' file
-            if entry.is_dir() and not entry.name.startswith('.') and (entry / 'info.json').exists():
+            if entry.is_dir() and (entry / 'info.json').exists() and not entry.name.startswith('.'):
                 try:
                     with open(entry / 'info.json', 'r') as f:
                         # Read meta-data from info file
@@ -168,7 +168,8 @@ class DatasetCache:
                     logger.warning(f'Failed to validate dataset info at {entry.name}')
                     logger.exception(e)
             else:
-                logger.info(f'Ignoring data in {entry.name}')
+                logger.info(f'Ignoring data in {entry.name} '
+                            f'(info.json: {(entry / 'info.json').exists()}, entry_name: {entry.name})')
 
 
 datasets = DatasetCache(base_path=Path(settings.DATASETS_FOLDER))
