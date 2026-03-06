@@ -3,7 +3,8 @@ import type { Type } from "apache-arrow/enum";
 import { type Table, tableFromIPC } from "apache-arrow";
 import { GET, request } from "@/util/api.ts";
 import { feature, type WorldAtlas } from "topojson";
-import { geoPath, geoNaturalEarth1 } from "d3-geo";
+import { geoPath } from "d3-geo"; // geoNaturalEarth1 as geoProjection
+import { geoCylindricalEqualArea as geoProjection } from "d3-geo-projection";
 import type { GeometryCollection } from "topojson-specification";
 import type { FeatureCollection, GeometryObject } from "geojson";
 import { GeoProjection } from "d3";
@@ -99,7 +100,7 @@ export function useGeodata(slimUrl: string, fullUrl: string) {
   let _full: Record<number, ProjectedEntry_[]> | null = null;
   const _fullClean: Record<number, ProjectedEntry[]> | null = null;
 
-  const projection = geoNaturalEarth1();
+  const projection = geoProjection();
   const path = geoPath().projection(projection);
 
   async function world(): Promise<WorldAtlas> {
