@@ -62,8 +62,9 @@ onMounted(async () => {
 
   if (!canvas || !canvasContainer) return;
   if (!canvas.getContext("webgl") || !canvas.getContext("webgl2")) {
+    // https://webglreport.com/?v=1
     canvasContainer.innerHTML =
-      "The scatterplot cannot be displayed because your browser does not appeat to support WebGL.";
+      "The scatterplot cannot be displayed because your browser does not appear to support WebGL.";
     return;
   }
   renderer = createRenderer({ canvas });
