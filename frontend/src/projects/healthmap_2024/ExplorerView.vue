@@ -113,8 +113,8 @@ onMounted(() => {
           class="flex-grow-1"
           v-model:mask="geoMask"
           v-model:global-mask="globalMask"
-          :slim-url="`${DATA_BASE}/healthmap/${info.slim_geo_filename}`"
-          :full-url="`${DATA_BASE}/healthmap/${info.full_geo_filename}`" />
+          :slim-url="`${DATA_BASE}/healthmap_2024/${info.slim_geo_filename}`"
+          :full-url="`${DATA_BASE}/healthmap_2024/${info.full_geo_filename}`" />
       </FluidContainer>
     </template>
     <template #cont4>
