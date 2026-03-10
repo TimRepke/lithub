@@ -44,7 +44,7 @@ export function useHistogramMask(
   endYear: number,
   col: Vector<DataType<Type.Uint16>>,
 ): HistogramMask {
-  const diff = endYear - startYear;
+  const diff = endYear - startYear + 1;
   const years = [...Array(diff).keys()].map((i) => i + startYear);
 
   const bitmasks: Record<number, Bitmask> = Object.fromEntries(years.map((yr) => [yr, new Bitmask(col.length)]));

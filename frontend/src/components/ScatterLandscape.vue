@@ -59,8 +59,12 @@ onMounted(async () => {
 
   const canvas = canvasElement.value;
   const canvasContainer = canvasContainerElement.value;
-
   if (!canvas || !canvasContainer) return;
+  console.log(
+    canvas.getContext("webgl2", {
+      failIfMajorPerformanceCaveat: false,
+    }),
+  );
   if (!canvas.getContext("webgl") || !canvas.getContext("webgl2")) {
     // https://webglreport.com/?v=1
     canvasContainer.innerHTML =

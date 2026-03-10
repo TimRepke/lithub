@@ -1,10 +1,10 @@
 import { RouteRecordRaw } from "vue-router";
 
-const routeBaseName = "ds-healthmap";
+const routeBaseName = "ds-healthmap2024";
 
 export default {
   name: routeBaseName,
-  path: "healthmap",
+  path: "healthmap_2024",
   component: () => import("./ContainerView.vue"),
   children: [
     {

@@ -319,6 +319,7 @@ export async function loadDataset<K extends Indexes>(params: {
     let numLoadedMasks = 0;
     const maskBuffer: Record<string, BufferEntry> = {};
     const maskPromises = Object.values(labels) //
+      .filter((label) => label.key.indexOf("agg") < 0 && label.key.indexOf("cont|") < 0)
       .map(async (label) => {
         maskBuffer[label.key] = {
           ...label,

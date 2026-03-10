@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-import { useDelay } from "@/util";
+import { percentFormatter, useDelay } from "@/util";
 import { HistogramMask } from "@/util/dataset/masks/histogram.ts";
 import { scaleBand, scaleLinear } from "d3-scale";
 import { brushX, D3BrushEvent } from "d3-brush";
@@ -50,10 +50,26 @@ const data = computed(() =>
 );
 
 let focusYear: number | null = null;
-
-function showTooltip(d: Year) {
+function cagr(span: number, valStart: number, valEnd: number) {
+  return Math.pow(valEnd / valStart, 1 / span) - 1;
+}
+function showTooltip(d: Year, index: number) {
+  const cagr5 =
+    index < 5
+      ? "—"
+      : percentFormatter.format(cagr(5, data.value[index - 5].stack[1].count, data.value[index].stack[1].count));
+  const cagr10 =
+    index < 10
+      ? "—"
+      : percentFormatter.format(cagr(10, data.value[index - 10].stack[1].count, data.value[index].stack[1].count));
   tooltip
-    .html(`<strong>${d.year}</strong><br />Total: ${d.stack[1].count}<br />Filtered: ${d.stack[2].count}`)
+    .html(
+      `<strong>${d.year}</strong><br />
+Total: ${d.stack[1].count}<br />
+Filtered: ${d.stack[2].count}<br />
+5yr CAGR: ${cagr5}<br />
+10yr CAGR: ${cagr10}`,
+    )
     .classed("hidden", false)
     .style("top", "10px");
 
@@ -90,7 +106,7 @@ const groupBrush = g
     const hoverYear = Math.max(0, Math.min(years.length - 1, Math.floor(e.clientX / xScale.step()) - 1));
     if (hoverYear !== focusYear) {
       focusYear = hoverYear;
-      showTooltip(data.value[focusYear]);
+      showTooltip(data.value[focusYear], hoverYear);
     }
   })
   .on("mouseleave", hideTooltip);

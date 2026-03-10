@@ -9,7 +9,7 @@ import { datasetStore } from "@/stores";
 
 const isReady = ref(false);
 onMounted(async () => {
-  const info = await GET<DatasetInfo>({ path: "/basic/info", params: { dataset: "healthmap" } });
+  const info = await GET<DatasetInfo>({ path: "/basic/info", params: { dataset: "healthmap_2026" } });
   await datasetStore.load(info);
   isReady.value = true;
 });
@@ -72,7 +72,7 @@ onMounted(async () => {
 <style></style>
 <style scoped lang="scss">
 #pfhead {
-  background-image: url("@/projects/healthmap/assets/pfgeader.jpg");
+  background-image: url("@/projects/healthmap_2026/assets/pfgeader.jpg");
   background-position: center;
 }
 #loading {
