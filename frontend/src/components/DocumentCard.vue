@@ -36,12 +36,8 @@ const labels = computed(() =>
     <div class="card-footer">
       <!-- TODO add "jump to" crosshairs -->
       <!-- <font-awesome-icon icon="location-crosshairs" class="me-2" />-->
-      <a v-if="doc.doi" :href="`https:/doi.org/${doc.doi}`" class="me-2" target="_blank">DOI</a>
-      <a
-        v-if="doc.openalex_id"
-        :href="`https://api.openalex.org/works/${doc.openalex_id}`"
-        class="me-2"
-        target="_blank">
+      <a v-if="doc.doi" :href="`https://doi.org/${doc.doi}`" class="me-2" target="_blank">DOI</a>
+      <a v-if="doc.openalex_id" :href="`https://openalex.org/works/${doc.openalex_id}`" class="me-2" target="_blank">
         <img src="@/assets/openalex.png" style="height: 1em" alt="OpenAlex" />OpenAlex
       </a>
 
