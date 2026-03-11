@@ -70,7 +70,8 @@ onMounted(() => {
             {{ globalCounts.countFiltered.toLocaleString() }} /
             {{ globalCounts.countTotal.toLocaleString() }}
           </div>
-          <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
+          <div class="text-muted fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
+          <InclusiveIcon v-model:inclusive="inclusive" class="ms-3" />
         </div>
 
         <div class="filter-sidebar-container">
