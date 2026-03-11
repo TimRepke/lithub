@@ -4,12 +4,14 @@ import { computed } from "vue";
 import { isNone } from "@/util";
 
 const uniq = crypto.randomUUID();
-const { prefix, name, icon, iconFalse, value } = defineProps({
+const { prefix, name, icon, iconFalse, value, textFalse } = defineProps({
   prefix: { type: String },
   name: { type: String }, // if set, switches to radio
   value: { type: [String, Number, Boolean] },
   icon: { type: String },
   iconFalse: { type: String },
+  text: { type: String },
+  textFalse: { type: String },
 });
 const slots = defineSlots<{
   iconTrue: string;
@@ -24,6 +26,7 @@ const hasPropIcon = computed(() => icon);
 const faIcon = computed(() => (iconFalse && !model.value ? iconFalse : icon));
 
 const hasFalseSlot = computed(() => !!slots.iconFalse);
+const hasFalseText = computed(() => !!textFalse);
 </script>
 
 <template>
@@ -32,10 +35,12 @@ const hasFalseSlot = computed(() => !!slots.iconFalse);
     <label :for="`${prefix}-${uniq}`" class="icon">
       <template v-if="hasPropIcon && faIcon">
         <font-awesome-icon :icon="faIcon" />
+        <template v-if="active || (!active && !hasFalseText)"> {{ text }}</template>
+        <template v-else>{{ textFalse }}</template>
       </template>
       <template v-else>
-        <slot name="iconTrue" v-if="active || (!active && !hasFalseSlot)"></slot>
-        <slot name="iconFalse" v-else></slot>
+        <template v-if="active || (!active && !hasFalseSlot)"><slot name="iconTrue"></slot> {{ text }}</template>
+        <template v-else><slot name="iconFalse"></slot> {{ textFalse }}</template>
       </template>
     </label>
   </div>

@@ -11,6 +11,9 @@ const { schemeLabels, doc: document } = defineProps({
 });
 defineEmits<{ (e: "report", document: AnnotatedDocument): void }>();
 const showAllLabels = ref(false);
+const MAX_LEN = 1000;
+const shorten = ref<boolean>(true);
+const abstract = computed(() => document.abstract ?? "[missing abstract]");
 
 const labels = computed(() =>
   Object.entries(document?.labels).map(([key, score]) => {
@@ -31,7 +34,19 @@ const labels = computed(() =>
       <strong>{{ doc.title }}</strong>
       <br />
       <span class="fst-italic">{{ doc.publication_year }} | {{ doc.authors }}</span>
-      <p class="card-text">{{ doc.abstract }}</p>
+      <p class="card-text">
+        <template v-if="!shorten">{{ abstract }}</template>
+        <template v-else>{{ abstract.substring(0, MAX_LEN) }}...</template>
+        <ToggleIcon
+          v-if="abstract.length > MAX_LEN"
+          v-model:model="shorten"
+          icon="plus"
+          text="Read less"
+          icon-false="minus"
+          text-false="Read more"
+          class="no-border"
+          style="display: inline" />
+      </p>
     </div>
     <div class="card-footer">
       <!-- TODO add "jump to" crosshairs -->

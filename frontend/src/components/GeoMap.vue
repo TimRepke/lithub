@@ -260,7 +260,7 @@ onMounted(async () => {
       ])
       .then(async (prom) => {
         [{ counts: countryTotalCounts, documents: countryDocuments }, topo] = prom;
-
+        console.log(countryTotalCounts);
         // force recomputing of `countryCounts` (this also implicitly triggers initial drawing of map)
         // countryCounts.effect.trigger();
         // countryCounts.effect.dirty = true;
@@ -273,6 +273,7 @@ onMounted(async () => {
 
         // load the full data at the very end, so we can draw first and wait for it for later
         full = await data.fullClean();
+        console.log(full);
       });
   }
 });
