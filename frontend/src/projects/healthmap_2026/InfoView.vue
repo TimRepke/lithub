@@ -2,44 +2,36 @@
 
 <template>
   <h3>Mapping climate & health evidence</h3>
-  <p class="fst-italic">
+  <!-- <p class="fst-italic">
     <strong>Authors:</strong>
     Max Callaghan, et al.
+  </p> -->
+  <p>
+    The climate and health interactive platform provides access to a living map of the literature on climate and health, produced using machine learning as part of the <a href="https://www.lshtm.ac.uk/research/centres-projects-groups/pathfinder-initiative">PATHFINDER initiative</a>. A detailed user guide is available at <a>LINK</a>.
   </p>
   <p>
-    The climate and health interactive platform allows users to explore the data generated in a machine-learning
-    assisted rapid map of the evidence on climate and health, conducted by the University of Leeds, the London School of
-    Hygiene and Tropical Medicine, and the Mercator Research on Global Commons and Climate Change in Berlin. The
-    evidence map was produced for the UK Department for International Development.
+    This map builds on foundations laid by  <a href="https://doi.org/10.1016/S2542-5196(21)00179-0">Systematic mapping of global research on climate and health: a machine learning review</a>, published in Lancet Planetary Health and led by Lea Berrang-Ford .
   </p>
   <p>
-    The map coded 15,000 scientific papers by subject (using topic modelling) and by place of study (using a geoparser).
-    The interactive platform allows users to explore this data.
-  </p>
-  <h2>Regional exploration</h2>
-  <p>
-    The regions section displays 6 geographical regions with countries that are of special interest to DfID. In each
-    country, we place a dot in the location of all studies for which we found a location in that country. The bar chart
-    to the right of the map describes the topics which are highly prevalent (compared to the global average) in the
-    region. The sidebar on the right shows the documents and topics that are currently selected. By default this will
-    show all documents in the countries of interest to DfID.
-  </p>
-  <h2>Climate-health pathways</h2>
-  <p>
-    This "heatmap" shows the number of documents in various combinations of topic category. The columns refer to groups
-    of topics which describe climate drivers, while the rows refer to groups of topics which describe health impacts.
-    Each cell contains the number of documents which have high topic scores for the climate driver in the column and the
-    health impact in the row.
+    In addition to the topic models developed Berrand Ford et al, this map uses transformer-based models to further categorise the literature.
   </p>
   <p>
-    Darker colours refer to higher numbers, but we may also want to highlight large and small values in the context of
-    each row or each column. Clicking on "Normalise by column sum" adjusts the colour scale so that the colours reflect
-    each cell's proportion of the column sum, and "Normalise by row sum" does the same for the row sum.
+    Labels from topic models and transformer-based models can be used and combined as filters (on the left-hand panel) to help explore the literature and identify subsets of the literature of relevance to your research question. 
+    In addition, data can be filtered according to locations mentioned in a study, or by the location of authors' affiliations (note that not all documents mention a location).
   </p>
+  <h3>Visualisations and exploration</h3>
   <p>
-    Clicking on a cell updates the table on the right side of the screen to show the documents which refer to topics in
-    the cells column and row. For example, the screenshot below shows the documents relevant to Infections disease &
-    Temperature
+    In addition to the filters, data can be explored, and further selected using the visualisations detailed below
+  </p>
+  <h4>Scatterplot</h4>
+  <p>
+    The scatterplot plots documents in a 2-dimensional representation of the topic space. Documents with similar topics are placed close together, and areads of the map can be selected by holding SHIFT and dragging the mouse.
+  </p>
+  <h4>Geographic map</h4>
+    The geographic map displays research that matches your filter on a geographic map. Select countries to view research on climate and health from that country.
+  <h4>Cross-tab</h4>
+  <p>
+    The cross-tab shows displays the distribution of research on the intersection of different sets of filters. Click on any of the cells to narrow your selection to papers which address the combination of row and column headings.
   </p>
 </template>
 
