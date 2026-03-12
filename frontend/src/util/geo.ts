@@ -128,7 +128,8 @@ export function useGeodata(slimUrl: string, fullUrl: string) {
   async function slim(): Promise<SlimData> {
     if (_slim) return Promise.resolve(_slim);
     const req = await request({ method: "GET", path: slimUrl, keepPath: true });
-    const places = await tableFromIPC<SlimPlacesSchema>(req.arrayBuffer());
+    const buffer = await req.arrayBuffer();
+    const places = tableFromIPC<SlimPlacesSchema>(buffer);
     _slim = translateSlimTable(places);
     return _slim;
   }

@@ -141,17 +141,29 @@ onMounted(() => {
             v-model:group-mask="labelMaskGroups['Affiliation_Continent (Name)']"
             v-model:picked-colour="pickedColour" />
           <!-- Aggregated meta-topic -->
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['topic-agg-agg']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter
+            v-model:group-mask="labelMaskGroups['topic-agg-agg']"
+            v-model:picked-colour="pickedColour" />
           <!-- Exposure -->
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['topic-agg-agg|0']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter
+            v-model:group-mask="labelMaskGroups['topic-agg-agg|0']"
+            v-model:picked-colour="pickedColour" />
           <!-- Health impact -->
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['topic-agg-agg|1']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter
+            v-model:group-mask="labelMaskGroups['topic-agg-agg|1']"
+            v-model:picked-colour="pickedColour" />
           <!-- Intervention option -->
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['topic-agg-agg|2']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter
+            v-model:group-mask="labelMaskGroups['topic-agg-agg|2']"
+            v-model:picked-colour="pickedColour" />
           <!-- Mediating pathways -->
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['topic-agg-agg|3']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter
+            v-model:group-mask="labelMaskGroups['topic-agg-agg|3']"
+            v-model:picked-colour="pickedColour" />
           <!-- Methods -->
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['topic-agg-4|0']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter
+            v-model:group-mask="labelMaskGroups['topic-agg-4|0']"
+            v-model:picked-colour="pickedColour" />
 
           <!-- SidebarLabelFilter v-model:group-mask="labelMaskGroups.t3" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-0']" v-model:picked-colour="pickedColour" />
@@ -171,7 +183,7 @@ onMounted(() => {
     </template>
 
     <template #cont2>
-      <FluidContainer title="Scatterplot" :initial-state="false">
+      <FluidContainer title="Scatterplot" :initial-state="true">
         <ScatterLandscape
           v-model:mask="scatterMask"
           v-model:global-mask="globalMask"
@@ -185,7 +197,7 @@ onMounted(() => {
     </template>
 
     <template #cont3>
-      <FluidContainer title="Geographic map" :initial-state="true">
+      <FluidContainer title="Geographic map" :initial-state="false">
         <GeoMap
           class="flex-grow-1"
           v-model:mask="geoMask"

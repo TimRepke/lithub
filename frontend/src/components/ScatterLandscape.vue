@@ -7,12 +7,10 @@ import { type None } from "@/util";
 import type { Bitmask } from "@/util/dataset/masks/bitmask.ts";
 import { scaleLinear, type ScaleContinuousNumeric } from "d3-scale";
 import createScatterplot from "regl-scatterplot";
-import { createRenderer } from "regl-scatterplot";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
 
 type Scale = ScaleContinuousNumeric<number, number>;
-// type ViewPayload = Pick<Properties, "camera" | "xScale" | "yScale"> & { view: Properties["cameraView"] };
 type ViewBounds = { topRight: [number, number]; bottomLeft: [number, number] };
 type Point = [number, number, number, number];
 
@@ -36,7 +34,6 @@ const keywordsVisible = ref(true);
 
 let points: Point[];
 let scatterplot: ReglScatterplot;
-let renderer;
 
 const OPACITY_DEFAULT = 1;
 const OPACITY_HIDDEN = 0.2;
@@ -60,18 +57,13 @@ onMounted(async () => {
   const canvas = canvasElement.value;
   const canvasContainer = canvasContainerElement.value;
   if (!canvas || !canvasContainer) return;
-  console.log(
-    canvas.getContext("webgl2", {
-      failIfMajorPerformanceCaveat: false,
-    }),
-  );
-  if (!canvas.getContext("webgl") || !canvas.getContext("webgl2")) {
+
+  if (!document.createElement("canvas").getContext("webgl")) {
     // https://webglreport.com/?v=1
-    canvasContainer.innerHTML =
-      "The scatterplot cannot be displayed because your browser does not appear to support WebGL.";
+    canvasContainer.innerHTML = `The scatterplot cannot be displayed because your browser does not appear to support WebGL.
+<a href="https://webglreport.com/?v=1" target="_blank">Check this</a> for your browser compatibility.`;
     return;
   }
-  renderer = createRenderer({ canvas });
 
   const textOverlayEl: HTMLCanvasElement = document.createElement("canvas");
   textOverlayEl.id = "#text-overlay";
@@ -84,24 +76,11 @@ onMounted(async () => {
 
   canvasContainer.appendChild(textOverlayEl);
 
-  const resizeTextOverlay = () => {
-    const { width, height } = canvasContainer.getBoundingClientRect();
-    textOverlayEl.width = width * window.devicePixelRatio;
-    textOverlayEl.height = height * window.devicePixelRatio;
-    textOverlayEl.style.width = `${width}px`;
-    textOverlayEl.style.height = `${height}px`;
-  };
-  resizeTextOverlay();
-
-  window.addEventListener("resize", resizeTextOverlay);
-
-  const overlayFontSize = 12;
   const textOverlayCtx = textOverlayEl.getContext("2d");
 
   //@ts-ignore
   scatterplot = createScatterplot({
     canvas: canvas,
-    renderer: renderer,
     lassoMinDelay,
     lassoMinDist,
     showReticle: true,
@@ -127,27 +106,43 @@ onMounted(async () => {
 
   // await scatterplot.zoomToLocation([0.5, 0.5], 0.5);
 
+  function resizeTextOverlay() {
+    if (!canvasContainer) return;
+    const { width, height } = canvasContainer.getBoundingClientRect();
+    const scaling = window.devicePixelRatio;
+
+    textOverlayEl.width = width * scaling;
+    textOverlayEl.height = height * scaling;
+    textOverlayEl.style.width = `${width}px`;
+    textOverlayEl.style.height = `${height}px`;
+
+    if (textOverlayCtx) {
+      textOverlayCtx.setTransform(1, 0, 0, 1, 0, 0); // Reset
+      textOverlayCtx.scale(scaling, scaling);
+    }
+
+    redrawKeywords();
+    if (scatterplot) scatterplot.set({ width, height });
+  }
   function getViewBounds(xScale: Scale, yScale: Scale): ViewBounds {
     const rect = canvas!.getBoundingClientRect();
-    const topRight: [number, number] = [xScale.invert(rect.width / window.devicePixelRatio), yScale.invert(0)];
-    const bottomLeft: [number, number] = [xScale.invert(0), yScale.invert(rect.height / window.devicePixelRatio)];
+    const topRight: [number, number] = [xScale.invert(rect.width), yScale.invert(0)];
+    const bottomLeft: [number, number] = [xScale.invert(0), yScale.invert(rect.height)];
     return { topRight, bottomLeft };
   }
-
   function inBounds(bounds: ViewBounds, x: number, y: number): boolean {
     const { topRight, bottomLeft } = bounds;
     return x > bottomLeft[0] && x < topRight[0] && y < topRight[1] && y > bottomLeft[1];
   }
-
   function redrawKeywords() {
     if (textOverlayCtx && canvas && scatterplot) {
-      textOverlayCtx.clearRect(0, 0, canvas.width, canvas.height);
+      const { width, height } = canvas.getBoundingClientRect();
+      textOverlayCtx.clearRect(0, 0, width, height);
 
       const xScale: Scale | null = scatterplot.get("xScale");
       const yScale: Scale | null = scatterplot.get("yScale");
 
       if (keywordsVisible.value && xScale && yScale) {
-        xScale.domain();
         textOverlayCtx.font = "1.2em bold, sans-serif";
         textOverlayCtx.textAlign = "center";
         textOverlayCtx.lineWidth = 4;
@@ -158,20 +153,19 @@ onMounted(async () => {
         let cnt = 0;
         let x;
         let y;
-        const scaling = window.devicePixelRatio;
 
         for (const keyword of keywords.value) {
-          if (inBounds(viewBounds, keyword.x, keyword.y)) {
+          x = xScale(keyword.x * 0.5 + 0.5); // * scaling;
+          y = yScale(keyword.y * 0.5 + 0.5);
+          if (inBounds(viewBounds, keyword.x * 0.5 + 0.5, keyword.y * 0.5 + 0.5)) {
             cnt += 1;
-            x = xScale(keyword.x) * scaling;
-            y = yScale(keyword.y) * scaling - overlayFontSize * 1.2 * scaling;
 
             textOverlayCtx.strokeStyle = "white";
             textOverlayCtx.strokeText(keyword.keyword, x, y);
             textOverlayCtx.fillStyle = "black";
             textOverlayCtx.fillText(keyword.keyword, x, y);
           }
-          if (cnt > maxKeywordsInView) break;
+          if (cnt > maxKeywordsInView * 2) break;
         }
       }
     }
@@ -200,6 +194,7 @@ onMounted(async () => {
   }
 
   // initial drawing of keywords (possibly redundant to the watch, but make extra sure...)
+  resizeTextOverlay();
   redrawKeywords();
   await redrawColour();
 
@@ -207,16 +202,11 @@ onMounted(async () => {
   watch(keywordsVisible, redrawKeywords);
   watch(pickedColour, redrawColour);
   watch(globalVersion, redrawMask);
-  /*
-    const { width, height } = canvas.getBoundingClientRect();
-    scatterplot.set({ width, height });
-    */
-  // In case resizing becomes an issue again:
+
   // https://github.com/flekschas/regl-scatterplot?tab=readme-ov-file#resizing-the-scatterplot
-  // const containerObserver = new ResizeObserver((r) => {
-  //   console.log(r[0].contentRect.width, r[0].contentRect.height);
-  // });
-  // containerObserver.observe(canvasContainer);
+  const containerObserver = new ResizeObserver(resizeTextOverlay);
+  containerObserver.observe(canvasContainer);
+  // window.addEventListener("resize", resizeTextOverlay);
 });
 </script>
 
