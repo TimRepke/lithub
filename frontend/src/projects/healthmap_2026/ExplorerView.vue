@@ -22,6 +22,8 @@ import ReportingModal from "@/components/ReportingModal.vue";
 import type { AnnotatedDocument } from "@/util/types";
 import HistogramFilter from "@/components/HistogramFilter.vue";
 import DownloadControl from "@/components/DownloadControl.vue";
+import SidebarLabelFilterGroup from "@/components/SidebarLabelFilterGroup.vue";
+import { LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
 // import SunburstDiagram from "@/components/SunburstDiagram.vue";
 
 type IndexKeys = "scatter" | "geo";
@@ -54,6 +56,26 @@ const reportDoc = ref<AnnotatedDocument | null>(null);
 function startPauseResultFetching(active: boolean) {
   results.paused.value = !active;
 }
+const labelGroups = ref<Record<string, Array<LabelMaskGroup>>>({
+  location: [
+    labelMaskGroups["Location_Group (Lancet 2026)"],
+    labelMaskGroups["Location_Region (WorldBank 2026)"],
+    labelMaskGroups["Location_Group (WHO 2026)"],
+    labelMaskGroups["Location_Group (HDI 2026)"],
+    labelMaskGroups["Location_Income group (WorldBank 2026)"],
+    labelMaskGroups["Location_Lending category (WorldBank 2026)"],
+    labelMaskGroups["Location_Continent (Name)"],
+  ],
+  affiliation: [
+    labelMaskGroups["Affiliation_Group (Lancet 2026)"],
+    labelMaskGroups["Affiliation_Region (WorldBank 2026)"],
+    labelMaskGroups["Affiliation_Group (WHO 2026)"],
+    labelMaskGroups["Affiliation_Group (HDI 2026)"],
+    labelMaskGroups["Affiliation_Income group (WorldBank 2026)"],
+    labelMaskGroups["Affiliation_Lending category (WorldBank 2026)"],
+    labelMaskGroups["Affiliation_Continent (Name)"],
+  ],
+});
 
 onMounted(() => {
   results.delayedUpdate();
@@ -76,6 +98,15 @@ onMounted(() => {
 
         <div class="filter-sidebar-container">
           <HistogramFilter v-model:mask="pyMask" />
+          <SidebarLabelFilterGroup
+            headline="Study location"
+            v-model:group-masks="labelGroups.location"
+            v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilterGroup
+            headline="Author affiliation"
+            v-model:group-masks="labelGroups.affiliation"
+            v-model:picked-colour="pickedColour" />
+
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cat" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.keywords" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.sector" v-model:picked-colour="pickedColour" />
@@ -86,60 +117,7 @@ onMounted(() => {
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.driver" v-model:picked-colour="pickedColour" />
           <!--SidebarLabelFilter v-model:group-mask="labelMaskGroups.type" v-model:picked-colour="pickedColour" /-->
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.rel_impacts" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Location_Group (Lancet 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Location_Group (WHO 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Location_Group (HDI 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Location_Region (IPCC AR6, 6)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Location_Region (IPCC AR6, 10)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Location_Region (WorldBank 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Location_Income group (WorldBank 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Location_Lending category (WorldBank 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Location_Continent (Name)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Affiliation_Group (Lancet 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Affiliation_Group (WHO 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Affiliation_Group (HDI 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Affiliation_Region (IPCC AR6, 6)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Affiliation_Region (IPCC AR6, 10)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Affiliation_Region (WorldBank 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Affiliation_Income group (WorldBank 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Affiliation_Lending category (WorldBank 2026)']"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['Affiliation_Continent (Name)']"
-            v-model:picked-colour="pickedColour" />
+
           <!-- Aggregated meta-topic -->
           <SidebarLabelFilter
             v-model:group-mask="labelMaskGroups['topic-agg-agg']"
@@ -183,7 +161,7 @@ onMounted(() => {
     </template>
 
     <template #cont2>
-      <FluidContainer title="Scatterplot" :initial-state="true">
+      <FluidContainer title="Scatterplot" :initial-state="false">
         <ScatterLandscape
           v-model:mask="scatterMask"
           v-model:global-mask="globalMask"
