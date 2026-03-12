@@ -39,8 +39,15 @@ const styleColours = computed(() =>
         <label :for="`active-${selectedGroup.key}-${mKey}-${uniq}`" :style="styleColours[mKey]">
           <span class="counts">
             <span>
-              {{ mask.counts.countFiltered.toLocaleString() }} /
-              {{ mask.counts.countTotal.toLocaleString() }}
+              {{
+                // @ts-ignore
+                mask.counts.countFiltered.toLocaleString()
+              }}
+              /
+              {{
+                // @ts-ignore
+                mask.counts.countTotal.toLocaleString()
+              }}
             </span>
           </span>
           <span>
