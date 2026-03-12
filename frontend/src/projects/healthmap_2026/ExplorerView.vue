@@ -98,42 +98,39 @@ onMounted(() => {
 
         <div class="filter-sidebar-container">
           <HistogramFilter v-model:mask="pyMask" />
-          <SidebarLabelFilterGroup
-            headline="Study location"
-            v-model:group-masks="labelGroups.location"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilterGroup
-            headline="Author affiliation"
-            v-model:group-masks="labelGroups.affiliation"
-            v-model:picked-colour="pickedColour" />
 
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cat" v-model:picked-colour="pickedColour" />
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.keywords" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.sector" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.attr" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.expose" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.health" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.event" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.driver" v-model:picked-colour="pickedColour" />
+          <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.attr" v-model:picked-colour="pickedColour" />-->
+          <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.expose" v-model:picked-colour="pickedColour" />-->
+          <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.event" v-model:picked-colour="pickedColour" />-->
+          <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.driver" v-model:picked-colour="pickedColour" />-->
           <!--SidebarLabelFilter v-model:group-mask="labelMaskGroups.type" v-model:picked-colour="pickedColour" /-->
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.rel_impacts" v-model:picked-colour="pickedColour" />
+          <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.rel_impacts" v-model:picked-colour="pickedColour" />-->
 
           <!-- Aggregated meta-topic -->
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['topic-agg-agg']"
-            v-model:picked-colour="pickedColour" />
+          <!--          <SidebarLabelFilter-->
+          <!--            v-model:group-mask="labelMaskGroups['topic-agg-agg']"-->
+          <!--            v-model:picked-colour="pickedColour" />-->
           <!-- Exposure -->
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['topic-agg-agg|0']"
-            v-model:picked-colour="pickedColour" />
+          <!--          <SidebarLabelFilter-->
+          <!--            v-model:group-mask="labelMaskGroups['topic-agg-agg|0']"-->
+          <!--            v-model:picked-colour="pickedColour" />-->
           <!-- Health impact -->
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['topic-agg-agg|1']"
-            v-model:picked-colour="pickedColour" />
+          <!--          <SidebarLabelFilter-->
+          <!--            v-model:group-mask="labelMaskGroups['topic-agg-agg|1']"-->
+          <!--            v-model:picked-colour="pickedColour" />-->
+
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.health" v-model:picked-colour="pickedColour" />
+
           <!-- Intervention option -->
           <SidebarLabelFilter
             v-model:group-mask="labelMaskGroups['topic-agg-agg|2']"
             v-model:picked-colour="pickedColour" />
+
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.sector" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.driver" v-model:picked-colour="pickedColour" />
+
           <!-- Mediating pathways -->
           <SidebarLabelFilter
             v-model:group-mask="labelMaskGroups['topic-agg-agg|3']"
@@ -143,19 +140,16 @@ onMounted(() => {
             v-model:group-mask="labelMaskGroups['topic-agg-4|0']"
             v-model:picked-colour="pickedColour" />
 
-          <!-- SidebarLabelFilter v-model:group-mask="labelMaskGroups.t3" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-0']" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-1']" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-2']" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t2-3']" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['t1-4-0']" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cont" v-model:picked-colour="pickedColour" /-->
+          <SidebarLabelFilterGroup
+            headline="Study location"
+            v-model:group-masks="labelGroups.location"
+            v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilterGroup
+            headline="Author affiliation"
+            v-model:group-masks="labelGroups.affiliation"
+            v-model:picked-colour="pickedColour" />
+
           <SidebarSearchFilter v-model:mask="searchMask" />
-          <!--          <SunburstDiagram-->
-          <!--            root-key="t3"-->
-          <!--            :scheme-labels="schemeLabels"-->
-          <!--            :scheme-groups="schemeGroups"-->
-          <!--            v-model:group-masks="labelMaskGroups" />-->
         </div>
       </FluidContainer>
     </template>
