@@ -91,7 +91,10 @@ onMounted(() => {
             Number of documents:
             {{ globalCounts.countFiltered.toLocaleString() }} /
             {{ globalCounts.countTotal.toLocaleString() }}
-            ({{ Math.round((globalCounts.countFiltered / globalCounts.countTotal) * 100) }}%)
+
+            <template v-if="globalCounts.countFiltered !== globalCounts.countTotal">
+              ({{ Math.round((globalCounts.countFiltered / globalCounts.countTotal) * 100) }}%)
+            </template>
           </div>
           <div class="text-muted fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-3" />
@@ -101,7 +104,7 @@ onMounted(() => {
           <HistogramFilter v-model:mask="pyMask" />
 
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cat" v-model:picked-colour="pickedColour" />
-<!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.keywords" v-model:picked-colour="pickedColour" />-->
+          <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.keywords" v-model:picked-colour="pickedColour" />-->
           <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.attr" v-model:picked-colour="pickedColour" />-->
           <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.expose" v-model:picked-colour="pickedColour" />-->
           <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.event" v-model:picked-colour="pickedColour" />-->
