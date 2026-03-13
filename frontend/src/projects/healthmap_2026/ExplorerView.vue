@@ -91,6 +91,7 @@ onMounted(() => {
             Number of documents:
             {{ globalCounts.countFiltered.toLocaleString() }} /
             {{ globalCounts.countTotal.toLocaleString() }}
+            ({{ Math.round((globalCounts.countFiltered / globalCounts.countTotal) * 100) }}%)
           </div>
           <div class="text-muted fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-3" />
