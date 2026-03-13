@@ -72,8 +72,9 @@ onMounted(async () => {
 <style></style>
 <style scoped lang="scss">
 #pfhead {
-  background-image: url("@/projects/healthmap_2026/assets/pfgeader.jpg");
+  background-image: url("@/projects/healthmap_2026/assets/pathfinder_back.jpg");
   background-position: center;
+  background-size: cover;
 }
 #loading {
   display: flex;

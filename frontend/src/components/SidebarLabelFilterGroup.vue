@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { type LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import InclusiveIcon from "@/components/InclusiveIcon.vue";
+import ToolTip from "@/components/ToolTip.vue";
 
 const uniq = crypto.randomUUID();
 const { headline } = defineProps({
   headline: { type: String, required: true },
 });
 const groupMasks = defineModel<Array<LabelMaskGroup>>("groupMasks", { required: true });
+const pickedColour = defineModel("pickedColour");
 
 const group = ref(0);
 const selectedGroup = computed(() => groupMasks.value[group.value]);
@@ -26,9 +30,31 @@ const styleColours = computed(() =>
   <div class="filter">
     <div class="filter-head">
       <div>{{ headline }}</div>
+      <div>
+        <InclusiveIcon v-model:inclusive="selectedGroup.inclusive" />
+
+        <ToolTip text="Use in map colour" position="left">
+          <input
+            type="radio"
+            :id="`colour-${selectedGroup.key}-${uniq}`"
+            :value="selectedGroup.key"
+            v-model="pickedColour"
+            name="colour-picker" />
+          <label :for="`colour-${selectedGroup.key}-${uniq}`" class="icon">
+            <font-awesome-icon icon="palette" />
+          </label>
+        </ToolTip>
+
+        <ToolTip :text="`Toggle '${selectedGroup.name}' filter`" position="left">
+          <input type="checkbox" :id="`active-${selectedGroup.key}-${uniq}`" v-model="selectedGroup.active" />
+          <label :for="`active-${selectedGroup.key}-${uniq}`" class="icon">
+            <font-awesome-icon icon="filter" />
+          </label>
+        </ToolTip>
+      </div>
     </div>
     <div>
-      <select v-model="group">
+      <select v-model="group" class="form-select form-select-sm mb-3">
         <option v-for="(grp, gi) in groupMasks" :value="gi">{{ grp.name }}</option>
       </select>
     </div>

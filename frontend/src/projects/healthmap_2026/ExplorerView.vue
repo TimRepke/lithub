@@ -100,7 +100,7 @@ onMounted(() => {
           <HistogramFilter v-model:mask="pyMask" />
 
           <SidebarLabelFilter v-model:group-mask="labelMaskGroups.cat" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.keywords" v-model:picked-colour="pickedColour" />
+<!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.keywords" v-model:picked-colour="pickedColour" />-->
           <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.attr" v-model:picked-colour="pickedColour" />-->
           <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.expose" v-model:picked-colour="pickedColour" />-->
           <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.event" v-model:picked-colour="pickedColour" />-->
@@ -179,7 +179,7 @@ onMounted(() => {
       </FluidContainer>
     </template>
     <template #cont4>
-      <FluidContainer title="Label correlation" :initial-state="false">
+      <FluidContainer title="Label correlation" :initial-state="true">
         <HeatMap
           class="flex-grow-1"
           v-model:global-mask="globalMask"
