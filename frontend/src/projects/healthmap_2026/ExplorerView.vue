@@ -188,7 +188,28 @@ onMounted(() => {
           class="flex-grow-1"
           v-model:global-mask="globalMask"
           v-model:group-masks="labelMaskGroups"
-          :selectable-groups="Object.keys(labelMaskGroups)"
+          :selectable-groups="[
+            'cat',
+            'health',
+            'topic-agg-agg',
+            'topic-agg-agg|2',
+            'topic-agg-agg|3',
+            'topic-agg-4|0',
+            'Location_Group (Lancet 2026)',
+            'Location_Region (WorldBank 2026)',
+            'Location_Group (WHO 2026)',
+            'Location_Group (HDI 2026)',
+            'Location_Income group (WorldBank 2026)',
+            'Location_Lending category (WorldBank 2026)',
+            'Location_Continent (Name)',
+            'Affiliation_Group (Lancet 2026)',
+            'Affiliation_Region (WorldBank 2026)',
+            'Affiliation_Group (WHO 2026)',
+            'Affiliation_Group (HDI 2026)',
+            'Affiliation_Income group (WorldBank 2026)',
+            'Affiliation_Lending category (WorldBank 2026)',
+            'Affiliation_Continent (Name)',
+          ]"
           :year-masks="pyMask"
           init-hori="cat"
           init-vert="topic-agg-agg" />

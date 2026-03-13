@@ -174,7 +174,7 @@ function selectCell(x: SCMValue, y: SCMValue) {
           <tbody>
             <tr>
               <th></th>
-              <th v-for="value in fullScheme[xKey].values" :key="+value.value">{{ value.name }}</th>
+              <th v-for="xValue in fullScheme[xKey].values" :key="xValue.value">{{ xValue.name }}</th>
             </tr>
             <tr v-for="yValue in fullScheme[yKey].values" :key="+yValue.value">
               <th>{{ yValue.name }}</th>
