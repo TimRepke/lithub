@@ -191,6 +191,8 @@ onMounted(() => {
           :selectable-groups="[
             'cat',
             'health',
+            'sector',
+            'driver',
             'topic-agg-agg',
             'topic-agg-agg|2',
             'topic-agg-agg|3',
