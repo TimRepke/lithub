@@ -92,9 +92,9 @@ onMounted(() => {
             {{ globalCounts.countFiltered.toLocaleString() }} /
             {{ globalCounts.countTotal.toLocaleString() }}
 
-            <template v-if="globalCounts.countFiltered !== globalCounts.countTotal">
+            <span v-if="globalCounts.countFiltered !== globalCounts.countTotal" class="text-muted">
               ({{ Math.round((globalCounts.countFiltered / globalCounts.countTotal) * 100) }}%)
-            </template>
+            </span>
           </div>
           <div class="text-muted fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-3" />
