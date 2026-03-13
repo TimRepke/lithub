@@ -100,6 +100,21 @@ const colours = computed(() => {
   return d3scaleSequential(extent, interpolateYlGn);
 });
 
+const dropdownOptions = computed(
+  () =>
+    selectableGroups.map((key) => ({
+      key: key,
+      name: fullScheme.value[key].name,
+    })),
+  // Object.values(fullScheme.value)
+  //   .map((label) => ({
+  //     key: label.key,
+  //     name: label.name,
+  //     stackedName: label.key,
+  //   }))
+  //   .toSorted((a, b) => (a.name > b.name ? 1 : -1)),
+);
+
 function swapAxes() {
   const tmp = xKey.value;
   xKey.value = yKey.value;
@@ -151,7 +166,7 @@ function selectCell(x: SCMValue, y: SCMValue) {
         <div class="col">
           <label :for="`ykey-${uniq}`">Vertical axis</label>
           <select class="form-select form-select-sm" v-model="yKey" :id="`ykey-${uniq}`">
-            <option v-for="label in fullScheme" :key="label.key" :value="label.key" :disabled="label.key === xKey">
+            <option v-for="label in dropdownOptions" :key="label.key" :value="label.key" :disabled="label.key === xKey">
               {{ label.name }}
             </option>
           </select>
@@ -162,7 +177,7 @@ function selectCell(x: SCMValue, y: SCMValue) {
         <div class="col">
           <label :for="`xkey-${uniq}`">Horizontal axis</label>
           <select class="form-select form-select-sm" v-model="xKey" :id="`xkey-${uniq}`">
-            <option v-for="label in fullScheme" :key="label.key" :value="label.key" :disabled="label.key === yKey">
+            <option v-for="label in dropdownOptions" :key="label.key" :value="label.key" :disabled="label.key === yKey">
               {{ label.name }}
             </option>
           </select>

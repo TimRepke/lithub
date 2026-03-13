@@ -307,19 +307,19 @@ function clearAll() {
       <div class="small text-muted">
         Select a country to reveal more details; lasso-select places while holding the shift key.
       </div>
-      <input type="checkbox" v-model="showAdmin0" />
-      <input type="checkbox" v-model="showAdmin1" />
-      <input type="checkbox" v-model="showTotalCounts" />
-      <ul class="list-inline">
-        <template v-for="place in annotatedPlaces" :key="place.geonameid">
-          <li
-            class="list-inline-item"
-            v-if="place.filterInclude && (!isSelectionActive || (isSelectionActive && place.inSelection))">
-            {{ place.name }}
-            ({{ place.filterCount }}/{{ place.count }})
-          </li>
-        </template>
-      </ul>
+<!--      <input type="checkbox" v-model="showAdmin0" />-->
+<!--      <input type="checkbox" v-model="showAdmin1" />-->
+<!--      <input type="checkbox" v-model="showTotalCounts" />-->
+<!--      <ul class="list-inline">-->
+<!--        <template v-for="place in annotatedPlaces" :key="place.geonameid">-->
+<!--          <li-->
+<!--            class="list-inline-item"-->
+<!--            v-if="place.filterInclude && (!isSelectionActive || (isSelectionActive && place.inSelection))">-->
+<!--            {{ place.name }}-->
+<!--            ({{ place.filterCount }}/{{ place.count }})-->
+<!--          </li>-->
+<!--        </template>-->
+<!--      </ul>-->
     </div>
   </div>
 </template>

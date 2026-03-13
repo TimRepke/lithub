@@ -62,13 +62,24 @@ function showTooltip(d: Year, index: number) {
     index < 10
       ? "—"
       : percentFormatter.format(cagr(10, data.value[index - 10].stack[1].count, data.value[index].stack[1].count));
+  const cagr5f =
+    index < 5
+      ? "—"
+      : percentFormatter.format(cagr(5, data.value[index - 5].stack[2].count, data.value[index].stack[2].count));
+  const cagr10f =
+    index < 10
+      ? "—"
+      : percentFormatter.format(cagr(10, data.value[index - 10].stack[2].count, data.value[index].stack[2].count));
   tooltip
     .html(
       `<strong>${d.year}</strong><br />
-Total: ${d.stack[1].count}<br />
-Filtered: ${d.stack[2].count}<br />
+<strong>Total: ${d.stack[1].count}</strong><br />
 5yr CAGR: ${cagr5}<br />
-10yr CAGR: ${cagr10}`,
+10yr CAGR: ${cagr10}<br />
+<hr />
+<strong>Filtered: ${d.stack[2].count}</strong><br />
+5yr CAGR (filtered): ${cagr5f}<br />
+10yr CAGR (filtered): ${cagr10f}`,
     )
     .classed("hidden", false)
     .style("top", "10px");
