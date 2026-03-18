@@ -24,6 +24,7 @@ import {
 } from "@/util/dataset/masks/labels.ts";
 import { SearchMask, useSearchMask } from "@/util/dataset/masks/search.ts";
 import { Counts } from "@/util/dataset/masks/base.ts";
+import { ClearFilterEvent, EventBus } from "@/util/events.ts";
 
 // get filtered array from mask (like np.array([1,2,3,4])[[True, True, False, True]]
 // Array.prototype.maskFilter = function(mask) {
@@ -198,6 +199,10 @@ export function useDataset<K extends Indexes>(params: {
     update,
   );
   watch(inclusive, update);
+
+  EventBus.on(ClearFilterEvent, () => {
+    inclusive.value = false;
+  });
 
   return {
     info: params.info,

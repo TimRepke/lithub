@@ -3,6 +3,7 @@ import { type Ref } from "vue";
 import { readonly, ref, toRef, watch } from "vue";
 import { and, or, type Bitmask, isNew } from "@/util/dataset/masks/bitmask.ts";
 import { None } from "@/util";
+import { EventBus, ClearFilterEvent } from "@/util/events.ts";
 
 export type Counts = {
   countTotal: number;
@@ -157,6 +158,12 @@ export function useGroupBase<K extends string | number | symbol, M extends MaskB
     Object.values<M>(params.masks).map((mask) => mask.version),
     update,
   );
+
+  EventBus.on(ClearFilterEvent, () => {
+    inclusive.value = params.inclusive ?? true;
+    base.active.value = false;
+    clear();
+  });
 
   return {
     ...base,

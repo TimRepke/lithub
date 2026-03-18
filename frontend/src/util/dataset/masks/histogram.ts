@@ -6,6 +6,7 @@ import { DataType } from "apache-arrow/type";
 import { Type } from "apache-arrow/enum";
 import { useGroupBase } from "@/util/dataset/masks/base";
 import { None } from "@/util";
+import { EventBus, ClearFilterEvent } from "@/util/events.ts";
 
 export interface HistogramMask extends GroupMaskBase<number, HistogramValueMask> {
   years: number[];
@@ -87,6 +88,10 @@ export function useHistogramMask(
     restMask.setActive(false);
     base.update();
   }
+
+  EventBus.on(ClearFilterEvent, () => {
+    clear();
+  });
 
   return {
     ...base,

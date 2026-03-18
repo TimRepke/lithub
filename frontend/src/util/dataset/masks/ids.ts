@@ -3,6 +3,7 @@ import { readonly, ref, toRef, watch } from "vue";
 import { GroupMaskBase, MaskBase, useBase, useGroupBase } from "@/util/dataset/masks/base.ts";
 import { and, Bitmask } from "@/util/dataset/masks/bitmask.ts";
 import { None } from "@/util";
+import { EventBus, ClearFilterEvent } from "@/util/events.ts";
 
 export type Indexes = "scatter" | "geo";
 
@@ -44,6 +45,9 @@ export function useIndexMask(length: number): IndexMask {
     setTotalCount(ids.value.length);
     setFilterCount(globalMask ? (and(bitmask, globalMask)?.count ?? counts.value.countTotal) : counts.value.countTotal);
   }
+  EventBus.on(ClearFilterEvent, () => {
+    clear();
+  });
 
   return {
     ...base,

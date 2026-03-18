@@ -9,6 +9,7 @@ import { scaleLinear, type ScaleContinuousNumeric } from "d3-scale";
 import createScatterplot from "regl-scatterplot";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
+import { ClearFilterEvent, EventBus } from "@/util/events.ts";
 
 type Scale = ScaleContinuousNumeric<number, number>;
 type ViewBounds = { topRight: [number, number]; bottomLeft: [number, number] };
@@ -207,6 +208,10 @@ onMounted(async () => {
   const containerObserver = new ResizeObserver(resizeTextOverlay);
   containerObserver.observe(canvasContainer);
   // window.addEventListener("resize", resizeTextOverlay);
+
+  EventBus.on(ClearFilterEvent, () => {
+    scatterplot.deselect();
+  });
 });
 </script>
 

@@ -17,6 +17,7 @@ import { useGeodata } from "@/util/geo";
 import type { Countries, CountryProp, ProjectedEntry } from "@/util/geo";
 import type { IndexMask } from "@/util/dataset/masks/ids";
 import type { Bitmask } from "@/util/dataset/masks/bitmask";
+import { ClearFilterEvent, EventBus } from "@/util/events.ts";
 
 type AnnotatedEntry = ProjectedEntry & {
   filterInclude: boolean;
@@ -274,6 +275,10 @@ onMounted(async () => {
         full = await data.fullClean();
       });
   }
+});
+
+EventBus.on(ClearFilterEvent, () => {
+  resetZoom();
 });
 
 function clearAll() {

@@ -24,6 +24,7 @@ import HistogramFilter from "@/components/HistogramFilter.vue";
 import DownloadControl from "@/components/DownloadControl.vue";
 import SidebarLabelFilterGroup from "@/components/SidebarLabelFilterGroup.vue";
 import { LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
+import { ClearFilterEvent, EventBus } from "@/util/events.ts";
 // import SunburstDiagram from "@/components/SunburstDiagram.vue";
 
 type IndexKeys = "scatter" | "geo";
@@ -80,6 +81,10 @@ const labelGroups = ref<Record<string, Array<LabelMaskGroup>>>({
 onMounted(() => {
   results.delayedUpdate();
 });
+
+function clearAll() {
+  EventBus.emit(new ClearFilterEvent());
+}
 </script>
 
 <template>
@@ -98,6 +103,7 @@ onMounted(() => {
           </div>
           <div class="text-muted fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-3" />
+          <button class="btn btn-sm btn-outline-secondary" @click="clearAll()">Clear all</button>
         </div>
 
         <div class="filter-sidebar-container">
@@ -173,7 +179,7 @@ onMounted(() => {
     </template>
 
     <template #cont3>
-      <FluidContainer title="Geographic map" :initial-state="false">
+      <FluidContainer title="Geographic map" :initial-state="true">
         <GeoMap
           class="flex-grow-1"
           v-model:mask="geoMask"

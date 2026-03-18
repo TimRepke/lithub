@@ -4,6 +4,7 @@ import { request } from "@/util/api.ts";
 import { MaskBase, useBase } from "@/util/dataset/masks/base.ts";
 import { is, None, useDelay } from "@/util";
 import { and, Bitmask } from "@/util/dataset/masks/bitmask.ts";
+import { EventBus, ClearFilterEvent } from "@/util/events.ts";
 
 const SEARCH_DELAY = 1000;
 const MIN_LEN = 3;
@@ -50,7 +51,9 @@ export function useSearchMask(dataset: string): SearchMask {
       base.setFilterCount(and(globalMask, bitmask.value)?.count ?? counts.value.countTotal);
     }
   }
-
+  EventBus.on(ClearFilterEvent, () => {
+    clear();
+  });
   // watch(this.search, () => this.delayedFetch()); // uncomment this for searching as you type
   //   watch(this.fields, () => this.fetchSearch());
   //   // this is just a hack; calling fetchSearch would otherwise loose this.* context

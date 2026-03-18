@@ -8,6 +8,7 @@ import { brushX, D3BrushEvent } from "d3-brush";
 import { zoom as d3zoom, D3ZoomEvent } from "d3-zoom";
 import { axisBottom } from "d3-axis";
 import { create as d3create } from "d3-selection";
+import { ClearFilterEvent, EventBus } from "@/util/events.ts";
 
 const mask = defineModel<HistogramMask>("mask", { required: true });
 const { masks, active, years, clear, selectRange, extent } = mask.value;
@@ -149,8 +150,10 @@ const brush = brushX<undefined>()
     [width.value, height.value],
   ])
   .on("start brush end", (event: D3BrushEvent<undefined>) => {
-    event.sourceEvent.preventDefault();
-    event.sourceEvent.stopPropagation();
+    if (event.sourceEvent) {
+      event.sourceEvent.preventDefault();
+      event.sourceEvent.stopPropagation();
+    }
     if (event.sourceEvent && event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
     // var s = d3.event.selection || x2.range();
     if (event.type === "end") {
@@ -229,7 +232,9 @@ onMounted(async () => {
     histogramElement.value.appendChild(tooltip.node() as HTMLDivElement);
   }
 });
-
+EventBus.on(ClearFilterEvent, () => {
+  brush.clear(groupBrush, new Event("click"));
+});
 svg.call(zoom);
 watch([data, width], delayedRedraw);
 </script>

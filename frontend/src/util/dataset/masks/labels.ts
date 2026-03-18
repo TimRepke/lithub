@@ -5,6 +5,7 @@ import { hslToHex, None } from "@/util";
 import { and, Bitmask } from "@/util/dataset/masks/bitmask.ts";
 import type { MaskBase } from "@/util/dataset/masks/base.ts";
 import { GroupMaskBase, useBase, useGroupBase } from "@/util/dataset/masks/base.ts";
+import { EventBus, ClearFilterEvent } from "@/util/events.ts";
 
 export const DEFAULT_THRESHOLD = 0.5;
 
@@ -59,6 +60,10 @@ export function useLabelValueMask(params: {
     // setFilterCount(active.value ? and(globalMask, params.mask)?.count ?? counts.value.countTotal : 0);
     setFilterCount(and(globalMask, bitmask.value)?.count ?? counts.value.countTotal);
   }
+
+  EventBus.on(ClearFilterEvent, () => {
+    if (threshold.value !== DEFAULT_THRESHOLD) setThreshold(DEFAULT_THRESHOLD).then();
+  });
 
   return {
     ...base,
