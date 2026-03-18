@@ -103,7 +103,11 @@ function clearAll() {
           </div>
           <div class="text-muted fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-3" />
-          <button class="btn btn-sm btn-outline-secondary" @click="clearAll()">Clear all</button>
+
+          <div @click="clearAll()" class="text-muted ms-2">
+            <font-awesome-icon icon="filter-circle-xmark" class="icon" />
+            <!-- Clear filters-->
+          </div>
         </div>
 
         <div class="filter-sidebar-container">
