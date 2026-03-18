@@ -183,7 +183,7 @@ function clearAll() {
     </template>
 
     <template #cont3>
-      <FluidContainer title="Geographic map" :initial-state="true">
+      <FluidContainer title="Geographic map" :initial-state="false">
         <GeoMap
           class="flex-grow-1"
           v-model:mask="geoMask"
