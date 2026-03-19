@@ -1,4 +1,6 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import guide from "@/assets/20260319_guide.pdf";
+</script>
 
 <template>
   <h3>Mapping climate & health evidence</h3>
@@ -10,7 +12,7 @@
     The climate and health interactive platform provides access to a living map of the literature on climate and health,
     produced using machine learning as part of the
     <a href="https://www.lshtm.ac.uk/research/centres-projects-groups/pathfinder-initiative">PATHFINDER initiative</a>.
-    A detailed user guide is available at <a>LINK</a>.
+    A detailed user guide is available at <a :href="guide" target="_blank">LINK</a>.
   </p>
   <p>
     This map builds on foundations laid by

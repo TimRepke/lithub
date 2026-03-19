@@ -125,6 +125,7 @@ onMounted(() => {
           v-model:group-masks="labelMaskGroups"
           :selectable-groups="Object.keys(labelMaskGroups)"
           :year-masks="pyMask"
+          :global-counts="globalCounts"
           init-hori="cat"
           init-vert="t3" />
       </FluidContainer>

@@ -223,6 +223,7 @@ function clearAll() {
             'Affiliation_Continent (Name)',
           ]"
           :year-masks="pyMask"
+          :global-counts="globalCounts"
           init-hori="cat"
           init-vert="topic-agg-agg" />
       </FluidContainer>

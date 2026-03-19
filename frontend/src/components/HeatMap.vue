@@ -9,6 +9,7 @@ import { scaleSequential as d3scaleSequential } from "d3-scale"; //, scaleSequen
 import { interpolateYlGn } from "d3-scale-chromatic";
 import { HistogramMask } from "@/util/dataset/masks/histogram.ts";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { Counts } from "@/util/dataset/masks/base.ts";
 
 interface SCMValue {
   name: string;
@@ -24,7 +25,10 @@ interface SCM {
 
 enum Normalisation {
   None = "No normalisation",
-  Total = "Normalise by total sum",
+  Total = "Normalise by overall total",
+  RowTotal = "Normalise by row total",
+  ColTotal = "Normalise by column total",
+  Sum = "Normalise by sum of counts",
   RowSum = "Normalise by row sum",
   ColSum = "Normalise by column sum",
   RowMax = "Normalise by row max",
@@ -35,10 +39,11 @@ const uniq = crypto.randomUUID();
 const globalMask = defineModel<Bitmask | None>("globalMask", { required: true });
 const groupMasks = defineModel<Record<string, LabelMaskGroup>>("groupMasks", { required: true });
 const yearMasks = defineModel<HistogramMask>("yearMasks", { required: false });
-const { selectableGroups, initVert, initHori } = defineProps({
+const { selectableGroups, initVert, initHori, globalCounts } = defineProps({
   selectableGroups: { type: Object as PropType<string[]>, required: true },
   initVert: { type: String, required: false },
   initHori: { type: String, required: false },
+  globalCounts: { type: Object as PropType<Counts>, required: true },
 });
 
 const xKey = ref<string>(initHori ?? selectableGroups[0]);
@@ -122,6 +127,15 @@ const normalisedCounts = computed<Record<number, Record<number, number>>>(() => 
             case Normalisation.Total:
               divisor = total.value;
               break;
+            case Normalisation.ColTotal:
+              divisor = colTotal.value[i];
+              break;
+            case Normalisation.RowTotal:
+              divisor = rowTotal.value[i];
+              break;
+            case Normalisation.Sum:
+              divisor = sum.value;
+              break;
             case Normalisation.RowSum:
               divisor = rowSum.value[i];
               break;
@@ -144,8 +158,8 @@ const normalisedCounts = computed<Record<number, Record<number, number>>>(() => 
     ]),
   ) as Record<number, Record<number, number>>;
 });
-
-const total = computed(() =>
+const total = computed(() => (applyGlobalMask.value ? globalCounts.countFiltered : globalCounts.countTotal));
+const sum = computed(() =>
   Object.values(counts.value).reduce(
     (sum, values) => sum + Object.values(values).reduce((sum, val) => sum + val, 0),
     0,
@@ -175,6 +189,17 @@ const colSum = computed(() => {
   });
   return Object.values(maxima);
 });
+
+const colTotal = computed(() =>
+  Object.values(groupMasks.value[xKey.value].masks).map((mask) =>
+    applyGlobalMask.value ? mask.counts.value.countFiltered : mask.counts.value.countTotal,
+  ),
+);
+const rowTotal = computed(() =>
+  Object.values(groupMasks.value[yKey.value].masks).map((mask) =>
+    applyGlobalMask.value ? mask.counts.value.countFiltered : mask.counts.value.countTotal,
+  ),
+);
 
 const colours = computed(() => {
   const extent = d3extent(Object.values(normalisedCounts.value).flatMap((row) => Object.values(row))) as [
@@ -291,8 +316,9 @@ const formatNumber = new Intl.NumberFormat("en-US", {
               <th v-for="xValue in fullScheme[xKey].values" :key="String(xValue.value)" style="text-align: center">
                 {{ xValue.name }}
               </th>
+              <th>Total</th>
             </tr>
-            <tr v-for="yValue in fullScheme[yKey].values" :key="+yValue.value">
+            <tr v-for="(yValue, idx) in fullScheme[yKey].values" :key="+yValue.value">
               <th>{{ yValue.name }}</th>
               <td
                 v-for="xValue in fullScheme[xKey].values"
@@ -311,12 +337,30 @@ const formatNumber = new Intl.NumberFormat("en-US", {
                 </template>
                 <!--                </span>-->
               </td>
+              <td>
+                {{ formatNumber.format(rowTotal[idx]) }}<br />
+                <span class="fst-italic small opacity-75">Sum: {{ formatNumber.format(rowSum[idx]) }}</span>
+              </td>
+            </tr>
+            <tr>
+              <th>Total</th>
+              <td v-for="(value, idx) in colTotal">
+                {{ formatNumber.format(value) }}<br />
+                <span class="fst-italic small opacity-75">Sum: {{ formatNumber.format(colSum[idx]) }}</span>
+              </td>
+              <td>
+                {{ formatNumber.format(total) }}<br />
+                <span class="fst-italic small opacity-75">Sum: {{ formatNumber.format(sum) }}</span>
+              </td>
             </tr>
           </tbody>
         </table>
         <div class="text-muted small">
-          Heatmap sum: {{ formatNumber.format(total) }}
-          <span class="fst-italic">(Due to double-counting, this number may deviate from the global total)</span>
+          <span class="fst-italic">
+            Please note, that most labels use double-coding. This means that multiple classes of a label can be assigned
+            to a document and counts overlap. Therefore, you can select normalisation by total (the unique record count
+            in the current filter) and sum (sum of counts).
+          </span>
         </div>
       </div>
     </template>
