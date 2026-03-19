@@ -92,6 +92,7 @@ function startPauseResultFetching(active: boolean) {
           class="flex-grow-1"
           v-model:global-mask="globalMask"
           v-model:group-masks="labelMaskGroups"
+          :global-counts="globalCounts"
           :selectable-groups="Object.keys(labelMaskGroups)"
           :year-masks="pyMask" />
       </FluidContainer>
