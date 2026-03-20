@@ -128,7 +128,7 @@ const normalisedCounts = computed<Record<number, Record<number, number>>>(() => 
               divisor = total.value;
               break;
             case Normalisation.ColTotal:
-              divisor = colTotal.value[i];
+              divisor = colTotal.value[j];
               break;
             case Normalisation.RowTotal:
               divisor = rowTotal.value[i];
