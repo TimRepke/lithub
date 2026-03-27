@@ -14,9 +14,9 @@ const {
 } = defineProps({
   doc: { type: Object as PropType<AnnotatedDocument>, required: true },
   schemeLabels: { type: Object as PropType<Record<string, SchemeLabel>>, required: true },
-  schemeGroups: { type: Object as PropType<Record<string, SchemeGroup>>, required: true },
-  includeKeys: { type: Object as PropType<Record<string, string>>, required: false, default: [] },
-  showPrefix: { type: Boolean, required: true },
+  schemeGroups: { type: Object as PropType<Record<string, SchemeGroup>>, required: false, default: {} },
+  includeKeys: { type: Object as PropType<Record<string, string>>, required: false, default: {} },
+  showPrefix: { type: Boolean, required: false, default: false },
 });
 defineEmits<{ (e: "report", document: AnnotatedDocument): void }>();
 const showAllLabels = ref(false);
@@ -36,7 +36,7 @@ const labels = computed(() =>
         group: includeKeys[key],
       };
     })
-    .filter((entry) => entry.key in includeKeys),
+    .filter((entry) => Object.keys(includeKeys).length == 0 || entry.key in includeKeys),
 );
 </script>
 
