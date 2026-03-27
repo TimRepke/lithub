@@ -25,6 +25,7 @@ import DownloadControl from "@/components/DownloadControl.vue";
 import SidebarLabelFilterGroup from "@/components/SidebarLabelFilterGroup.vue";
 import { LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
 import { ClearFilterEvent, EventBus } from "@/util/events.ts";
+import ToggleIcon from "@/components/ToggleIcon.vue";
 // import SunburstDiagram from "@/components/SunburstDiagram.vue";
 
 type IndexKeys = "scatter" | "geo";
@@ -53,6 +54,7 @@ const { documents } = results;
 
 // console.log(constructTopicTree('t3'));
 const reportDoc = ref<AnnotatedDocument | null>(null);
+const displayPrefix = ref<boolean>(true);
 
 function startPauseResultFetching(active: boolean) {
   results.paused.value = !active;
@@ -77,6 +79,38 @@ const labelGroups = ref<Record<string, Array<LabelMaskGroup>>>({
     labelMaskGroups["Affiliation_Continent (Name)"],
   ],
 });
+
+const visibleDocumentTags = ref<Record<string, string>>(
+  Object.fromEntries(
+    [
+      "cat",
+      "health",
+      "sector",
+      "driver",
+      "topic-agg-agg",
+      "topic-agg-agg|2",
+      "topic-agg-agg|3",
+      "topic-agg-4|0",
+      "Location_Group (Lancet 2026)",
+      // "Location_Region (WorldBank 2026)",
+      // "Location_Group (WHO 2026)",
+      // "Location_Group (HDI 2026)",
+      // "Location_Income group (WorldBank 2026)",
+      // "Location_Lending category (WorldBank 2026)",
+      // "Location_Continent (Name)",
+      // "Affiliation_Group (Lancet 2026)",
+      // "Affiliation_Region (WorldBank 2026)",
+      // "Affiliation_Group (WHO 2026)",
+      // "Affiliation_Group (HDI 2026)",
+      // "Affiliation_Income group (WorldBank 2026)",
+      // "Affiliation_Lending category (WorldBank 2026)",
+      // "Affiliation_Continent (Name)",
+    ].flatMap((groupKey) => {
+      const group = labelMaskGroups[groupKey];
+      return Object.values(group.masks).map((mask) => [mask.key, groupKey]);
+    }),
+  ),
+);
 
 onMounted(() => {
   results.delayedUpdate();
@@ -123,9 +157,9 @@ function clearAll() {
           <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.rel_impacts" v-model:picked-colour="pickedColour" />-->
 
           <!-- Aggregated meta-topic -->
-          <!--          <SidebarLabelFilter-->
-          <!--            v-model:group-mask="labelMaskGroups['topic-agg-agg']"-->
-          <!--            v-model:picked-colour="pickedColour" />-->
+          <SidebarLabelFilter
+            v-model:group-mask="labelMaskGroups['topic-agg-agg']"
+            v-model:picked-colour="pickedColour" />
           <!-- Exposure -->
           <!--          <SidebarLabelFilter-->
           <!--            v-model:group-mask="labelMaskGroups['topic-agg-agg|0']"-->
@@ -231,7 +265,13 @@ function clearAll() {
 
     <template #cont5>
       <FluidContainer title="Results" @visibility-updated="startPauseResultFetching">
-        <DownloadControl class="me-auto" />
+        <div class="d-flex flex-row">
+          <DownloadControl class="ms-auto" />
+          <div class="ms-2">
+            <toggle-icon v-model:model="displayPrefix" icon="closed-captioning" icon-false="closed-captioning-slash" />
+          </div>
+        </div>
+
         <template v-if="documents.length > 0">
           <div class="results-column-results">
             <DocumentCard
@@ -239,6 +279,9 @@ function clearAll() {
               :key="doc.idx"
               :doc="doc"
               :scheme-labels="schemeLabels"
+              :scheme-groups="schemeGroups"
+              :include-keys="visibleDocumentTags"
+              :show-prefix="displayPrefix"
               @report="(doc) => (reportDoc = doc)" />
           </div>
           <div class="results-column-pagination">

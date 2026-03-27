@@ -1,13 +1,22 @@
 <script setup lang="ts">
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { computed, type PropType, ref } from "vue";
-import type { AnnotatedDocument, SchemeLabel } from "@/util/types";
+import type { AnnotatedDocument, SchemeGroup, SchemeLabel } from "@/util/types";
 import { hslToCSS } from "@/util";
 import ToggleIcon from "@/components/ToggleIcon.vue";
 
-const { schemeLabels, doc: document } = defineProps({
+const {
+  schemeLabels,
+  doc: document,
+  includeKeys,
+  schemeGroups,
+  showPrefix,
+} = defineProps({
   doc: { type: Object as PropType<AnnotatedDocument>, required: true },
   schemeLabels: { type: Object as PropType<Record<string, SchemeLabel>>, required: true },
+  schemeGroups: { type: Object as PropType<Record<string, SchemeGroup>>, required: true },
+  includeKeys: { type: Object as PropType<Record<string, string>>, required: false, default: [] },
+  showPrefix: { type: Boolean, required: true },
 });
 defineEmits<{ (e: "report", document: AnnotatedDocument): void }>();
 const showAllLabels = ref(false);
@@ -16,15 +25,18 @@ const shorten = ref<boolean>(true);
 const abstract = computed(() => document.abstract ?? "[missing abstract]");
 
 const labels = computed(() =>
-  Object.entries(document?.labels).map(([key, score]) => {
-    const label = schemeLabels[key];
-    return {
-      key,
-      name: label.name,
-      col: label.colour,
-      value: score,
-    };
-  }),
+  Object.entries(document?.labels)
+    .map(([key, score]) => {
+      const label = schemeLabels[key];
+      return {
+        key,
+        name: label.name,
+        col: label.colour,
+        value: score,
+        group: includeKeys[key],
+      };
+    })
+    .filter((entry) => entry.key in includeKeys),
 );
 </script>
 
@@ -58,6 +70,9 @@ const labels = computed(() =>
 
       <template v-for="label in labels" :key="label.key">
         <span v-if="showAllLabels || label.value > 0.5" class="pill">
+          <span v-if="showPrefix" style="margin-left: 0.3em; margin-right: 0.3em">{{
+            schemeGroups[label.group].name
+          }}</span>
           <span class="head" :style="{ backgroundColor: hslToCSS(...label.col) }">{{ label.name }}</span>
           <span class="value">{{ label.value }}</span>
         </span>
