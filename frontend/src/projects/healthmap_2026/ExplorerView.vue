@@ -157,9 +157,9 @@ function clearAll() {
           <!--          <SidebarLabelFilter v-model:group-mask="labelMaskGroups.rel_impacts" v-model:picked-colour="pickedColour" />-->
 
           <!-- Aggregated meta-topic -->
-          <SidebarLabelFilter
-            v-model:group-mask="labelMaskGroups['topic-agg-agg']"
-            v-model:picked-colour="pickedColour" />
+          <!--          <SidebarLabelFilter-->
+          <!--            v-model:group-mask="labelMaskGroups['topic-agg-agg']"-->
+          <!--            v-model:picked-colour="pickedColour" />-->
           <!-- Exposure -->
           <!--          <SidebarLabelFilter-->
           <!--            v-model:group-mask="labelMaskGroups['topic-agg-agg|0']"-->
@@ -237,7 +237,7 @@ function clearAll() {
             'health',
             'sector',
             'driver',
-            'topic-agg-agg',
+            // 'topic-agg-agg',
             'topic-agg-agg|2',
             'topic-agg-agg|3',
             'topic-agg-4|0',
