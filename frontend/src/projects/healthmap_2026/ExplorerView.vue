@@ -259,7 +259,9 @@ function clearAll() {
           :year-masks="pyMask"
           :global-counts="globalCounts"
           init-hori="cat"
-          init-vert="topic-agg-agg" />
+          init-vert="Location_Group (Lancet 2026)"
+          />
+          <!--init-vert="topic-agg-agg" -->
       </FluidContainer>
     </template>
 
