@@ -14,6 +14,7 @@ import LandingView from "./views/LandingView.vue";
 import { default as policyMapRoute } from "@/projects/policymap/route.ts";
 import { default as carbonPricingMapRoute } from "@/projects/carbonpricing/route.ts";
 import { default as carbonDioxideRemovalMapRoute } from "@/projects/cdrmap/route.ts";
+import { default as carbonDioxideRemovalMapRoute2023 } from "@/projects/cdrmap_2023/route.ts";
 import { default as climateHealthMapRoute2024 } from "@/projects/healthmap_2024/route.ts";
 import { default as climateHealthMapRoute2026 } from "@/projects/healthmap_2026/route.ts";
 import { default as eppiMapRoute } from "@/projects/eppi/route.ts";
@@ -47,6 +48,7 @@ const router = createRouter({
         policyMapRoute,
         carbonPricingMapRoute,
         carbonDioxideRemovalMapRoute,
+        carbonDioxideRemovalMapRoute2023,
         climateHealthMapRoute2024,
         climateHealthMapRoute2026,
         eppiMapRoute,

@@ -1,0 +1,28 @@
+[project]
+name = "lithub"
+version = "1.0.3"
+description = "Utilities and typing for climateliterature.org"
+#author = "Tim Repke / ECS@PIK"
+license = { file = "../../LICENSE" }
+requires-python = ">=3.13,<3.15"
+
+dependencies = [
+    "pyarrow==24.0.0",
+    "typer==0.25.1",
+    "pandas[excel]==3.0.3",
+    "numpy==2.4.6",
+    "geopandas==1.1.3",
+]
+
+[project.optional-dependencies]
+export = [
+    "opentsne==1.0.4",
+    "umap-learn==0.5.12",
+    "nltk==3.9.4",
+    "scikit-learn==1.8.0",
+    "parallel-pandas==0.7",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.15,<0.12"]
+build-backend = "uv_build"

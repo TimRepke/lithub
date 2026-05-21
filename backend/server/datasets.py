@@ -5,9 +5,9 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from lithub.models import Document, DatasetInfoFull, DatasetInfoWeb, SchemeGroup
 from .logging import get_logger
 from .config import settings
-from .types import Document, DatasetInfoFull, DatasetInfoWeb, SchemeGroup
 
 logger = get_logger('util.datasets')
 

@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from ..config import settings
 from ..datasets import DatasetInfoWeb, datasets as dataset_cache, Dataset
 from ..mails import send_message, EmailNotSentError
-from ..types import AnnotatedDocument
+from lithub.models import AnnotatedDocument
 from ..util import as_bitmask, as_ids
 from ..cache import cache
 from ..cache.coders import BytesCoder, JsonCoder

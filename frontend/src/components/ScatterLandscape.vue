@@ -105,7 +105,7 @@ onMounted(async () => {
   await scatterplot.draw(points);
   console.timeEnd("first draw");
 
-  // await scatterplot.zoomToLocation([0.5, 0.5], 0.5);
+  await scatterplot.zoomToLocation([0.5, 0.5], 0.5);
 
   function resizeTextOverlay() {
     if (!canvasContainer) return;

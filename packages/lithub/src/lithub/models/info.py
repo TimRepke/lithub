@@ -50,7 +50,7 @@ class _DatasetInfoFull(DatasetInfo):
     full_geo_filename: str | None = None
 
     start_year: int = 1990
-    end_year: int = 2024
+    end_year: int = 2025
 
     labels: dict[str, SchemeLabel]
     groups: dict[str, SchemeGroup]
@@ -59,10 +59,11 @@ class _DatasetInfoFull(DatasetInfo):
 
 
 class DatasetInfoFull(_DatasetInfoFull):
+    model_config = ConfigDict(extra='ignore')
     contact: list[str] | None = None
 
 
-class DatasetInfoWeb(_DatasetInfoFull):
+class DatasetInfoWeb(DatasetInfoFull):
     model_config = ConfigDict(extra='ignore')
     key: str
     total: int

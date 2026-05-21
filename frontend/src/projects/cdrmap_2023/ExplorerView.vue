@@ -21,11 +21,6 @@ import FluidContainer from "@/components/FluidContainer.vue";
 import ReportingModal from "@/components/ReportingModal.vue";
 import type { AnnotatedDocument } from "@/util/types";
 import HistogramFilter from "@/components/HistogramFilter.vue";
-import { LabelMaskGroup } from "@/util/dataset/masks/labels.ts";
-import SidebarLabelFilterGroup from "@/components/SidebarLabelFilterGroup.vue";
-import { ClearFilterEvent, EventBus } from "@/util/events.ts";
-import ToggleIcon from "@/components/ToggleIcon.vue";
-import DownloadControl from "@/components/DownloadControl.vue";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -52,62 +47,11 @@ const { scatter: scatterMask, geo: geoMask } = indexMasks.masks;
 const { documents } = results;
 
 const reportDoc = ref<AnnotatedDocument | null>(null);
-const displayPrefix = ref<boolean>(true);
 
-const labelGroups = ref<Record<string, Array<LabelMaskGroup>>>({
-  location: [
-    // labelMaskGroups["Location_Group (Lancet 2026)"],
-    labelMaskGroups["Location_Region (WorldBank 2026)"],
-    labelMaskGroups["Location_Group (WHO 2026)"],
-    labelMaskGroups["Location_Group (HDI 2026)"],
-    labelMaskGroups["Location_Income group (WorldBank 2026)"],
-    labelMaskGroups["Location_Lending category (WorldBank 2026)"],
-    labelMaskGroups["Location_Continent (Name)"],
-  ],
-  affiliation: [
-    // labelMaskGroups["Affiliation_Group (Lancet 2026)"],
-    labelMaskGroups["Affiliation_Region (WorldBank 2026)"],
-    labelMaskGroups["Affiliation_Group (WHO 2026)"],
-    labelMaskGroups["Affiliation_Group (HDI 2026)"],
-    labelMaskGroups["Affiliation_Income group (WorldBank 2026)"],
-    labelMaskGroups["Affiliation_Lending category (WorldBank 2026)"],
-    labelMaskGroups["Affiliation_Continent (Name)"],
-  ],
-});
-
-const visibleDocumentTags = ref<Record<string, string>>(
-  Object.fromEntries(
-    [
-      "technology",
-      "method",
-      "context",
-      "assessment",
-      "Location_Region (WorldBank 2026)",
-      // "Location_Region (WorldBank 2026)",
-      // "Location_Group (WHO 2026)",
-      // "Location_Group (HDI 2026)",
-      // "Location_Income group (WorldBank 2026)",
-      // "Location_Lending category (WorldBank 2026)",
-      // "Location_Continent (Name)",
-      // "Affiliation_Group (Lancet 2026)",
-      // "Affiliation_Region (WorldBank 2026)",
-      // "Affiliation_Group (WHO 2026)",
-      // "Affiliation_Group (HDI 2026)",
-      // "Affiliation_Income group (WorldBank 2026)",
-      // "Affiliation_Lending category (WorldBank 2026)",
-      // "Affiliation_Continent (Name)",
-    ].flatMap((groupKey) => {
-      const group = labelMaskGroups[groupKey];
-      return Object.values(group.masks).map((mask) => [mask.key, groupKey]);
-    }),
-  ),
-);
 function startPauseResultFetching(active: boolean) {
   results.paused.value = !active;
 }
-function clearAll() {
-  EventBus.emit(new ClearFilterEvent());
-}
+
 onMounted(() => {
   results.delayedUpdate();
 });
@@ -122,36 +66,15 @@ onMounted(() => {
             Number of documents:
             {{ globalCounts.countFiltered.toLocaleString() }} /
             {{ globalCounts.countTotal.toLocaleString() }}
-
-            <span v-if="globalCounts.countFiltered !== globalCounts.countTotal" class="text-muted">
-              ({{ Math.round((globalCounts.countFiltered / globalCounts.countTotal) * 100) }}%)
-            </span>
           </div>
-          <div class="text-muted fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
-          <InclusiveIcon v-model:inclusive="inclusive" class="ms-3" />
-
-          <div @click="clearAll()" class="text-muted ms-2">
-            <font-awesome-icon icon="filter-circle-xmark" class="icon" />
-            <!-- Clear filters-->
-          </div>
+          <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
         </div>
 
         <div class="filter-sidebar-container">
           <HistogramFilter v-model:mask="pyMask" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['technology']" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['method']" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['context']" v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['assessment']" v-model:picked-colour="pickedColour" />
-
-          <SidebarLabelFilterGroup
-            headline="Study location"
-            v-model:group-masks="labelGroups.location"
-            v-model:picked-colour="pickedColour" />
-          <SidebarLabelFilterGroup
-            headline="Author affiliation"
-            v-model:group-masks="labelGroups.affiliation"
-            v-model:picked-colour="pickedColour" />
-
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['tech']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['meth']" v-model:picked-colour="pickedColour" />
+          <SidebarLabelFilter v-model:group-mask="labelMaskGroups['cont']" v-model:picked-colour="pickedColour" />
           <SidebarSearchFilter v-model:mask="searchMask" />
         </div>
       </FluidContainer>
@@ -187,40 +110,12 @@ onMounted(() => {
           v-model:global-mask="globalMask"
           v-model:group-masks="labelMaskGroups"
           :global-counts="globalCounts"
-          :year-masks="pyMask"
-          :selectable-groups="[
-            'technology',
-            'method',
-            'context',
-            'assessment',
-            'Location_Group (Lancet 2026)',
-            'Location_Region (WorldBank 2026)',
-            'Location_Group (WHO 2026)',
-            'Location_Group (HDI 2026)',
-            'Location_Income group (WorldBank 2026)',
-            'Location_Lending category (WorldBank 2026)',
-            'Location_Continent (Name)',
-            'Affiliation_Group (Lancet 2026)',
-            'Affiliation_Region (WorldBank 2026)',
-            'Affiliation_Group (WHO 2026)',
-            'Affiliation_Group (HDI 2026)',
-            'Affiliation_Income group (WorldBank 2026)',
-            'Affiliation_Lending category (WorldBank 2026)',
-            'Affiliation_Continent (Name)',
-          ]"
-          init-hori="assessment"
-          init-vert="technology" />
+          :selectable-groups="Object.keys(labelMaskGroups)"
+          :year-masks="pyMask" />
       </FluidContainer>
     </template>
     <template #cont5>
       <FluidContainer title="Results" @visibility-updated="startPauseResultFetching">
-        <div class="d-flex flex-row">
-          <DownloadControl class="ms-auto" />
-          <div class="ms-2">
-            <toggle-icon v-model:model="displayPrefix" icon="closed-captioning" icon-false="closed-captioning-slash" />
-          </div>
-        </div>
-
         <template v-if="documents.length > 0">
           <div class="results-column-results">
             <DocumentCard
@@ -228,9 +123,6 @@ onMounted(() => {
               :key="doc.idx"
               :doc="doc"
               :scheme-labels="schemeLabels"
-              :scheme-groups="schemeGroups"
-              :include-keys="visibleDocumentTags"
-              :show-prefix="displayPrefix"
               @report="(doc) => (reportDoc = doc)" />
           </div>
           <div class="results-column-pagination">

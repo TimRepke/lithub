@@ -1,4 +1,9 @@
 # !/usr/bin/env python3
+# /// script
+# dependencies = [
+#   "httpx",
+# ]
+# ///
 from server.logging import get_logger
 
 logger = get_logger('server')

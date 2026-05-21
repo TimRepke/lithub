@@ -2,44 +2,50 @@
 name = "literature-hub"
 version = "1.0.3"
 description = "Backend for climateliterature.org"
-author = "Tim Repke / ECS@PIK"
+#author = "Tim Repke / ECS@PIK"
 license = { file = "LICENSE" }
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.15"
 
 dependencies = [
-    "pydantic==2.13.0b2",
-    "pydantic_settings==2.13.1",
-    "sqlalchemy[mypy]==2.0.48",
+    "pydantic==2.13.4",
+    "pydantic_settings==2.14.1",
+    "sqlalchemy[mypy]==2.0.49",
+    "lithub",
 ]
+
+[tool.uv.sources]
+lithub = { workspace = true }
+
+[tool.uv.workspace]
+members = ["packages/*"]
+exclude = ["frontend", "backend", "converter", "scratch"]
 
 [project.optional-dependencies]
 server = [
-    "fastapi==0.135.1",
-    "uvicorn==0.41.0",
+    "fastapi==0.136.1",
+    "uvicorn==0.47.0",
     "hypercorn==0.18.0",
     "aiofiles==25.1.0",
-    "pyarrow==23.0.1",
+    "pyarrow==24.0.0",
     "aiosmtplib==5.1.0",
 ]
 
 converter = [
-    "pandas[excel]==3.0.1",
-    "typer==0.24.1",
-    "opentsne==1.0.4",
-    "numpy==2.4.2",
+    "lithub[export]"
 ]
+
 [dependency-groups]
 dev = [
-    "ruff==0.15.5",
-    "mypy[faster-cache]==1.19.1",
+    "ruff==0.15.13",
+    "mypy[faster-cache]==2.1.0",
 ]
 
 [tool.ruff]
 line-length = 160
 indent-width = 4
 target-version = "py313"
-include = ["pyproject.toml", "backend/**/*.py"]  # , "converter/**/*.py"
-exclude = []
+include = ["pyproject.toml", "backend/**/*.py", "packages/**"]  # , "converter/**/*.py"
+exclude = ["*.csv"]
 
 [tool.ruff.lint]
 select = ["C", "E", "F", "W", "B", "B9"]

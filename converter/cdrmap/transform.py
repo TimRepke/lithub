@@ -9,15 +9,15 @@ from converter.project import get_vectors
 from converter.write import write
 
 print('Reading original data...')
-df = pd.read_csv('../../.data/cdrmap/raw/literature_hub_cdrmap_full.csv', lineterminator='\n')
+df = pd.read_csv('../../.data/cdrmap_2023/raw/literature_hub_cdrmap_full.csv', lineterminator='\n')
 df = df.replace({np.nan: None})
 
 CHUNK_SIZE = 10000
-INFO = Path('../../.data/cdrmap/info.toml')
-VECTORS = Path('../../.data/cdrmap/raw/vectors.npy')
-OUT_SLIM = Path('../../.data/cdrmap/slim.arrow')
-OUT_FULL = Path('../../.data/cdrmap/raw/full.arrow')
-OUT_SQL = Path('../../.data/cdrmap/documents.sqlite')
+INFO = Path('../../.data/cdrmap_2023/info.toml')
+VECTORS = Path('../../.data/cdrmap_2023/raw/vectors.npy')
+OUT_SLIM = Path('../../.data/cdrmap_2023/slim.arrow')
+OUT_FULL = Path('../../.data/cdrmap_2023/raw/full.arrow')
+OUT_SQL = Path('../../.data/cdrmap_2023/documents.sqlite')
 
 print('Loading info...')
 info = DatasetInfoFull.model_validate(toml.load(INFO))

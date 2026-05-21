@@ -7,11 +7,11 @@ import pyarrow as pa
 from sklearn.cluster import KMeans
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-df = pd.read_csv('../../.data/cdrmap/raw/literature_hub_cdrmap_full.csv', lineterminator='\n')
+df = pd.read_csv('../../.data/cdrmap_2023/raw/literature_hub_cdrmap_full.csv', lineterminator='\n')
 df = df.replace({np.nan: None})
 
-VECTORS = Path('../../.data/cdrmap/raw/vectors.npy')
-KEYWORDS = Path('../../.data/cdrmap/keywords.arrow')
+VECTORS = Path('../../.data/cdrmap_2023/raw/vectors.npy')
+KEYWORDS = Path('../../.data/cdrmap_2023/keywords.arrow')
 
 CHUNK_SIZE = 1000
 N_CLUSTERS = 40
