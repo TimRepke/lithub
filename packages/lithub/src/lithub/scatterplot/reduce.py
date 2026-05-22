@@ -89,4 +89,4 @@ def reduce_text_distribution(
 
 
 if __name__ == '__main__':
-    typer.run(reduce_topic_distribution)
+    typer.run(reduce_text_distribution)
