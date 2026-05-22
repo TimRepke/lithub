@@ -8,7 +8,7 @@ variables:
   UV_LINK_MODE: "copy"
   LITHUB_FRONTEND_PATH: "/var/www/lithub"
   LITHUB_BACKEND_PATH: "/srv/literature-hub"
-  LITHUB_SERVICE: "literature-hub"
+  LITHUB_SERVICE: "lithub"
   LITHUB_USER: "lithub"
 
 stages:
@@ -127,7 +127,9 @@ deploy-backend:
     - cd $LITHUB_BACKEND_PATH
     - ls -lisah
     - sudo chown -R gitlab-runner $LITHUB_BACKEND_PATH
+    - pwd
     - ls -lisah
+    - cd ..
     - echo "Stopping service"
     - sudo systemctl stop $LITHUB_SERVICE.service
     - echo "Dropping virtual environment"
