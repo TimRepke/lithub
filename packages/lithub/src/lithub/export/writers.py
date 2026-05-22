@@ -161,7 +161,12 @@ def write_geographies(
     _write_batched_ipc(
         df[['idx', 'country_num']],
         target=target_min,
-        schema=pa.schema([pa.field('idx', pa.uint32()), pa.field('country_num', pa.uint16())]),
+        schema=pa.schema(
+            [
+                pa.field('idx', pa.uint32()),
+                pa.field('country_num', pa.uint16()),
+            ]
+        ),
         chunk_size=chunk_size,
     )
 

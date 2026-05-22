@@ -1,4 +1,3 @@
-
 from typing import Literal
 from pydantic import BaseModel, Field
 from colorsys import rgb_to_hls
