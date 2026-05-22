@@ -126,7 +126,7 @@ deploy-backend:
     - echo "Go to deployment location"
     - cd $LITHUB_BACKEND_PATH
     - ls -lisah
-    - sudo chown -R gitlab-runner $LITHUB_BACKEND_PATH
+    - sudo chown -R gitlab-runner $LITHUB_LOCAL_PATH
     - pwd
     - ls -lisah
     - cd ..
@@ -141,6 +141,6 @@ deploy-backend:
     - echo "Creating new virtual environment"
     - uv sync --cache-dir $UV_CACHE_DIR --project "${LITHUB_BACKEND_PATH}" --extra server
     - uv pip freeze --project "${LITHUB_BACKEND_PATH}"
-    - sudo chown -R $LITHUB_USER $LITHUB_BACKEND_PATH
+    - sudo chown -R $LITHUB_USER $LITHUB_LOCAL_PATH
     - echo "Starting service"
     - sudo systemctl start $LITHUB_SERVICE.service
