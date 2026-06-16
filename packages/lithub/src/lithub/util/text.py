@@ -32,6 +32,7 @@ def text_utils() -> tuple[Callable[[str, str], str], Callable[[str, set[str]], s
     lemmatizer = WordNetLemmatizer()
     stopwords = sw.words('english')
     NOALPH = re.compile(r'[^A-Za-z]+')
+    JUNK = re.compile(r'sup|amp|vol|doi|https?|nbsp')
 
     def lemmatize(token: str, tag: str) -> str:
         tag = {'N': wn.NOUN, 'V': wn.VERB, 'R': wn.ADV, 'J': wn.ADJ}.get(tag[0], wn.NOUN)
@@ -41,7 +42,7 @@ def text_utils() -> tuple[Callable[[str, str], str], Callable[[str, set[str]], s
         return ' '.join(
             [
                 lemmatize(tok, tag)
-                for sentence in sent_tokenize(text)
+                for sentence in sent_tokenize(JUNK.sub('', text))
                 for tok, tag in pos_tag(wordpunct_tokenize(sentence))
                 if tok not in stopwords and len(NOALPH.sub('', tok)) >= min_len and (pos_filter is None or tag not in pos_filter)
             ],
