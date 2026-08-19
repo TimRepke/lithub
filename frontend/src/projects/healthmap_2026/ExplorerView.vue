@@ -18,6 +18,7 @@ import ScatterLandscape from "@/components/ScatterLandscape.vue";
 import { DATA_BASE } from "@/util/api.ts";
 import FluidContainerGrid from "@/components/FluidContainerGrid.vue";
 import FluidContainer from "@/components/FluidContainer.vue";
+import ToolTip from "@/components/ToolTip.vue";
 import ReportingModal from "@/components/ReportingModal.vue";
 import type { AnnotatedDocument } from "@/util/types";
 import HistogramFilter from "@/components/HistogramFilter.vue";
