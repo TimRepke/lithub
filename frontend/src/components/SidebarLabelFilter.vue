@@ -102,6 +102,11 @@ watch(threshold, delayedSetThresholds);
 
 <style scoped lang="scss">
 .filter {
+  .form-range {
+    --bs-form-range-track-bg: #e9ecef;
+    --bs-form-range-track-border-color: #666;
+  }
+
   .filter-masks {
     display: flex;
     flex-direction: row;
@@ -112,12 +117,18 @@ watch(threshold, delayedSetThresholds);
       display: none;
     }
 
+    > input:checked + label {
+      color: #000;
+      font-weight: 500;
+    }
+
     > label {
       text-wrap: nowrap;
       border-width: 2px;
       border-style: solid;
       border-radius: 0.25em;
       padding: 0 0.25em;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
 
       box-sizing: content-box;
       display: flex;
