@@ -99,6 +99,20 @@ const { delayedCall: hideTooltip, clear: clearTooltipDelay } = useDelay(() => {
   tooltip.classed("hidden", true);
 }, 300);
 
+const rangeMin = computed(() => {
+  for (const yr of years) {
+    if (masks[yr].active.value) return yr;
+  }
+  return null;
+});
+
+const rangeMax = computed(() => {
+  for (let i = years.length - 1; i >= 0; i--) {
+    if (masks[years[i]].active.value) return years[i];
+  }
+  return null;
+});
+
 const yScale = scaleLinear().domain(extent.value.total);
 const xScale = scaleBand<number>() //
   .domain(years)
@@ -267,12 +281,27 @@ watch([data, width], delayedRedraw);
           <tr>
             <th>Year</th>
             <th>Total Publications</th>
+            <th>Range controls</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="yr in years" :key="yr">
             <td>{{ yr }}</td>
             <td>{{ masks[yr].counts.value.countTotal }}</td>
+            <td>
+              <button
+                :aria-label="`Set ${yr} as start year`"
+                @click="selectRange(yr, rangeMax || years[years.length - 1])"
+                type="button">
+                Start
+              </button>
+              <button
+                :aria-label="`Set ${yr} as end year`"
+                @click="selectRange(rangeMin || years[0], yr)"
+                type="button">
+                End
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -300,6 +329,19 @@ watch([data, width], delayedRedraw);
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
+}
+
+.sr-only:focus-within {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0.5rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
 }
 </style>
 <style>
