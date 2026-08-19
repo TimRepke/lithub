@@ -104,9 +104,14 @@ const xScale = scaleBand<number>() //
   .domain(years)
   .padding(0.2);
 const xAxis = axisBottom<number>(xScale);
+const uniq = crypto.randomUUID();
 
 const tooltip = d3create("div").attr("class", "hist-tooltip hidden");
-const svg = d3create("svg");
+const svg = d3create("svg")
+  .attr("role", "img")
+  .attr("aria-labelledby", `hist-title-${uniq}`)
+  .attr("aria-describedby", `hist-summary-${uniq}`);
+svg.append("title").attr("id", `hist-title-${uniq}`).text("Publication years histogram");
 const g = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
 const groupBars = g.append("g").attr("transform", `translate(0, -5)`);
 const groupAxis = g.append("g").attr("transform", `translate(0, ${height.value - 5})`);
@@ -219,7 +224,6 @@ const { call: delayedRedraw } = useDelay(() => {
 }, 50);
 
 const histogramElement = ref<HTMLDivElement | null>(null);
-const uniq = crypto.randomUUID();
 
 onMounted(async () => {
   if (histogramElement.value) {
@@ -251,6 +255,28 @@ watch([data, width], delayedRedraw);
       </div>
     </div>
     <div ref="histogramElement" class="hist" />
+    <div :id="`hist-summary-${uniq}`" class="sr-only">
+      <h3>Publication data by year</h3>
+      <p>
+        This chart shows the number of publications across {{ years.length }} years from {{ years[0] }} to
+        {{ years[years.length - 1] }}. The total count ranges from {{ extent.total[0] }} to {{ extent.total[1] }}
+        publications. Use the brush interaction to filter publications by year range.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Total Publications</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="yr in years" :key="yr">
+            <td>{{ yr }}</td>
+            <td>{{ masks[yr].counts.value.countTotal }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -262,6 +288,18 @@ watch([data, width], delayedRedraw);
 
 .hist {
   position: relative;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 </style>
 <style>
