@@ -4,6 +4,11 @@ $enable-cssgrid: true;
 */
 @import "../node_modules/bootstrap/scss/bootstrap";
 
+*:focus {
+  outline: 2px solid #0056b3;
+  outline-offset: 2px;
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 
