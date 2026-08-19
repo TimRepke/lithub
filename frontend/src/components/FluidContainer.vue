@@ -9,11 +9,25 @@ const { initialState } = defineProps({
 });
 const open = ref(initialState);
 watch(open, () => emit("visibilityUpdated", open.value));
+
+function toggleOpen(event: KeyboardEvent) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    open.value = !open.value;
+  }
+}
 </script>
 
 <template>
   <div class="column-container" style="flex: 1" :class="{ closed: !open }">
-    <h2 class="column-head" @click="open = !open" :aria-expanded="open" role="button" :tabindex="0">
+    <h2
+      class="column-head"
+      @click="open = !open"
+      @keydown="toggleOpen"
+      :aria-expanded="open"
+      :aria-label="`${title}, press Enter or Space to ${open ? 'collapse' : 'expand'}`"
+      role="button"
+      :tabindex="0">
       {{ title }}
       <font-awesome-icon class="text-muted small ms-auto" :icon="open ? 'eye' : 'eye-slash'" />
     </h2>
