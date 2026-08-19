@@ -25,6 +25,7 @@ function hideWarning(e: MouseEvent) {
 </script>
 
 <template>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   <nav class="lh-nav" :class="{ 'lh-nav-pathfinder': $route.matched.some((r) => r.name == 'ds-healthmap') }">
     <span class="fw-bold">Literature Hub</span>
     <span v-if="info && isProjectRoute">—{{ info.name }}</span>
@@ -45,7 +46,9 @@ function hideWarning(e: MouseEvent) {
     <router-link class="navbar-brand" :to="{ name: 'privacy' }">License/Privacy</router-link>
   </nav>
 
-  <router-view></router-view>
+  <main id="main-content">
+    <router-view></router-view>
+  </main>
 
   <div id="browser-compatibility" v-if="!isCompatible">
     <p>
@@ -57,6 +60,21 @@ function hideWarning(e: MouseEvent) {
 </template>
 
 <style scoped>
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #000;
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 100;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
 .lh-nav-pathfinder {
   background-color: rgb(4, 106, 56) !important;
   color: white;
