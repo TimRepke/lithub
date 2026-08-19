@@ -51,8 +51,15 @@ const { counts, active, fields, search, fetch } = mask.value;
       </div>
     </div>
     <div class="input-group input-group-sm">
-      <input type="text" class="form-control" placeholder="Search..." v-model="search" v-on:keyup.enter="fetch" />
-      <button class="btn btn-outline-secondary" type="submit" @click="fetch">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search..."
+        aria-label="Search literature"
+        v-model="search"
+        v-on:keyup.enter="fetch"
+      />
+      <button class="btn btn-outline-secondary" type="submit" aria-label="Search" @click="fetch">
         <font-awesome-icon icon="search" />
       </button>
     </div>
