@@ -79,4 +79,36 @@ watch(open, () => emit("visibilityUpdated", open.value));
   display: flex;
   flex-direction: column;
 }
+
+// B026 reflow: when panels stack vertically, each open panel takes the full
+// width and a usable min-height, and collapsed panels show a normal
+// horizontal header instead of the rotated vertical one.
+@media (max-width: 700px) {
+  .column-container {
+    flex: none;
+    width: 100% !important;
+    min-height: 60vh;
+  }
+
+  .column-container.closed {
+    flex: none !important;
+    min-height: 0;
+
+    .column-head {
+      writing-mode: horizontal-tb;
+      transform: none;
+      height: auto;
+      width: 100%;
+      margin: 0;
+      padding: 0.25rem;
+      flex-direction: row;
+      justify-content: flex-start;
+
+      svg {
+        transform: none;
+        margin-bottom: 0;
+      }
+    }
+  }
+}
 </style>
