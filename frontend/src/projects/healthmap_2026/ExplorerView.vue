@@ -138,10 +138,17 @@ function clearAll() {
           <div class="text-muted fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-3" />
 
-          <div @click="clearAll()" class="text-muted ms-2">
-            <font-awesome-icon icon="filter-circle-xmark" class="icon" />
-            <!-- Clear filters-->
-          </div>
+          <ToolTip text="Clear all filters" position="left">
+            <button
+              type="button"
+              @click="clearAll()"
+              aria-label="Clear all filters"
+              class="text-muted ms-2 btn btn-link"
+              style="border: none; background: none; padding: 0; text-decoration: none"
+            >
+              <font-awesome-icon icon="filter-circle-xmark" class="icon" />
+            </button>
+          </ToolTip>
         </div>
 
         <div class="filter-sidebar-container">
