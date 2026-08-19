@@ -216,6 +216,31 @@ async function submitFeedback() {
 </template>
 
 <style scoped>
+/* B022: Increase input border contrast */
+.form-control {
+  border-color: #6c757d;
+}
+
+.form-control:focus {
+  border-color: #495057;
+  box-shadow: 0 0 0 0.25rem rgba(73, 80, 87, 0.25);
+}
+
+/* B023: Increase toggle switch contrast */
+.form-check-input {
+  border-color: #6c757d;
+}
+
+.form-check-input:checked {
+  background-color: #495057;
+  border-color: #495057;
+}
+
+.form-check-input:focus {
+  border-color: #6c757d;
+  box-shadow: 0 0 0 0.25rem rgba(108, 117, 125, 0.25);
+}
+
 .labels {
   display: flex;
   flex-direction: row;
