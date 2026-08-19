@@ -81,10 +81,16 @@ watch(threshold, delayedSetThresholds);
         :id="`th-${maskKey}-${uniq}`" />
     </div>
 
-    <div class="filter-masks">
+    <fieldset class="filter-masks">
+      <legend class="sr-only">{{ name }} filter options</legend>
       <template v-for="(mask, mKey) in masks" :key="mKey">
         <input type="checkbox" :id="`active-${maskKey}-${mKey}-${uniq}`" v-model="mask.active.value" />
-        <label :for="`active-${maskKey}-${mKey}-${uniq}`" :style="styleColours[mKey]">
+        <label
+          :for="`active-${maskKey}-${mKey}-${uniq}`"
+          :style="styleColours[mKey]"
+          :aria-pressed="mask.active.value ? 'true' : 'false'"
+          role="button"
+        >
           <span class="counts">
             <span>
               {{ mask.counts.value.countFiltered.toLocaleString() }} /
@@ -96,11 +102,23 @@ watch(threshold, delayedSetThresholds);
           </span>
         </label>
       </template>
-    </div>
+    </fieldset>
   </div>
 </template>
 
 <style scoped lang="scss">
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 .filter {
   .filter-masks {
     display: flex;
@@ -109,7 +127,15 @@ watch(threshold, delayedSetThresholds);
     gap: 0.25em 0.5em;
 
     input[type="checkbox"] {
-      display: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
     }
 
     > label {
