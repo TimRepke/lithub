@@ -89,8 +89,7 @@ watch(threshold, delayedSetThresholds);
           :for="`active-${maskKey}-${mKey}-${uniq}`"
           :style="styleColours[mKey]"
           :aria-pressed="mask.active.value ? 'true' : 'false'"
-          role="button"
-        >
+          role="button">
           <span class="counts">
             <span>
               {{ mask.counts.value.countFiltered.toLocaleString() }} /

@@ -57,8 +57,7 @@ const { counts, active, fields, search, fetch } = mask.value;
         placeholder="Search..."
         aria-label="Search literature"
         v-model="search"
-        v-on:keyup.enter="fetch"
-      />
+        v-on:keyup.enter="fetch" />
       <button class="btn btn-outline-secondary" type="submit" aria-label="Search" @click="fetch">
         <font-awesome-icon icon="search" />
       </button>

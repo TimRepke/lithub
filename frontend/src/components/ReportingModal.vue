@@ -7,12 +7,7 @@ import { is } from "@/util";
 
 const emits = defineEmits<{ (e: "close"): void }>();
 
-const {
-  doc,
-  schemeLabels,
-  schemeGroups,
-  dataset,
-} = defineProps({
+const { doc, schemeLabels, schemeGroups, dataset } = defineProps({
   schemeLabels: { type: Object as PropType<Record<string, SchemeLabel>>, required: true },
   schemeGroups: { type: Object as PropType<Record<string, SchemeGroup>>, required: true },
   doc: { type: Object as PropType<AnnotatedDocument>, required: true },
@@ -46,12 +41,12 @@ const feedback = ref(
 );
 
 function handleModalKeydown(e: KeyboardEvent) {
-  if (e.key === 'Tab') {
-    const modal = globalThis.document.querySelector('.modal-content') as HTMLElement;
+  if (e.key === "Tab") {
+    const modal = globalThis.document.querySelector(".modal-content") as HTMLElement;
     if (!modal) return;
 
     const focusableElements = modal.querySelectorAll(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
     );
     const firstElement = focusableElements[0] as HTMLElement;
     const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
@@ -75,14 +70,14 @@ watchEffect(() => {
   if (doc) {
     previouslyFocusedElement.value = globalThis.document.activeElement as HTMLElement;
     setTimeout(() => {
-      const modal = globalThis.document.querySelector('.modal-content') as HTMLElement;
+      const modal = globalThis.document.querySelector(".modal-content") as HTMLElement;
       if (modal) {
         modal.focus();
-        globalThis.document.addEventListener('keydown', handleModalKeydown);
+        globalThis.document.addEventListener("keydown", handleModalKeydown);
       }
     }, 0);
   } else {
-    globalThis.document.removeEventListener('keydown', handleModalKeydown);
+    globalThis.document.removeEventListener("keydown", handleModalKeydown);
     if (previouslyFocusedElement.value) {
       previouslyFocusedElement.value.focus();
     }
@@ -124,7 +119,12 @@ async function submitFeedback() {
   <template v-if="doc">
     <div class="modal modal-lg fade show d-block">
       <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" role="dialog" aria-labelledby="exampleModalCenteredScrollableTitle" aria-modal="true" tabindex="-1">
+        <div
+          class="modal-content"
+          role="dialog"
+          aria-labelledby="exampleModalCenteredScrollableTitle"
+          aria-modal="true"
+          tabindex="-1">
           <div class="modal-header">
             <h1 class="modal-title fs-5" id="exampleModalCenteredScrollableTitle">Report data issue</h1>
             <button type="button" class="btn-close" aria-label="Close" @click="onModalClose"></button>
@@ -167,8 +167,7 @@ async function submitFeedback() {
                 type="button"
                 class="btn btn-link p-0 text-start text-muted small"
                 @click="details = !details"
-                :aria-expanded="details"
-              >
+                :aria-expanded="details">
                 <font-awesome-icon :icon="details ? 'minus' : 'plus'" class="me-2" />
                 <span class="me-2">Additional details</span>
                 <hr class="d-inline-block flex-grow-1" style="width: auto; margin-left: 0.5rem" />

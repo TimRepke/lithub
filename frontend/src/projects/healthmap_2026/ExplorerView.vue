@@ -145,8 +145,7 @@ function clearAll() {
               @click="clearAll()"
               aria-label="Clear all filters"
               class="text-muted ms-2 btn btn-link"
-              style="border: none; background: none; padding: 0; text-decoration: none"
-            >
+              style="border: none; background: none; padding: 0; text-decoration: none">
               <font-awesome-icon icon="filter-circle-xmark" class="icon" />
             </button>
           </ToolTip>
@@ -267,9 +266,8 @@ function clearAll() {
           :year-masks="pyMask"
           :global-counts="globalCounts"
           init-hori="cat"
-          init-vert="Location_Group (Lancet 2026)"
-          />
-          <!--init-vert="topic-agg-agg" -->
+          init-vert="Location_Group (Lancet 2026)" />
+        <!--init-vert="topic-agg-agg" -->
       </FluidContainer>
     </template>
 

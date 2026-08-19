@@ -8,7 +8,6 @@ const { initialState } = defineProps({
   title: { type: String, required: true },
 });
 const open = ref(initialState);
-const uniq = crypto.randomUUID();
 watch(open, () => emit("visibilityUpdated", open.value));
 </script>
 
