@@ -6,6 +6,7 @@ export default {
   name: routeBaseName,
   path: "carbonpricing",
   component: () => import("./ContainerView.vue"),
+  meta: { title: "Carbon Pricing Map — Literature Hub" },
   children: [
     {
       name: `${routeBaseName}-explore`,
