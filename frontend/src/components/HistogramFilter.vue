@@ -230,6 +230,8 @@ const { call: delayedRedraw } = useDelay(() => {
     .attr("width", (d) => xScale.bandwidth() + d.padding * 2)
     .attr("height", (d) => Math.max(0, yScale(d.count)))
     .attr("fill", (d) => d.colour)
+    .attr("stroke", (d) => (d.colour !== "white" ? "#333333" : "none"))
+    .attr("stroke-width", 1.5)
     .attr("opacity", 1);
 
   groupAxis.call(xAxis);
