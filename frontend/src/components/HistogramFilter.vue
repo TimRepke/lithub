@@ -114,31 +114,23 @@ const rangeMax = computed(() => {
 });
 
 const cagrData = computed(() => {
-  return years.map((yr, index) => {
+  return years.map((_yr, index) => {
     const cagr5Total =
       index < 5
         ? "—"
-        : percentFormatter.format(
-            cagr(5, data.value[index - 5].stack[1].count, data.value[index].stack[1].count),
-          );
+        : percentFormatter.format(cagr(5, data.value[index - 5].stack[1].count, data.value[index].stack[1].count));
     const cagr10Total =
       index < 10
         ? "—"
-        : percentFormatter.format(
-            cagr(10, data.value[index - 10].stack[1].count, data.value[index].stack[1].count),
-          );
+        : percentFormatter.format(cagr(10, data.value[index - 10].stack[1].count, data.value[index].stack[1].count));
     const cagr5Filtered =
       index < 5
         ? "—"
-        : percentFormatter.format(
-            cagr(5, data.value[index - 5].stack[2].count, data.value[index].stack[2].count),
-          );
+        : percentFormatter.format(cagr(5, data.value[index - 5].stack[2].count, data.value[index].stack[2].count));
     const cagr10Filtered =
       index < 10
         ? "—"
-        : percentFormatter.format(
-            cagr(10, data.value[index - 10].stack[2].count, data.value[index].stack[2].count),
-          );
+        : percentFormatter.format(cagr(10, data.value[index - 10].stack[2].count, data.value[index].stack[2].count));
     return { cagr5Total, cagr10Total, cagr5Filtered, cagr10Filtered };
   });
 });
