@@ -179,6 +179,39 @@ function resetZoom() {
     .call(zoom.transform, d3zoomIdentity, d3zoomTransform(containerGroup.node()!).invert([width / 2, height / 2]));
 }
 
+// B018/B019: keyboard- and single-pointer-operable alternatives to mouse-drag
+// panning and wheel zooming. Each button drives the same d3 zoom behaviour
+// programmatically, so no drag or sustained pointer gesture is required.
+const PAN_STEP = 150;
+const ZOOM_STEP = 1.5;
+
+function panBy(dx: number, dy: number) {
+  svg.transition().duration(200).call(zoom.translateBy, dx, dy);
+}
+
+function zoomBy(factor: number) {
+  svg.transition().duration(200).call(zoom.scaleBy, factor);
+}
+
+function panUp() {
+  panBy(0, PAN_STEP);
+}
+function panDown() {
+  panBy(0, -PAN_STEP);
+}
+function panLeft() {
+  panBy(PAN_STEP, 0);
+}
+function panRight() {
+  panBy(-PAN_STEP, 0);
+}
+function zoomIn() {
+  zoomBy(ZOOM_STEP);
+}
+function zoomOut() {
+  zoomBy(1 / ZOOM_STEP);
+}
+
 function redrawCountries() {
   if (!topo) return; // Stop right here if topography is not loaded yet
   const colorScale = d3scaleSequential(
@@ -304,6 +337,34 @@ function clearAll() {
       </span>
     </div>
 
+    <div class="map-controls" v-if="!loading" role="group" aria-label="Map pan and zoom controls">
+      <div class="map-dpad">
+        <button type="button" class="map-btn up" aria-label="Pan up" @click="panUp">
+          <font-awesome-icon icon="arrow-up" />
+        </button>
+        <button type="button" class="map-btn left" aria-label="Pan left" @click="panLeft">
+          <font-awesome-icon icon="arrow-left" />
+        </button>
+        <button type="button" class="map-btn reset" aria-label="Reset map view" @click="resetZoom">
+          <font-awesome-icon icon="arrows-to-dot" />
+        </button>
+        <button type="button" class="map-btn right" aria-label="Pan right" @click="panRight">
+          <font-awesome-icon icon="arrow-right" />
+        </button>
+        <button type="button" class="map-btn down" aria-label="Pan down" @click="panDown">
+          <font-awesome-icon icon="arrow-down" />
+        </button>
+      </div>
+      <div class="map-zoom">
+        <button type="button" class="map-btn" aria-label="Zoom in" @click="zoomIn">
+          <font-awesome-icon icon="magnifying-glass-plus" />
+        </button>
+        <button type="button" class="map-btn" aria-label="Zoom out" @click="zoomOut">
+          <font-awesome-icon icon="magnifying-glass-minus" />
+        </button>
+      </div>
+    </div>
+
     <div ref="mapElement" v-show="!loading" />
 
     <div class="map-info" v-if="!loading">
@@ -332,6 +393,72 @@ function clearAll() {
   flex-grow: 1;
   height: 0;
   overflow-y: auto;
+}
+
+.map-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 0.25em 0;
+  font-size: 0.85em;
+}
+
+.map-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: center;
+}
+
+.map-dpad .up {
+  grid-column: 2;
+  grid-row: 1;
+}
+.map-dpad .left {
+  grid-column: 1;
+  grid-row: 2;
+}
+.map-dpad .reset {
+  grid-column: 2;
+  grid-row: 2;
+}
+.map-dpad .right {
+  grid-column: 3;
+  grid-row: 2;
+}
+.map-dpad .down {
+  grid-column: 2;
+  grid-row: 3;
+}
+
+.map-zoom {
+  display: flex;
+}
+
+.map-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: none;
+  background: none;
+  line-height: 1;
+  color: var(--grey-1);
+  cursor: pointer;
+}
+
+.map-btn svg {
+  width: 1em;
+  height: 1em;
+}
+
+.map-btn:hover {
+  color: var(--grey-2);
+}
+
+.map-btn:focus-visible {
+  outline: 2px solid #0056b3;
+  outline-offset: 1px;
 }
 </style>
 
