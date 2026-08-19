@@ -113,6 +113,36 @@ const rangeMax = computed(() => {
   return null;
 });
 
+const cagrData = computed(() => {
+  return years.map((yr, index) => {
+    const cagr5Total =
+      index < 5
+        ? "—"
+        : percentFormatter.format(
+            cagr(5, data.value[index - 5].stack[1].count, data.value[index].stack[1].count),
+          );
+    const cagr10Total =
+      index < 10
+        ? "—"
+        : percentFormatter.format(
+            cagr(10, data.value[index - 10].stack[1].count, data.value[index].stack[1].count),
+          );
+    const cagr5Filtered =
+      index < 5
+        ? "—"
+        : percentFormatter.format(
+            cagr(5, data.value[index - 5].stack[2].count, data.value[index].stack[2].count),
+          );
+    const cagr10Filtered =
+      index < 10
+        ? "—"
+        : percentFormatter.format(
+            cagr(10, data.value[index - 10].stack[2].count, data.value[index].stack[2].count),
+          );
+    return { cagr5Total, cagr10Total, cagr5Filtered, cagr10Filtered };
+  });
+});
+
 const yScale = scaleLinear().domain(extent.value.total);
 const xScale = scaleBand<number>() //
   .domain(years)
@@ -282,14 +312,24 @@ watch([data, width], delayedRedraw);
         <thead>
           <tr>
             <th>Year</th>
-            <th>Total Publications</th>
-            <th>Range controls</th>
+            <th>Total Pubs</th>
+            <th>5yr CAGR</th>
+            <th>10yr CAGR</th>
+            <th>Filtered Pubs</th>
+            <th>5yr CAGR (filtered)</th>
+            <th>10yr CAGR (filtered)</th>
+            <th>Range</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="yr in years" :key="yr">
+          <tr v-for="(yr, index) in years" :key="yr">
             <td>{{ yr }}</td>
             <td>{{ masks[yr].counts.value.countTotal }}</td>
+            <td>{{ cagrData[index].cagr5Total }}</td>
+            <td>{{ cagrData[index].cagr10Total }}</td>
+            <td>{{ masks[yr].counts.value.countFiltered }}</td>
+            <td>{{ cagrData[index].cagr5Filtered }}</td>
+            <td>{{ cagrData[index].cagr10Filtered }}</td>
             <td>
               <button
                 :aria-label="`Set ${yr} as start year`"
