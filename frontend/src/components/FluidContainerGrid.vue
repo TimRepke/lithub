@@ -218,4 +218,18 @@ onMounted(() => {
   outline-offset: -2px;
   background-color: #e7f1ff;
 }
+
+// B026 reflow: below the narrow breakpoint (reached at ~400% zoom) stack the
+// panels vertically into a single column and let the page scroll vertically
+// instead of forcing a fixed horizontal multi-panel layout.
+@media (max-width: 700px) {
+  .flex.h {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .flex > .flex-resizer {
+    display: none;
+  }
+}
 </style>

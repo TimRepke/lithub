@@ -55,6 +55,21 @@ html, body {
   height: 100vh;
 }
 
+// B026 reflow: at the narrow breakpoint (reached at ~400% zoom) release the
+// fixed full-viewport height so stacked content can grow and the page scrolls
+// vertically rather than clipping or requiring two-dimensional scrolling.
+@media (max-width: 700px) {
+  html, body {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  #app {
+    height: auto;
+    min-height: 100vh;
+  }
+}
+
 .ribbon {
   width: 60px;
   font-size: 14px;
