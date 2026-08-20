@@ -99,14 +99,55 @@ const { delayedCall: hideTooltip, clear: clearTooltipDelay } = useDelay(() => {
   tooltip.classed("hidden", true);
 }, 300);
 
+const rangeMin = computed(() => {
+  for (const yr of years) {
+    if (masks[yr].active.value) return yr;
+  }
+  return null;
+});
+
+const rangeMax = computed(() => {
+  for (let i = years.length - 1; i >= 0; i--) {
+    if (masks[years[i]].active.value) return years[i];
+  }
+  return null;
+});
+
+const cagrData = computed(() => {
+  return years.map((_yr, index) => {
+    const cagr5Total =
+      index < 5
+        ? "—"
+        : percentFormatter.format(cagr(5, data.value[index - 5].stack[1].count, data.value[index].stack[1].count));
+    const cagr10Total =
+      index < 10
+        ? "—"
+        : percentFormatter.format(cagr(10, data.value[index - 10].stack[1].count, data.value[index].stack[1].count));
+    const cagr5Filtered =
+      index < 5
+        ? "—"
+        : percentFormatter.format(cagr(5, data.value[index - 5].stack[2].count, data.value[index].stack[2].count));
+    const cagr10Filtered =
+      index < 10
+        ? "—"
+        : percentFormatter.format(cagr(10, data.value[index - 10].stack[2].count, data.value[index].stack[2].count));
+    return { cagr5Total, cagr10Total, cagr5Filtered, cagr10Filtered };
+  });
+});
+
 const yScale = scaleLinear().domain(extent.value.total);
 const xScale = scaleBand<number>() //
   .domain(years)
   .padding(0.2);
 const xAxis = axisBottom<number>(xScale);
+const uniq = crypto.randomUUID();
 
 const tooltip = d3create("div").attr("class", "hist-tooltip hidden");
-const svg = d3create("svg");
+const svg = d3create("svg")
+  .attr("role", "img")
+  .attr("aria-labelledby", `hist-title-${uniq}`)
+  .attr("aria-describedby", `hist-summary-${uniq}`);
+svg.append("title").attr("id", `hist-title-${uniq}`).text("Publication years histogram");
 const g = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
 const groupBars = g.append("g").attr("transform", `translate(0, -5)`);
 const groupAxis = g.append("g").attr("transform", `translate(0, ${height.value - 5})`);
@@ -211,6 +252,8 @@ const { call: delayedRedraw } = useDelay(() => {
     .attr("width", (d) => xScale.bandwidth() + d.padding * 2)
     .attr("height", (d) => Math.max(0, yScale(d.count)))
     .attr("fill", (d) => d.colour)
+    .attr("stroke", (d) => (d.colour !== "white" ? "#333333" : "none"))
+    .attr("stroke-width", 1.5)
     .attr("opacity", 1);
 
   groupAxis.call(xAxis);
@@ -219,7 +262,6 @@ const { call: delayedRedraw } = useDelay(() => {
 }, 50);
 
 const histogramElement = ref<HTMLDivElement | null>(null);
-const uniq = crypto.randomUUID();
 
 onMounted(async () => {
   if (histogramElement.value) {
@@ -251,6 +293,53 @@ watch([data, width], delayedRedraw);
       </div>
     </div>
     <div ref="histogramElement" class="hist" />
+    <div :id="`hist-summary-${uniq}`" class="sr-only">
+      <h3>Publication data by year</h3>
+      <p>
+        This chart shows the number of publications across {{ years.length }} years from {{ years[0] }} to
+        {{ years[years.length - 1] }}. The total count ranges from {{ extent.total[0] }} to {{ extent.total[1] }}
+        publications. Use the brush interaction to filter publications by year range.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Total Pubs</th>
+            <th>5yr CAGR</th>
+            <th>10yr CAGR</th>
+            <th>Filtered Pubs</th>
+            <th>5yr CAGR (filtered)</th>
+            <th>10yr CAGR (filtered)</th>
+            <th>Range</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(yr, index) in years" :key="yr">
+            <td>{{ yr }}</td>
+            <td>{{ masks[yr].counts.value.countTotal }}</td>
+            <td>{{ cagrData[index].cagr5Total }}</td>
+            <td>{{ cagrData[index].cagr10Total }}</td>
+            <td>{{ masks[yr].counts.value.countFiltered }}</td>
+            <td>{{ cagrData[index].cagr5Filtered }}</td>
+            <td>{{ cagrData[index].cagr10Filtered }}</td>
+            <td>
+              <button
+                :aria-label="`Set ${yr} as start year`"
+                @click="selectRange(yr, rangeMax || years[years.length - 1])"
+                type="button">
+                Start
+              </button>
+              <button
+                :aria-label="`Set ${yr} as end year`"
+                @click="selectRange(rangeMin || years[0], yr)"
+                type="button">
+                End
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -262,6 +351,31 @@ watch([data, width], delayedRedraw);
 
 .hist {
   position: relative;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:focus-within {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0.5rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
 }
 </style>
 <style>
