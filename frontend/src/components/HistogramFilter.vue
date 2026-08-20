@@ -7,7 +7,7 @@ import { scaleBand, scaleLinear } from "d3-scale";
 import { brushX, D3BrushEvent } from "d3-brush";
 import { zoom as d3zoom, D3ZoomEvent } from "d3-zoom";
 import { axisBottom } from "d3-axis";
-import { create as d3create } from "d3-selection";
+import { create as d3create, pointer as d3pointer } from "d3-selection";
 import { ClearFilterEvent, EventBus } from "@/util/events.ts";
 
 const mask = defineModel<HistogramMask>("mask", { required: true });
@@ -90,7 +90,8 @@ function showTooltip(d: Year, index: number) {
   tooltip.style("left", `${(xScale(d.year) ?? 0) + offset}px`);
 
   groupBars.selectAll("rect.bar").classed("hist-hl", false);
-  (groupBars.select(`g.barstack[year="${d.year}"]`).node() as SVGGElement).children[0].classList.add("hist-hl");
+  const stackNode = groupBars.select(`g.barstack[year="${d.year}"]`).node() as SVGGElement | null;
+  if (stackNode) stackNode.children[0].classList.add("hist-hl");
   clearTooltipDelay();
 }
 
@@ -156,7 +157,11 @@ const groupBrush = g
   .attr("class", "brush")
   .on("wheel", (e) => e.preventDefault())
   .on("mousemove", (e: MouseEvent) => {
-    const hoverYear = Math.max(0, Math.min(years.length - 1, Math.floor(e.clientX / xScale.step()) - 1));
+    // Use the pointer position relative to the plot group `g` (the space in
+    // which xScale is defined) rather than the viewport-relative clientX, so
+    // the detected bar is correct regardless of where the chart sits on screen.
+    const [mx] = d3pointer(e, g.node());
+    const hoverYear = Math.max(0, Math.min(years.length - 1, Math.floor(mx / xScale.step())));
     if (hoverYear !== focusYear) {
       focusYear = hoverYear;
       showTooltip(data.value[focusYear], hoverYear);
