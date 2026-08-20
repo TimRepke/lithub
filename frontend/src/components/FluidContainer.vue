@@ -8,17 +8,30 @@ const { initialState } = defineProps({
   title: { type: String, required: true },
 });
 const open = ref(initialState);
-const uniq = crypto.randomUUID();
 watch(open, () => emit("visibilityUpdated", open.value));
+
+function toggleOpen(event: KeyboardEvent) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    open.value = !open.value;
+  }
+}
 </script>
 
 <template>
   <div class="column-container" style="flex: 1" :class="{ closed: !open }">
-    <label class="column-head" :for="`col-open-${uniq}`">
+    <h2
+      class="column-head"
+      @click="open = !open"
+      @keydown="toggleOpen"
+      :aria-expanded="open"
+      :aria-label="`${title}, press Enter or Space to ${open ? 'collapse' : 'expand'}`"
+      role="button"
+      :tabindex="0">
       {{ title }}
       <font-awesome-icon class="text-muted small ms-auto" :icon="open ? 'eye' : 'eye-slash'" />
-    </label>
-    <input type="checkbox" v-model="open" :id="`col-open-${uniq}`" style="display: none" />
+    </h2>
+    <input type="checkbox" v-model="open" style="display: none" />
     <div class="column-body" v-if="open">
       <slot />
     </div>
@@ -70,6 +83,15 @@ watch(open, () => emit("visibilityUpdated", open.value));
   padding-right: 0.25rem;
   display: flex;
   align-items: center;
+  margin: 0;
+  font-size: 1rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.column-head:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: -1px;
 }
 
 .column-body {

@@ -18,6 +18,13 @@ const isProjectRoute = computed(() => {
 
 const isCompatible = computed(() => isBrowserCompatible());
 
+function skipToContent() {
+  const mainContent = document.getElementById("main-content");
+  if (mainContent) {
+    mainContent.focus();
+  }
+}
+
 function hideWarning(e: MouseEvent) {
   const target = e.target as HTMLButtonElement | null;
   if (target && target.parentElement) target.parentElement.style.display = "none";
@@ -25,6 +32,7 @@ function hideWarning(e: MouseEvent) {
 </script>
 
 <template>
+  <button type="button" class="skip-link" @click="skipToContent">Skip to main content</button>
   <nav class="lh-nav" :class="{ 'lh-nav-pathfinder': $route.matched.some((r) => r.name == 'ds-healthmap') }">
     <span class="fw-bold">Literature Hub</span>
     <span v-if="info && isProjectRoute">—{{ info.name }}</span>
@@ -45,7 +53,9 @@ function hideWarning(e: MouseEvent) {
     <router-link class="navbar-brand" :to="{ name: 'privacy' }">License/Privacy</router-link>
   </nav>
 
-  <router-view></router-view>
+  <main id="main-content" tabindex="-1">
+    <router-view></router-view>
+  </main>
 
   <div id="browser-compatibility" v-if="!isCompatible">
     <p>
@@ -57,6 +67,26 @@ function hideWarning(e: MouseEvent) {
 </template>
 
 <style scoped>
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: -9999px;
+  background: #000;
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  z-index: 100;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.skip-link:focus {
+  left: 0;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
 .lh-nav-pathfinder {
   background-color: rgb(4, 106, 56) !important;
   color: white;

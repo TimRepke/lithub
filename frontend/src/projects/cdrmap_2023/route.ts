@@ -6,6 +6,7 @@ export default {
   name: routeBaseName,
   path: "cdrmap_2023",
   component: () => import("./ContainerView.vue"),
+  meta: { title: "Carbon Dioxide Removal Map 2023 — Literature Hub" },
   children: [
     {
       name: `${routeBaseName}-explore`,

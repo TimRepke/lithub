@@ -6,6 +6,7 @@ export default {
   name: routeBaseName,
   path: "eppi",
   component: () => import("./ContainerView.vue"),
+  meta: { title: "EPPI Evidence Map — Literature Hub" },
   children: [
     {
       name: `${routeBaseName}-explore`,
