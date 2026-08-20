@@ -137,6 +137,8 @@ const labels = computed(() =>
       padding-right: var(--sep-gap);
       padding-left: var(--side-margin);
       text-wrap: nowrap;
+      color: #000;
+      font-weight: 500;
     }
 
     .value {
