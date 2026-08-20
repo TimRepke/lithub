@@ -68,15 +68,17 @@ const labels = computed(() =>
         <img src="@/assets/openalex.png" style="height: 1em" alt="OpenAlex" />OpenAlex
       </a>
 
-      <template v-for="label in labels" :key="label.key">
-        <span v-if="showAllLabels || label.value > 0.5" class="pill">
-          <span v-if="showPrefix" style="margin-left: 0.3em; margin-right: 0.3em">{{
-            schemeGroups[label.group].name
-          }}</span>
-          <span class="head" :style="{ backgroundColor: hslToCSS(...label.col) }">{{ label.name }}</span>
-          <span class="value">{{ label.value }}</span>
-        </span>
-      </template>
+      <ul class="labels-list" aria-label="Document categories">
+        <li v-for="label in labels" :key="label.key">
+          <span v-if="showAllLabels || label.value > 0.5" class="pill">
+            <span v-if="showPrefix" style="margin-left: 0.3em; margin-right: 0.3em">{{
+              schemeGroups[label.group].name
+            }}</span>
+            <span class="head" :style="{ backgroundColor: hslToCSS(...label.col) }">{{ label.name }}</span>
+            <span class="value">{{ label.value }}</span>
+          </span>
+        </li>
+      </ul>
 
       <ToggleIcon
         icon-false="plus"
@@ -107,6 +109,17 @@ const labels = computed(() =>
   }
 
   font-size: 0.8em;
+
+  .labels-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: inline;
+
+    li {
+      display: inline;
+    }
+  }
 
   .pill {
     --border-colour: grey;

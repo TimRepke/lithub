@@ -28,16 +28,18 @@ library.add(far);
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-    { name: "landing", path: "/", component: LandingView },
+    { name: "landing", path: "/", component: LandingView, meta: { title: "Literature Hub" } },
     {
       name: "about",
       path: "/about",
       component: () => import("./views/AboutView.vue"),
+      meta: { title: "About — Literature Hub" },
     },
     {
       name: "privacy",
       path: "/privacy",
       component: () => import("./views/PrivacyView.vue"),
+      meta: { title: "Privacy — Literature Hub" },
     },
     {
       name: "project",
@@ -55,6 +57,11 @@ const router = createRouter({
       ],
     },
   ],
+});
+
+router.afterEach((to) => {
+  const title = (to.meta.title as string) || "Literature Hub";
+  document.title = title;
 });
 
 createApp(App) //
