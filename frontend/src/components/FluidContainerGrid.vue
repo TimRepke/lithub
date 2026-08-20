@@ -7,6 +7,45 @@ type Container = { name: string; state: boolean };
 const slots = useSlots();
 const containers = ref<Container[]>([]);
 
+function manageKeyboardResize(ke: KeyboardEvent, sizeProp: "offsetWidth" | "offsetHeight") {
+  const r = ke.target as HTMLDivElement;
+
+  const prev = r.previousElementSibling as HTMLDivElement;
+  let next = r.nextElementSibling as HTMLDivElement;
+
+  while (next) {
+    if (!next.classList.contains("closed") && !next.classList.contains("flex-resizer")) break;
+    next = next.nextElementSibling as HTMLDivElement;
+  }
+
+  if (!prev || !next) return;
+
+  const resizeAmount = 0.1; // 10% of combined size
+  const prevSize = prev[sizeProp];
+  const nextSize = next[sizeProp];
+  const sumSize = prevSize + nextSize;
+  const prevGrow = Number(prev.style.flexGrow);
+  const nextGrow = Number(next.style.flexGrow);
+  const sumGrow = prevGrow + nextGrow;
+
+  const delta = sumSize * resizeAmount;
+  let prevSize_ = prevSize;
+  let nextSize_ = nextSize;
+
+  if (ke.key === "ArrowLeft" || ke.key === "ArrowUp") {
+    prevSize_ = Math.max(0, prevSize - delta);
+    nextSize_ = sumSize - prevSize_;
+  } else if (ke.key === "ArrowRight" || ke.key === "ArrowDown") {
+    prevSize_ = Math.min(sumSize, prevSize + delta);
+    nextSize_ = sumSize - prevSize_;
+  }
+
+  prev.style.flexGrow = `${sumGrow * (prevSize_ / sumSize)}`;
+  next.style.flexGrow = `${sumGrow * (nextSize_ / sumSize)}`;
+
+  ke.preventDefault();
+}
+
 function manageResize(md: MouseEvent, sizeProp: "offsetWidth" | "offsetHeight", posProp: "pageX" | "pageY") {
   const r = md.target as HTMLDivElement;
 
@@ -103,6 +142,24 @@ onMounted(() => {
       manageResize(md, "offsetHeight", "pageY");
     }
   });
+
+  document.body.addEventListener("keydown", function (ke: KeyboardEvent) {
+    const target = ke.target as HTMLDivElement;
+
+    if (!target.classList.contains("flex-resizer")) return;
+
+    const parent = target.parentNode as HTMLDivElement;
+    const h = parent.classList.contains("h");
+    const v = parent.classList.contains("v");
+
+    if (
+      (h && (ke.key === "ArrowLeft" || ke.key === "ArrowRight")) ||
+      (v && (ke.key === "ArrowUp" || ke.key === "ArrowDown"))
+    ) {
+      const sizeProp = h ? "offsetWidth" : "offsetHeight";
+      manageKeyboardResize(ke, sizeProp);
+    }
+  });
 });
 </script>
 
@@ -110,7 +167,12 @@ onMounted(() => {
   <div class="flex h" style="flex: 1">
     <template v-for="(container, ci) in containers" :key="container.name">
       <slot :name="container.name" />
-      <div class="flex-resizer" v-if="ci < containers.length - 1" />
+      <div
+        v-if="ci < containers.length - 1"
+        class="flex-resizer"
+        tabindex="0"
+        role="button"
+        aria-label="Resize panels: use arrow keys to adjust width/height" />
     </template>
   </div>
 </template>
@@ -149,5 +211,11 @@ onMounted(() => {
 
 .closed + .flex-resizer {
   display: none;
+}
+
+.flex-resizer:focus {
+  outline: 3px solid #0d6efd;
+  outline-offset: -2px;
+  background-color: #e7f1ff;
 }
 </style>
