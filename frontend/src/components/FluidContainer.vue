@@ -89,7 +89,7 @@ function toggleOpen(event: KeyboardEvent) {
   user-select: none;
 }
 
-.column-head:focus {
+.column-head:focus-visible {
   outline: 2px solid #0d6efd;
   outline-offset: -1px;
 }

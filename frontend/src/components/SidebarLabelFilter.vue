@@ -132,8 +132,8 @@ watch(threshold, delayedSetThresholds);
   }
 
   // visible focus indicator on the label that stands in for each visually
-  // hidden input (icon toggles and mask checkboxes are clipped/off-screen)
-  input:focus + label,
+  // hidden input (icon toggles and mask checkboxes are clipped/off-screen);
+  // :focus-visible only, so a mouse click does not leave a lingering outline
   input:focus-visible + label {
     outline: 2px solid #0056b3;
     outline-offset: 2px;

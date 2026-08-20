@@ -213,7 +213,7 @@ onMounted(() => {
   display: none;
 }
 
-.flex-resizer:focus {
+.flex-resizer:focus-visible {
   outline: 3px solid #0d6efd;
   outline-offset: -2px;
   background-color: #e7f1ff;
