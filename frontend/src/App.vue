@@ -67,6 +67,16 @@ function hideWarning(e: MouseEvent) {
 </template>
 
 <style scoped>
+/* The <main> wrapper must participate in #app's column flex layout so the
+   view's `flex: 1` root fills the viewport height; without this it collapses
+   to content height, leaving whitespace below the panels. */
+#main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .skip-link {
   position: absolute;
   top: 0;
