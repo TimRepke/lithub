@@ -126,6 +126,11 @@ watch(threshold, delayedSetThresholds);
 }
 
 .filter {
+  .form-range {
+    --bs-form-range-track-bg: #e9ecef;
+    --bs-form-range-track-border-color: #666;
+  }
+
   // visible focus indicator on the label that stands in for each visually
   // hidden input (icon toggles and mask checkboxes are clipped/off-screen)
   input:focus + label,
@@ -152,12 +157,18 @@ watch(threshold, delayedSetThresholds);
       border-width: 0;
     }
 
+    > input:checked + label {
+      color: #000;
+      font-weight: 500;
+    }
+
     > label {
       text-wrap: nowrap;
       border-width: 2px;
       border-style: solid;
       border-radius: 0.25em;
       padding: 0 0.25em;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
 
       box-sizing: content-box;
       display: flex;
