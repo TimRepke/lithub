@@ -132,6 +132,13 @@ html, body {
   }
 }
 
+.filter-head .icon {
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .icon-toggle {
   @include icon-toggle;
 }
