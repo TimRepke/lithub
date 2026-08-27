@@ -60,8 +60,7 @@ const router = createRouter({
 });
 
 router.afterEach((to) => {
-  const title = (to.meta.title as string) || "Literature Hub";
-  document.title = title;
+  document.title = (to.meta.title as string) || "Literature Hub";
 });
 
 createApp(App) //
