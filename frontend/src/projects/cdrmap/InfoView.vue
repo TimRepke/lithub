@@ -134,7 +134,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
       <thead>
         <tr>
           <th>Label</th>
-          <th>Name <code class="small">[export column]</code> <span class="text-muted">(Annotation counts)</span></th>
+          <th>Name <code class="small">[export column]</code> <span class="text-body-secondary">(Annotation counts)</span></th>
           <th>Model</th>
           <th>Precision</th>
           <th>Recall</th>
@@ -145,7 +145,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         <tr>
           <td>Inclusion</td>
           <td>
-            Relevant <code class="small">[relevance|1]</code> <br /><span class="text-muted"
+            Relevant <code class="small">[relevance|1]</code> <br /><span class="text-body-secondary"
               >(yes=3,968, no=4,161)</span
             >
           </td>
@@ -157,7 +157,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         <tr>
           <td rowspan="3">Assessment type</td>
           <td>
-            Side effects (environmental) <code class="small">[assessment|1]</code> <br /><span class="text-muted"
+            Side effects (environmental) <code class="small">[assessment|1]</code> <br /><span class="text-body-secondary"
               >(yes=530, no=2,402)</span
             >
           </td>
@@ -168,7 +168,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Economic considerations <code class="small">[assessment|2]</code> <br /><span class="text-muted"
+            Economic considerations <code class="small">[assessment|2]</code> <br /><span class="text-body-secondary"
               >(yes=280, no=2,654)</span
             >
           </td>
@@ -179,7 +179,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Storage potentials <code class="small">[assessment|3]</code> <br /><span class="text-muted"
+            Storage potentials <code class="small">[assessment|3]</code> <br /><span class="text-body-secondary"
               >(yes=1,005, no=1,926)</span
             >
           </td>
@@ -191,7 +191,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         <tr>
           <td rowspan="4">Research context</td>
           <td>
-            Public perception <code class="small">[context|1]</code> <br /><span class="text-muted"
+            Public perception <code class="small">[context|1]</code> <br /><span class="text-body-secondary"
               >(yes=42, no=2,893)</span
             >
           </td>
@@ -202,7 +202,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Governance <code class="small">[context|3]</code> <br /><span class="text-muted">(yes=101, no=2,833)</span>
+            Governance <code class="small">[context|3]</code> <br /><span class="text-body-secondary">(yes=101, no=2,833)</span>
           </td>
           <td>CLIMATEBERT</td>
           <td>59%</td>
@@ -211,7 +211,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Socio-economic pathways <code class="small">[context|4]</code> <br /><span class="text-muted"
+            Socio-economic pathways <code class="small">[context|4]</code> <br /><span class="text-body-secondary"
               >(yes=309, no=2,624)</span
             >
           </td>
@@ -222,7 +222,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Technology-focus <code class="small">[context|5]</code> <br /><span class="text-muted"
+            Technology-focus <code class="small">[context|5]</code> <br /><span class="text-body-secondary"
               >(yes=2,514, no=420)</span
             >
           </td>
@@ -234,7 +234,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         <tr>
           <td rowspan="7">Scientific method</td>
           <td>
-            Experimental (field-study) <code class="small">[method|0]</code> <br /><span class="text-muted"
+            Experimental (field-study) <code class="small">[method|0]</code> <br /><span class="text-body-secondary"
               >(yes=637, no=4,665)</span
             >
           </td>
@@ -245,7 +245,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Experimental (laboratory) <code class="small">[method|1]</code> <br /><span class="text-muted"
+            Experimental (laboratory) <code class="small">[method|1]</code> <br /><span class="text-body-secondary"
               >(yes=1,218, no=4,110)</span
             >
           </td>
@@ -256,7 +256,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Modelling <code class="small">[method|2]</code> <br /><span class="text-muted">(yes=714, no=4,599)</span>
+            Modelling <code class="small">[method|2]</code> <br /><span class="text-body-secondary">(yes=714, no=4,599)</span>
           </td>
           <td>CLIMATEBERT</td>
           <td>84%</td>
@@ -265,7 +265,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Life cycle assessment <code class="small">[method|4]</code> <br /><span class="text-muted"
+            Life cycle assessment <code class="small">[method|4]</code> <br /><span class="text-body-secondary"
               >(yes=71, no=5,267)</span
             >
           </td>
@@ -276,7 +276,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Review <code class="small">[method|5]</code> <br /><span class="text-muted">(yes=670, no=4,649)</span>
+            Review <code class="small">[method|5]</code> <br /><span class="text-body-secondary">(yes=670, no=4,649)</span>
           </td>
           <td>SCIBERT</td>
           <td>87%</td>
@@ -284,7 +284,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
           <td>79%</td>
         </tr>
         <tr>
-          <td>Survey <code class="small">[method|7]</code> <br /><span class="text-muted">(yes=32, no=5,306)</span></td>
+          <td>Survey <code class="small">[method|7]</code> <br /><span class="text-body-secondary">(yes=32, no=5,306)</span></td>
           <td>SCIBERT</td>
           <td>75%</td>
           <td>60%</td>
@@ -292,7 +292,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Qualitative <code class="small">[method|8]</code> <br /><span class="text-muted">(yes=80, no=5,246)</span>
+            Qualitative <code class="small">[method|8]</code> <br /><span class="text-body-secondary">(yes=80, no=5,246)</span>
           </td>
           <td>SCIBERT</td>
           <td>70%</td>
@@ -302,7 +302,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         <tr>
           <td rowspan="17">CDR Method</td>
           <td>
-            Blue carbon <code class="small">[technology|0]</code> <br /><span class="text-muted"
+            Blue carbon <code class="small">[technology|0]</code> <br /><span class="text-body-secondary"
               >(yes=343, no=4,954)</span
             >
           </td>
@@ -314,7 +314,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         <tr>
           <td>
             BECCS <code class="small">[technology|5]</code> <code class="small">[technology|3]</code> <br /><span
-              class="text-muted"
+              class="text-body-secondary"
               >(yes=331, no=4,998)</span
             >
           </td>
@@ -325,7 +325,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Biochar <code class="small">[technology|4]</code> <br /><span class="text-muted">(yes=613, no=4,725)</span>
+            Biochar <code class="small">[technology|4]</code> <br /><span class="text-body-secondary">(yes=613, no=4,725)</span>
           </td>
           <td>TINYBERT</td>
           <td>98%</td>
@@ -334,7 +334,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            CCS <code class="small">[technology|5]</code> <br /><span class="text-muted">(yes=1,242, no=4,076)</span>
+            CCS <code class="small">[technology|5]</code> <br /><span class="text-body-secondary">(yes=1,242, no=4,076)</span>
           </td>
           <td>SCIBERT</td>
           <td>92%</td>
@@ -343,7 +343,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            CCUs <code class="small">[technology|6]</code> <br /><span class="text-muted">(yes=163, no=5,168)</span>
+            CCUs <code class="small">[technology|6]</code> <br /><span class="text-body-secondary">(yes=163, no=5,168)</span>
           </td>
           <td>CLIMATEBERT</td>
           <td>72%</td>
@@ -352,7 +352,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            DAC(CS) <code class="small">[technology|7]</code> <br /><span class="text-muted">(yes=234, no=5,103)</span>
+            DAC(CS) <code class="small">[technology|7]</code> <br /><span class="text-body-secondary">(yes=234, no=5,103)</span>
           </td>
           <td>SCIBERT</td>
           <td>83%</td>
@@ -361,7 +361,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Enhanced weathering (land-based) <code class="small">[technology|8]</code> <br /><span class="text-muted"
+            Enhanced weathering (land-based) <code class="small">[technology|8]</code> <br /><span class="text-body-secondary"
               >(yes=164, no=5,175)</span
             >
           </td>
@@ -373,7 +373,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         <tr>
           <td>
             Ocean fertilization or artificial upwelling <code class="small">[technology|11]</code> <br /><span
-              class="text-muted"
+              class="text-body-secondary"
               >(yes=92, no=5,247)</span
             >
           </td>
@@ -384,7 +384,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Soil carbon sequestration <code class="small">[technology|13]</code> <br /><span class="text-muted"
+            Soil carbon sequestration <code class="small">[technology|13]</code> <br /><span class="text-body-secondary"
               >(yes=465, no=4,849)</span
             >
           </td>
@@ -395,7 +395,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Peatland restoration <code class="small">[technology|14]</code> <br /><span class="text-muted"
+            Peatland restoration <code class="small">[technology|14]</code> <br /><span class="text-body-secondary"
               >(yes=163, no=5,172)</span
             >
           </td>
@@ -406,7 +406,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            Algae farming <code class="small">[technology|15]</code> <br /><span class="text-muted"
+            Algae farming <code class="small">[technology|15]</code> <br /><span class="text-body-secondary"
               >(yes=94, no=5,234)</span
             >
           </td>
@@ -417,7 +417,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         </tr>
         <tr>
           <td>
-            General CDR literature <code class="small">[technology|16]</code> <br /><span class="text-muted"
+            General CDR literature <code class="small">[technology|16]</code> <br /><span class="text-body-secondary"
               >(yes=105, no=5,233)</span
             >
           </td>
@@ -427,7 +427,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
           <td>67%</td>
         </tr>
         <tr>
-          <td>Forest-based CDR <br /><span class="text-muted">(yes=230, no=5,239)</span></td>
+          <td>Forest-based CDR <br /><span class="text-body-secondary">(yes=230, no=5,239)</span></td>
           <td>SCIBERT</td>
           <td>72%</td>
           <td>94%</td>
@@ -436,7 +436,7 @@ import guide from "@/assets/cdr_coding_guide.pdf";
         <tr>
           <td>
             Ocean alkalinity enhancement (extended) <code class="small">[technology|18]</code> <br /><span
-              class="text-muted"
+              class="text-body-secondary"
               >(yes=467, no=7,745)</span
             >
           </td>

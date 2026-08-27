@@ -75,7 +75,7 @@ onMounted(() => {
               type="button"
               @click="clearAll()"
               aria-label="Clear all filters"
-              class="text-muted ms-2 btn btn-link"
+              class="text-body-secondary ms-2 btn btn-link"
               style="border: none; background: none; padding: 0; text-decoration: none">
               <font-awesome-icon icon="filter-circle-xmark" class="icon" />
             </button>
@@ -140,7 +140,7 @@ onMounted(() => {
         <div v-else>
           <div class="m-2 d-flex flex-row">
             <div class="d-flex align-items-center me-2 fs-2">
-              <font-awesome-icon icon="file-lines" class="text-muted" />
+              <font-awesome-icon icon="file-lines" class="text-body-secondary" />
             </div>
             <div>
               No results, yet. <br />

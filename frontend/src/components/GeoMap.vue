@@ -343,7 +343,7 @@ function clearAll() {
           type="button"
           @click="clearAll"
           aria-label="Clear all filters"
-          class="text-muted ms-2 btn btn-link"
+          class="text-body-secondary ms-2 btn btn-link"
           style="border: none; background: none; padding: 0; text-decoration: none">
           <font-awesome-icon icon="filter-circle-xmark" class="icon" />
         </button>
@@ -357,7 +357,7 @@ function clearAll() {
     <div ref="mapElement" v-show="!loading" class="flex-grow-1 bg-light" style="min-height: 0; overflow: hidden" />
 
     <div v-if="!loading">
-      <div class="small text-muted">
+      <div class="small text-body-secondary">
         Select a country to reveal more details; lasso-select places while holding the shift key.
       </div>
       <!--      <input type="checkbox" v-model="showAdmin0" />-->

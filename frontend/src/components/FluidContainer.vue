@@ -30,7 +30,7 @@ function toggleOpen(event: KeyboardEvent) {
       :for="`col-open-${uniq}`"
       :tabindex="0">
       {{ title }}
-      <font-awesome-icon class="text-muted small ms-auto" :icon="open ? 'eye' : 'eye-slash'" />
+      <font-awesome-icon class="text-body-secondary small ms-auto" :icon="open ? 'eye' : 'eye-slash'" />
     </label>
     <input type="checkbox" v-model="open" :id="`col-open-${uniq}`" style="display: none" />
     <div class="column-body" v-if="open">

@@ -137,7 +137,7 @@ async function submitFeedback() {
             <div class="mb-3 row">
               <div class="col">
                 <label for="report-name" class="form-label">
-                  Name <span class="text-muted small">(optional)</span>
+                  Name <span class="text-body-secondary small">(optional)</span>
                 </label>
                 <input
                   type="text"
@@ -148,7 +148,7 @@ async function submitFeedback() {
               </div>
               <div class="col">
                 <label for="report-email" class="form-label">
-                  Email address <span class="text-muted small">(optional)</span>
+                  Email address <span class="text-body-secondary small">(optional)</span>
                 </label>
                 <input
                   type="email"
@@ -165,7 +165,7 @@ async function submitFeedback() {
             <h3>
               <button
                 type="button"
-                class="btn btn-link p-0 text-start text-muted small"
+                class="btn btn-link p-0 text-start text-body-secondary small"
                 @click="details = !details"
                 :aria-expanded="details">
                 <font-awesome-icon :icon="details ? 'minus' : 'plus'" class="me-2" />

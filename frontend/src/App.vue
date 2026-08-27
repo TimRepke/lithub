@@ -41,7 +41,7 @@ function hideWarning(e: MouseEvent) {
       <span class="spinner-border spinner-border-sm" role="status">
         <span class="visually-hidden">Loading...</span>
       </span>
-      <span class="text-muted small ms-1">Loading...</span>
+      <span class="text-body-secondary small ms-1">Loading...</span>
     </span>
 
     <span v-if="info && isProjectRoute && info.hidden" class="fw-bold bg-danger text-bg-warning ms-auto ps-2 pe-2">

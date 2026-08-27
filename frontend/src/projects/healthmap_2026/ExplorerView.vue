@@ -132,11 +132,11 @@ function clearAll() {
             {{ globalCounts.countFiltered.toLocaleString() }} /
             {{ globalCounts.countTotal.toLocaleString() }}
 
-            <span v-if="globalCounts.countFiltered !== globalCounts.countTotal" class="text-muted">
+            <span v-if="globalCounts.countFiltered !== globalCounts.countTotal" class="text-body-secondary">
               ({{ Math.round((globalCounts.countFiltered / globalCounts.countTotal) * 100) }}%)
             </span>
           </div>
-          <div class="text-muted fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
+          <div class="text-body-secondary fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-3" />
 
           <ToolTip text="Clear all filters" position="left">
@@ -144,7 +144,7 @@ function clearAll() {
               type="button"
               @click="clearAll()"
               aria-label="Clear all filters"
-              class="text-muted ms-2 btn btn-link"
+              class="text-body-secondary ms-2 btn btn-link"
               style="border: none; background: none; padding: 0; text-decoration: none">
               <font-awesome-icon icon="filter-circle-xmark" class="icon" />
             </button>
@@ -299,7 +299,7 @@ function clearAll() {
         <div v-else>
           <div class="m-2 d-flex flex-row">
             <div class="d-flex align-items-center me-2 fs-2">
-              <font-awesome-icon icon="file-lines" class="text-muted" />
+              <font-awesome-icon icon="file-lines" class="text-body-secondary" />
             </div>
             <div>
               No results, yet. <br />

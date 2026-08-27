@@ -27,7 +27,7 @@
     resilient and actionable recommendations for the design of socially and economically acceptable climate policy
     measures for 2030 and beyond
   </p>
-  <p class="text-muted">
+  <p class="text-body-secondary">
     <a href="https://www.researchsquare.com/article/rs-3817176/v1" target="_blank">
       [1] https://www.researchsquare.com/article/rs-3817176/v1
     </a>
