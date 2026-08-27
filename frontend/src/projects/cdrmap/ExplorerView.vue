@@ -26,6 +26,7 @@ import SidebarLabelFilterGroup from "@/components/SidebarLabelFilterGroup.vue";
 import { ClearFilterEvent, EventBus } from "@/util/events.ts";
 import ToggleIcon from "@/components/ToggleIcon.vue";
 import DownloadControl from "@/components/DownloadControl.vue";
+import ToolTip from "@/components/ToolTip.vue";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -130,10 +131,16 @@ onMounted(() => {
           <div class="text-muted fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-3" />
 
-          <div @click="clearAll()" class="text-muted ms-2">
-            <font-awesome-icon icon="filter-circle-xmark" class="icon" />
-            <!-- Clear filters-->
-          </div>
+          <ToolTip text="Clear all filters" position="left">
+            <button
+              type="button"
+              @click="clearAll()"
+              aria-label="Clear all filters"
+              class="text-muted ms-2 btn btn-link"
+              style="border: none; background: none; padding: 0; text-decoration: none">
+              <font-awesome-icon icon="filter-circle-xmark" class="icon" />
+            </button>
+          </ToolTip>
         </div>
 
         <div class="filter-sidebar-container">

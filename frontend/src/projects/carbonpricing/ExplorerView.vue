@@ -19,6 +19,8 @@ import FluidContainer from "@/components/FluidContainer.vue";
 import ReportingModal from "@/components/ReportingModal.vue";
 import type { AnnotatedDocument } from "@/util/types";
 import HistogramFilter from "@/components/HistogramFilter.vue";
+import ToolTip from "@/components/ToolTip.vue";
+import { ClearFilterEvent, EventBus } from "@/util/events.ts";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -48,7 +50,9 @@ const reportDoc = ref<AnnotatedDocument | null>(null);
 function startPauseResultFetching(active: boolean) {
   results.paused.value = !active;
 }
-
+function clearAll() {
+  EventBus.emit(new ClearFilterEvent());
+}
 onMounted(() => {
   results.delayedUpdate();
 });
@@ -65,6 +69,17 @@ onMounted(() => {
             {{ globalCounts.countTotal.toLocaleString() }}
           </div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
+
+          <ToolTip text="Clear all filters" position="left">
+            <button
+              type="button"
+              @click="clearAll()"
+              aria-label="Clear all filters"
+              class="text-muted ms-2 btn btn-link"
+              style="border: none; background: none; padding: 0; text-decoration: none">
+              <font-awesome-icon icon="filter-circle-xmark" class="icon" />
+            </button>
+          </ToolTip>
         </div>
 
         <div class="filter-sidebar-container">
