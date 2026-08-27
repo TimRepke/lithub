@@ -338,28 +338,28 @@ function clearAll() {
     </div>
 
     <div class="map-controls" v-if="!loading" role="group" aria-label="Map pan and zoom controls">
-      <div class="map-dpad">
-        <button type="button" class="map-btn up" aria-label="Pan up" @click="panUp">
+      <div class="pan-controls">
+        <button type="button" class="up" aria-label="Pan up" @click="panUp">
           <font-awesome-icon icon="arrow-up" />
         </button>
-        <button type="button" class="map-btn left" aria-label="Pan left" @click="panLeft">
+        <button type="button" class="left" aria-label="Pan left" @click="panLeft">
           <font-awesome-icon icon="arrow-left" />
         </button>
-        <button type="button" class="map-btn reset" aria-label="Reset map view" @click="resetZoom">
+        <button type="button" class="reset" aria-label="Reset map view" @click="resetZoom">
           <font-awesome-icon icon="arrows-to-dot" />
         </button>
-        <button type="button" class="map-btn right" aria-label="Pan right" @click="panRight">
+        <button type="button" class="right" aria-label="Pan right" @click="panRight">
           <font-awesome-icon icon="arrow-right" />
         </button>
-        <button type="button" class="map-btn down" aria-label="Pan down" @click="panDown">
+        <button type="button" class="down" aria-label="Pan down" @click="panDown">
           <font-awesome-icon icon="arrow-down" />
         </button>
       </div>
       <div class="map-zoom">
-        <button type="button" class="map-btn" aria-label="Zoom in" @click="zoomIn">
+        <button type="button" aria-label="Zoom in" @click="zoomIn">
           <font-awesome-icon icon="magnifying-glass-plus" />
         </button>
-        <button type="button" class="map-btn" aria-label="Zoom out" @click="zoomOut">
+        <button type="button" aria-label="Zoom out" @click="zoomOut">
           <font-awesome-icon icon="magnifying-glass-minus" />
         </button>
       </div>
@@ -389,12 +389,6 @@ function clearAll() {
 </template>
 
 <style scoped>
-.map-info {
-  flex-grow: 1;
-  height: 0;
-  overflow-y: auto;
-}
-
 .map-controls {
   display: flex;
   flex-direction: column;
@@ -402,63 +396,60 @@ function clearAll() {
   gap: 2px;
   margin: 0.25em 0;
   font-size: 0.85em;
-}
 
-.map-dpad {
-  display: grid;
-  grid-template-columns: repeat(3, auto);
-  justify-content: center;
-}
+  .pan-controls {
+    display: grid;
+    grid-template-columns: repeat(3, auto);
+    justify-content: center;
+    .up {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .left {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .reset {
+      grid-column: 2;
+      grid-row: 2;
+    }
+    .right {
+      grid-column: 3;
+      grid-row: 2;
+    }
+    .down {
+      grid-column: 2;
+      grid-row: 3;
+    }
+  }
+  .map-zoom {
+    display: flex;
+  }
+  button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border: none;
+    background: none;
+    line-height: 1;
+    color: var(--grey-1);
+    cursor: pointer;
 
-.map-dpad .up {
-  grid-column: 2;
-  grid-row: 1;
-}
-.map-dpad .left {
-  grid-column: 1;
-  grid-row: 2;
-}
-.map-dpad .reset {
-  grid-column: 2;
-  grid-row: 2;
-}
-.map-dpad .right {
-  grid-column: 3;
-  grid-row: 2;
-}
-.map-dpad .down {
-  grid-column: 2;
-  grid-row: 3;
-}
+    svg {
+      width: 1em;
+      height: 1em;
+    }
 
-.map-zoom {
-  display: flex;
-}
+    &:hover {
+      color: var(--grey-2);
+    }
 
-.map-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px;
-  border: none;
-  background: none;
-  line-height: 1;
-  color: var(--grey-1);
-  cursor: pointer;
-}
-
-.map-btn svg {
-  width: 1em;
-  height: 1em;
-}
-
-.map-btn:hover {
-  color: var(--grey-2);
-}
-
-.map-btn:focus-visible {
-  outline: 2px solid #0056b3;
-  outline-offset: 1px;
+    &:focus-visible {
+      outline: 2px solid #0056b3;
+      outline-offset: 1px;
+    }
+  }
 }
 </style>
 

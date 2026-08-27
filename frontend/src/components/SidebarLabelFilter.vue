@@ -39,7 +39,7 @@ watch(threshold, delayedSetThresholds);
         <InclusiveIcon v-model:inclusive="inclusive" />
 
         <ToolTip text="Set minimum label score" position="left">
-          <input type="checkbox" :id="`eth-${maskKey}-${uniq}`" v-model="editThreshold" class="sr-only" />
+          <input type="checkbox" :id="`eth-${maskKey}-${uniq}`" v-model="editThreshold" class="screen-reader-only" />
           <label :for="`eth-${maskKey}-${uniq}`" class="icon">
             <font-awesome-icon icon="sliders" />
           </label>
@@ -86,7 +86,7 @@ watch(threshold, delayedSetThresholds);
     </div>
 
     <fieldset class="filter-masks">
-      <legend class="sr-only">{{ name }} filter options</legend>
+      <legend class="screen-reader-only">{{ name }} filter options</legend>
       <template v-for="(mask, mKey) in masks" :key="mKey">
         <input type="checkbox" :id="`active-${maskKey}-${mKey}-${uniq}`" v-model="mask.active.value" />
         <label
@@ -110,21 +110,6 @@ watch(threshold, delayedSetThresholds);
 </template>
 
 <style scoped lang="scss">
-.sr-only {
-  position: absolute;
-  // override the global icon-toggle mixin's `display: none` so the input
-  // stays in the accessibility tree and keyboard tab order
-  display: inline-block !important;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
 .filter {
   .form-range {
     --bs-form-range-track-bg: #e9ecef;

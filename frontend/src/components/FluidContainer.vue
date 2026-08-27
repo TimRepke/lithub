@@ -8,6 +8,7 @@ const { initialState } = defineProps({
   title: { type: String, required: true },
 });
 const open = ref(initialState);
+const uniq = crypto.randomUUID();
 watch(open, () => emit("visibilityUpdated", open.value));
 
 function toggleOpen(event: KeyboardEvent) {
@@ -20,18 +21,18 @@ function toggleOpen(event: KeyboardEvent) {
 
 <template>
   <div class="column-container" style="flex: 1" :class="{ closed: !open }">
-    <h2
+    <label
       class="column-head"
-      @click="open = !open"
       @keydown="toggleOpen"
       :aria-expanded="open"
       :aria-label="`${title}, press Enter or Space to ${open ? 'collapse' : 'expand'}`"
       role="button"
+      :for="`col-open-${uniq}`"
       :tabindex="0">
       {{ title }}
       <font-awesome-icon class="text-muted small ms-auto" :icon="open ? 'eye' : 'eye-slash'" />
-    </h2>
-    <input type="checkbox" v-model="open" style="display: none" />
+    </label>
+    <input type="checkbox" v-model="open" :id="`col-open-${uniq}`" style="display: none" />
     <div class="column-body" v-if="open">
       <slot />
     </div>
