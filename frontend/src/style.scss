@@ -100,7 +100,7 @@ html, body {
 
   &.no-border {
     input:checked + label {
-      border: 0!important;
+      border: 0 !important;
     }
   }
 
@@ -137,13 +137,6 @@ html, body {
   }
 }
 
-.filter-head .icon {
-  padding: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .icon-toggle {
   @include icon-toggle;
 }
@@ -161,6 +154,13 @@ html, body {
     flex-direction: row;
     font-weight: bold;
     margin-bottom: 0.5em;
+
+    .icon {
+      padding: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
 
     & > div {
       display: flex;
