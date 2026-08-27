@@ -6,9 +6,8 @@
     "lib": ["ES2024", "DOM", "DOM.Iterable", "ESNext.Array"],
     "skipLibCheck": true,
 
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
 
     /* Bundler mode */
