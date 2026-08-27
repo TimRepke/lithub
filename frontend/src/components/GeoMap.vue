@@ -18,6 +18,8 @@ import type { Countries, CountryProp, ProjectedEntry } from "@/util/geo";
 import type { IndexMask } from "@/util/dataset/masks/ids";
 import type { Bitmask } from "@/util/dataset/masks/bitmask";
 import { ClearFilterEvent, EventBus } from "@/util/events.ts";
+import ToolTip from "@/components/ToolTip.vue";
+import ToggleIcon from "@/components/ToggleIcon.vue";
 
 type AnnotatedEntry = ProjectedEntry & {
   filterInclude: boolean;
@@ -25,7 +27,7 @@ type AnnotatedEntry = ProjectedEntry & {
   filterCount: number;
 };
 type PlaceSelection = ItemSelection<SVGCircleElement, AnnotatedEntry, SVGSVGElement, undefined>;
-const uniq = crypto.randomUUID();
+
 const loading = ref<boolean>(true);
 const mapElement = ref<HTMLDivElement | null>(null);
 
@@ -193,25 +195,6 @@ function zoomBy(factor: number) {
   svg.transition().duration(200).call(zoom.scaleBy, factor);
 }
 
-function panUp() {
-  panBy(0, PAN_STEP);
-}
-function panDown() {
-  panBy(0, -PAN_STEP);
-}
-function panLeft() {
-  panBy(PAN_STEP, 0);
-}
-function panRight() {
-  panBy(-PAN_STEP, 0);
-}
-function zoomIn() {
-  zoomBy(ZOOM_STEP);
-}
-function zoomOut() {
-  zoomBy(1 / ZOOM_STEP);
-}
-
 function redrawCountries() {
   if (!topo) return; // Stop right here if topography is not loaded yet
   const colorScale = d3scaleSequential(
@@ -321,53 +304,59 @@ function clearAll() {
 </script>
 
 <template>
-  <div class="d-flex flex-column">
+  <div class="d-flex flex-column bg-dark-subtle" style="max-height: 100vh; height: 100%">
     <div v-if="loading">
       <font-awesome-icon icon="globe" />
       Loading map data...
     </div>
-    <div style="font-size: 0.85em" class="ms-auto" v-if="!loading">
-      <font-awesome-icon icon="filter-circle-xmark" class="icon" @click="clearAll" />
+    <div style="font-size: 0.85em" class="d-flex flex-row" v-if="!loading">
+      <div class="map-controls" role="group" aria-label="Map pan and zoom controls">
+        <div class="pan-controls">
+          <button type="button" class="up" aria-label="Pan up" @click="panBy(0, PAN_STEP)">
+            <font-awesome-icon icon="arrow-up" />
+          </button>
+          <button type="button" class="left" aria-label="Pan left" @click="panBy(PAN_STEP, 0)">
+            <font-awesome-icon icon="arrow-left" />
+          </button>
+          <button type="button" class="reset" aria-label="Reset map view" @click="resetZoom">
+            <font-awesome-icon icon="arrows-to-dot" />
+          </button>
+          <button type="button" class="right" aria-label="Pan right" @click="panBy(-PAN_STEP, 0)">
+            <font-awesome-icon icon="arrow-right" />
+          </button>
+          <button type="button" class="down" aria-label="Pan down" @click="panBy(0, -PAN_STEP)">
+            <font-awesome-icon icon="arrow-down" />
+          </button>
+        </div>
+        <div class="map-zoom">
+          <button type="button" aria-label="Zoom in" @click="zoomBy(ZOOM_STEP)">
+            <font-awesome-icon icon="magnifying-glass-plus" />
+          </button>
+          <button type="button" aria-label="Zoom out" @click="zoomBy(1 / ZOOM_STEP)">
+            <font-awesome-icon icon="magnifying-glass-minus" />
+          </button>
+        </div>
+      </div>
 
-      <span class="icon-toggle ms-auto">
-        <input type="checkbox" :id="`active-geo-${uniq}`" v-model="active" />
-        <label :for="`active-geo-${uniq}`" class="icon">
-          <font-awesome-icon icon="filter" />
-        </label>
-      </span>
+      <ToolTip text="Clear geographic filters" position="left" class="ms-auto">
+        <button
+          type="button"
+          @click="clearAll"
+          aria-label="Clear all filters"
+          class="text-muted ms-2 btn btn-link"
+          style="border: none; background: none; padding: 0; text-decoration: none">
+          <font-awesome-icon icon="filter-circle-xmark" class="icon" />
+        </button>
+      </ToolTip>
+
+      <ToolTip text="Toggle geographic filter" position="left">
+        <ToggleIcon v-model:model="active" icon="filter" />
+      </ToolTip>
     </div>
 
-    <div class="map-controls" v-if="!loading" role="group" aria-label="Map pan and zoom controls">
-      <div class="pan-controls">
-        <button type="button" class="up" aria-label="Pan up" @click="panUp">
-          <font-awesome-icon icon="arrow-up" />
-        </button>
-        <button type="button" class="left" aria-label="Pan left" @click="panLeft">
-          <font-awesome-icon icon="arrow-left" />
-        </button>
-        <button type="button" class="reset" aria-label="Reset map view" @click="resetZoom">
-          <font-awesome-icon icon="arrows-to-dot" />
-        </button>
-        <button type="button" class="right" aria-label="Pan right" @click="panRight">
-          <font-awesome-icon icon="arrow-right" />
-        </button>
-        <button type="button" class="down" aria-label="Pan down" @click="panDown">
-          <font-awesome-icon icon="arrow-down" />
-        </button>
-      </div>
-      <div class="map-zoom">
-        <button type="button" aria-label="Zoom in" @click="zoomIn">
-          <font-awesome-icon icon="magnifying-glass-plus" />
-        </button>
-        <button type="button" aria-label="Zoom out" @click="zoomOut">
-          <font-awesome-icon icon="magnifying-glass-minus" />
-        </button>
-      </div>
-    </div>
+    <div ref="mapElement" v-show="!loading" class="flex-grow-1 bg-light" style="min-height: 0; overflow: hidden" />
 
-    <div ref="mapElement" v-show="!loading" />
-
-    <div class="map-info" v-if="!loading">
+    <div v-if="!loading">
       <div class="small text-muted">
         Select a country to reveal more details; lasso-select places while holding the shift key.
       </div>
@@ -391,7 +380,7 @@ function clearAll() {
 <style scoped>
 .map-controls {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   gap: 2px;
   margin: 0.25em 0;
@@ -424,6 +413,8 @@ function clearAll() {
   }
   .map-zoom {
     display: flex;
+    flex-direction: column;
+    margin-left: 1em;
   }
   button {
     display: inline-flex;
