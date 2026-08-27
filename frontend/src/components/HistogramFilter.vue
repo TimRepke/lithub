@@ -21,7 +21,7 @@ const { masks, active, years, clear, selectRange, extent } = mask.value;
 const middle = years[Math.ceil(years.length / 2)];
 const margin = { top: 10, bottom: 15, left: 10, right: 10 };
 const width = ref(400);
-const height = ref(150 - margin.top - margin.bottom); // computed(() => Math.min(width.value / 1.618, 175) - margin.top - margin.bottom);
+const height = ref(150); // computed(() => Math.min(width.value / 1.618, 175) - margin.top - margin.bottom);
 
 const colours = {
   handle: "#a6761d",
@@ -139,7 +139,7 @@ const { delayedCall: hideTooltip, clear: clearTooltipDelay } = useDelay(() => {
   tooltip.classed("hidden", true);
 }, 300);
 
-const yScale = scaleLinear().domain(extent.value.total);
+const yScale = scaleLinear().domain([0, extent.value.total[1]]);
 const xScale = scaleBand<number>() //
   .domain(years)
   .padding(0.2);
@@ -153,8 +153,8 @@ const svg = d3create("svg")
 svg.append("title").attr("id", `hist-title-${uniq}`).text("Publication years histogram");
 
 const g = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
-// 3.25 = line width top + bottom of bar and axis; some extra because strokes are on center of edge
-const groupBars = g.append("g").attr("transform", `translate(0, -${margin.bottom - margin.top - 3.25})`);
+// 0.5 = half stroke with because strokes are on centre of edge
+const groupBars = g.append("g").attr("transform", `translate(0, -${margin.top - 0.5})`);
 const groupAxis = g.append("g").attr("transform", `translate(0, ${height.value - margin.top})`);
 const groupBrush = g
   .append("g")
