@@ -129,7 +129,7 @@ onMounted(() => {
             <DocumentCard
               v-for="doc in documents"
               :key="doc.idx"
-              :doc="doc"
+              :document="doc"
               :scheme-labels="schemeLabels"
               @report="(doc) => (reportDoc = doc)" />
           </div>
@@ -153,7 +153,7 @@ onMounted(() => {
   </FluidContainerGrid>
   <ReportingModal
     v-if="reportDoc"
-    :doc="reportDoc"
+    :document="reportDoc"
     :scheme-labels="schemeLabels"
     :scheme-groups="schemeGroups"
     @close="reportDoc = null"

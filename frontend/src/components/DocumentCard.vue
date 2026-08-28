@@ -7,12 +7,12 @@ import ToggleIcon from "@/components/ToggleIcon.vue";
 
 const {
   schemeLabels,
-  doc: document,
+  document: doc,
   includeKeys,
   schemeGroups,
   showPrefix,
 } = defineProps({
-  doc: { type: Object as PropType<AnnotatedDocument>, required: true },
+  document: { type: Object as PropType<AnnotatedDocument>, required: true },
   schemeLabels: { type: Object as PropType<Record<string, SchemeLabel>>, required: true },
   schemeGroups: { type: Object as PropType<Record<string, SchemeGroup>>, required: false, default: {} },
   includeKeys: { type: Object as PropType<Record<string, string>>, required: false, default: {} },
@@ -22,10 +22,10 @@ defineEmits<{ (e: "report", document: AnnotatedDocument): void }>();
 const showAllLabels = ref(false);
 const MAX_LEN = 1000;
 const shorten = ref<boolean>(true);
-const abstract = computed(() => document.abstract ?? "[missing abstract]");
+const abstract = computed(() => doc.abstract ?? "[missing abstract]");
 
 const labels = computed(() =>
-  Object.entries(document?.labels)
+  Object.entries(doc?.labels)
     .map(([key, score]) => {
       const label = schemeLabels[key];
       return {

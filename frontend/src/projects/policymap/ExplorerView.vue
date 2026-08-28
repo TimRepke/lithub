@@ -125,7 +125,7 @@ onMounted(() => {
             <DocumentCard
               v-for="doc in documents"
               :key="doc.idx"
-              :doc="doc"
+              :document="doc"
               class="m-2"
               :scheme-labels="schemeLabels" />
           </div>
