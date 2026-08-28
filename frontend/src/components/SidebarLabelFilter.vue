@@ -39,7 +39,7 @@ watch(threshold, delayedSetThresholds);
         <InclusiveIcon v-model:inclusive="inclusive" />
 
         <ToolTip text="Set minimum label score" position="left">
-          <input type="checkbox" :id="`eth-${maskKey}-${uniq}`" v-model="editThreshold" />
+          <input type="checkbox" :id="`eth-${maskKey}-${uniq}`" v-model="editThreshold" class="screen-reader-only" />
           <label :for="`eth-${maskKey}-${uniq}`" class="icon">
             <font-awesome-icon icon="sliders" />
           </label>
@@ -78,13 +78,22 @@ watch(threshold, delayedSetThresholds);
         max="1"
         step="0.05"
         v-model="threshold"
-        :id="`th-${maskKey}-${uniq}`" />
+        :id="`th-${maskKey}-${uniq}`"
+        aria-label="Minimum label score threshold"
+        aria-valuemin="0"
+        aria-valuemax="1"
+        :aria-valuenow="threshold" />
     </div>
 
-    <div class="filter-masks">
+    <fieldset class="filter-masks">
+      <legend class="screen-reader-only">{{ name }} filter options</legend>
       <template v-for="(mask, mKey) in masks" :key="mKey">
         <input type="checkbox" :id="`active-${maskKey}-${mKey}-${uniq}`" v-model="mask.active.value" />
-        <label :for="`active-${maskKey}-${mKey}-${uniq}`" :style="styleColours[mKey]">
+        <label
+          :for="`active-${maskKey}-${mKey}-${uniq}`"
+          :style="styleColours[mKey]"
+          :aria-pressed="mask.active.value ? 'true' : 'false'"
+          role="button">
           <span class="counts">
             <span>
               {{ mask.counts.value.countFiltered.toLocaleString() }} /
@@ -96,12 +105,25 @@ watch(threshold, delayedSetThresholds);
           </span>
         </label>
       </template>
-    </div>
+    </fieldset>
   </div>
 </template>
 
 <style scoped lang="scss">
 .filter {
+  .form-range {
+    --bs-form-range-track-bg: #e9ecef;
+    --bs-form-range-track-border-color: #666;
+  }
+
+  // visible focus indicator on the label that stands in for each visually
+  // hidden input (icon toggles and mask checkboxes are clipped/off-screen);
+  // :focus-visible only, so a mouse click does not leave a lingering outline
+  input:focus-visible + label {
+    outline: 2px solid #0056b3;
+    outline-offset: 2px;
+  }
+
   .filter-masks {
     display: flex;
     flex-direction: row;
@@ -109,7 +131,20 @@ watch(threshold, delayedSetThresholds);
     gap: 0.25em 0.5em;
 
     input[type="checkbox"] {
-      display: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    > input:checked + label {
+      color: #000;
+      font-weight: 500;
     }
 
     > label {
@@ -118,6 +153,7 @@ watch(threshold, delayedSetThresholds);
       border-style: solid;
       border-radius: 0.25em;
       padding: 0 0.25em;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.2);
 
       box-sizing: content-box;
       display: flex;

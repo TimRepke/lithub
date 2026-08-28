@@ -14,7 +14,7 @@ const positionClass = {
 </script>
 
 <template>
-  <span class="lh-tooltip">
+  <span class="lh-tooltip" tabindex="0">
     <slot />
     <span class="lh-tooltiptext" :class="[positionClass, ttClass]">
       {{ text }}
@@ -48,7 +48,8 @@ const positionClass = {
     z-index: 1000;
   }
 
-  &:hover {
+  &:hover,
+  &:focus-within {
     font-weight: bold;
 
     .lh-tooltiptext {

@@ -7,12 +7,12 @@ import ToggleIcon from "@/components/ToggleIcon.vue";
 
 const {
   schemeLabels,
-  doc: document,
+  document: doc,
   includeKeys,
   schemeGroups,
   showPrefix,
 } = defineProps({
-  doc: { type: Object as PropType<AnnotatedDocument>, required: true },
+  document: { type: Object as PropType<AnnotatedDocument>, required: true },
   schemeLabels: { type: Object as PropType<Record<string, SchemeLabel>>, required: true },
   schemeGroups: { type: Object as PropType<Record<string, SchemeGroup>>, required: false, default: {} },
   includeKeys: { type: Object as PropType<Record<string, string>>, required: false, default: {} },
@@ -22,10 +22,10 @@ defineEmits<{ (e: "report", document: AnnotatedDocument): void }>();
 const showAllLabels = ref(false);
 const MAX_LEN = 1000;
 const shorten = ref<boolean>(true);
-const abstract = computed(() => document.abstract ?? "[missing abstract]");
+const abstract = computed(() => doc.abstract ?? "[missing abstract]");
 
 const labels = computed(() =>
-  Object.entries(document?.labels)
+  Object.entries(doc?.labels)
     .map(([key, score]) => {
       const label = schemeLabels[key];
       return {
@@ -61,40 +61,69 @@ const labels = computed(() =>
       </p>
     </div>
     <div class="card-footer">
-      <!-- TODO add "jump to" crosshairs -->
-      <!-- <font-awesome-icon icon="location-crosshairs" class="me-2" />-->
-      <a v-if="doc.doi" :href="`https://doi.org/${doc.doi}`" class="me-2" target="_blank">DOI</a>
-      <a v-if="doc.openalex_id" :href="`https://openalex.org/works/${doc.openalex_id}`" class="me-2" target="_blank">
-        <img src="@/assets/openalex.png" style="height: 1em" alt="OpenAlex" />OpenAlex
-      </a>
+      <ul class="labels" aria-label="Document categories">
+        <li>
+          <!-- TODO add "jump to" crosshairs -->
+          <!-- <font-awesome-icon icon="location-crosshairs" class="me-2" />-->
+          <a v-if="doc.doi" :href="`https://doi.org/${doc.doi}`" class="me-2" target="_blank">DOI</a>
+          <a
+            v-if="doc.openalex_id"
+            :href="`https://openalex.org/works/${doc.openalex_id}`"
+            class="me-2"
+            target="_blank">
+            <img src="@/assets/openalex.png" style="height: 1em" class="me-1" alt="OpenAlex" />OpenAlex
+          </a>
+        </li>
 
-      <template v-for="label in labels" :key="label.key">
-        <span v-if="showAllLabels || label.value > 0.5" class="pill">
-          <span v-if="showPrefix" style="margin-left: 0.3em; margin-right: 0.3em">{{
-            schemeGroups[label.group].name
-          }}</span>
-          <span class="head" :style="{ backgroundColor: hslToCSS(...label.col) }">{{ label.name }}</span>
-          <span class="value">{{ label.value }}</span>
-        </span>
-      </template>
+        <template v-for="label in labels" :key="label.key">
+          <li v-if="showAllLabels || label.value > 0.5">
+            <span class="pill">
+              <span
+                v-if="showPrefix"
+                style="padding-left: 0.3em; padding-right: 0.3em; border-right: 1px solid black"
+                :style="{
+                  backgroundColor: hslToCSS(...schemeGroups[label.group].colour),
+                  color: schemeGroups[label.group].colour[2] > 50 ? 'black' : 'white',
+                }"
+                >{{ schemeGroups[label.group].name }}</span
+              >
+              <span
+                class="head"
+                :style="{
+                  backgroundColor: hslToCSS(...label.col),
+                  color: label.col[2] > 50 ? 'black' : 'white',
+                }"
+                >{{ label.name }}</span
+              >
+              <span class="value">{{ label.value }}</span>
+            </span>
+          </li>
+        </template>
 
-      <ToggleIcon
-        icon-false="plus"
-        icon="minus"
-        v-model:model="showAllLabels"
-        class="no-border"
-        style="display: inline" />
+        <li>
+          <ToggleIcon
+            icon-false="plus"
+            icon="minus"
+            v-model:model="showAllLabels"
+            class="no-border"
+            style="display: inline" />
 
-      <button class="btn ms-2" @click="$emit('report', doc)">
-        <font-awesome-icon icon="flag" />
-        Report error
-      </button>
+          <button class="btn ms-2" @click="$emit('report', doc)">
+            <font-awesome-icon icon="flag" />
+            Report error
+          </button>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
 .card-footer {
+  --border-colour: grey;
+  --sep-gap: 0.2em;
+  --side-margin: 0.1em;
+
   label.icon {
     border: 0 !important;
   }
@@ -108,26 +137,34 @@ const labels = computed(() =>
 
   font-size: 0.8em;
 
-  .pill {
-    --border-colour: grey;
-    --sep-gap: 0.2em;
-    --side-margin: 0.1em;
+  .labels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.1em;
+    list-style: none;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    li:last-child {
+      margin-left: auto;
+    }
+  }
 
+  .pill {
     border: 1px solid var(--border-colour);
     border-radius: 0.25em;
-    text-wrap: none;
-    margin-right: 0.25em;
+    text-wrap: nowrap;
 
-    .head {
+    span {
       border-right: 1px solid var(--border-colour);
-      margin-right: var(--sep-gap);
       padding-right: var(--sep-gap);
-      padding-left: var(--side-margin);
-      text-wrap: nowrap;
+      padding-left: var(--sep-gap);
     }
-
-    .value {
-      padding-right: var(--side-margin);
+    span:last-child {
+      border-right: 0;
+    }
+    .head {
+      font-weight: 500;
     }
   }
 }

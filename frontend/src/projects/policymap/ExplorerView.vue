@@ -18,6 +18,9 @@ import { DATA_BASE } from "@/util/api.ts";
 import FluidContainerGrid from "@/components/FluidContainerGrid.vue";
 import FluidContainer from "@/components/FluidContainer.vue";
 import HistogramFilter from "@/components/HistogramFilter.vue";
+import { ClearFilterEvent, EventBus } from "@/util/events.ts";
+import { onMounted } from "vue";
+import ToolTip from "@/components/ToolTip.vue";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -45,6 +48,12 @@ const { documents } = results;
 function startPauseResultFetching(active: boolean) {
   results.paused.value = !active;
 }
+function clearAll() {
+  EventBus.emit(new ClearFilterEvent());
+}
+onMounted(() => {
+  results.delayedUpdate();
+});
 </script>
 
 <template>
@@ -58,6 +67,17 @@ function startPauseResultFetching(active: boolean) {
             {{ globalCounts.countTotal.toLocaleString() }}
           </div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
+
+          <ToolTip text="Clear all filters" position="left">
+            <button
+              type="button"
+              @click="clearAll()"
+              aria-label="Clear all filters"
+              class="text-body-secondary ms-2 btn btn-link"
+              style="border: none; background: none; padding: 0; text-decoration: none">
+              <font-awesome-icon icon="filter-circle-xmark" class="icon" />
+            </button>
+          </ToolTip>
         </div>
 
         <div class="filter-sidebar-container">
@@ -105,7 +125,7 @@ function startPauseResultFetching(active: boolean) {
             <DocumentCard
               v-for="doc in documents"
               :key="doc.idx"
-              :doc="doc"
+              :document="doc"
               class="m-2"
               :scheme-labels="schemeLabels" />
           </div>
@@ -116,7 +136,7 @@ function startPauseResultFetching(active: boolean) {
         <div v-else>
           <div class="m-2 d-flex flex-row">
             <div class="d-flex align-items-center me-2 fs-2">
-              <font-awesome-icon icon="file-lines" class="text-muted" />
+              <font-awesome-icon icon="file-lines" class="text-body-secondary" />
             </div>
             <div>
               No results, yet. <br />

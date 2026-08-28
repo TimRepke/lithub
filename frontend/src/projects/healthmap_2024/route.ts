@@ -6,6 +6,7 @@ export default {
   name: routeBaseName,
   path: "healthmap_2024",
   component: () => import("./ContainerView.vue"),
+  meta: { title: "Climate & Health Living Evidence Map 2024 — Literature Hub" },
   children: [
     {
       name: `${routeBaseName}-explore`,

@@ -121,7 +121,7 @@ onMounted(() => {
             <DocumentCard
               v-for="doc in documents"
               :key="doc.idx"
-              :doc="doc"
+              :document="doc"
               :scheme-labels="schemeLabels"
               @report="(doc) => (reportDoc = doc)" />
           </div>
@@ -132,7 +132,7 @@ onMounted(() => {
         <div v-else>
           <div class="m-2 d-flex flex-row">
             <div class="d-flex align-items-center me-2 fs-2">
-              <font-awesome-icon icon="file-lines" class="text-muted" />
+              <font-awesome-icon icon="file-lines" class="text-body-secondary" />
             </div>
             <div>
               No results, yet. <br />
@@ -145,7 +145,7 @@ onMounted(() => {
   </FluidContainerGrid>
   <ReportingModal
     v-if="reportDoc"
-    :doc="reportDoc"
+    :document="reportDoc"
     :scheme-labels="schemeLabels"
     :scheme-groups="schemeGroups"
     @close="reportDoc = null"

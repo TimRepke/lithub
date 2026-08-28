@@ -18,6 +18,7 @@ import ScatterLandscape from "@/components/ScatterLandscape.vue";
 import { DATA_BASE } from "@/util/api.ts";
 import FluidContainerGrid from "@/components/FluidContainerGrid.vue";
 import FluidContainer from "@/components/FluidContainer.vue";
+import ToolTip from "@/components/ToolTip.vue";
 import ReportingModal from "@/components/ReportingModal.vue";
 import type { AnnotatedDocument } from "@/util/types";
 import HistogramFilter from "@/components/HistogramFilter.vue";
@@ -131,17 +132,23 @@ function clearAll() {
             {{ globalCounts.countFiltered.toLocaleString() }} /
             {{ globalCounts.countTotal.toLocaleString() }}
 
-            <span v-if="globalCounts.countFiltered !== globalCounts.countTotal" class="text-muted">
+            <span v-if="globalCounts.countFiltered !== globalCounts.countTotal" class="text-body-secondary">
               ({{ Math.round((globalCounts.countFiltered / globalCounts.countTotal) * 100) }}%)
             </span>
           </div>
-          <div class="text-muted fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
+          <div class="text-body-secondary fst-italic ms-auto">Last updated: {{ info.last_update }}</div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-3" />
 
-          <div @click="clearAll()" class="text-muted ms-2">
-            <font-awesome-icon icon="filter-circle-xmark" class="icon" />
-            <!-- Clear filters-->
-          </div>
+          <ToolTip text="Clear all filters" position="left">
+            <button
+              type="button"
+              @click="clearAll()"
+              aria-label="Clear all filters"
+              class="text-body-secondary ms-2 btn btn-link"
+              style="border: none; background: none; padding: 0; text-decoration: none">
+              <font-awesome-icon icon="filter-circle-xmark" class="icon" />
+            </button>
+          </ToolTip>
         </div>
 
         <div class="filter-sidebar-container">
@@ -259,9 +266,8 @@ function clearAll() {
           :year-masks="pyMask"
           :global-counts="globalCounts"
           init-hori="cat"
-          init-vert="Location_Group (Lancet 2026)"
-          />
-          <!--init-vert="topic-agg-agg" -->
+          init-vert="Location_Group (Lancet 2026)" />
+        <!--init-vert="topic-agg-agg" -->
       </FluidContainer>
     </template>
 
@@ -279,7 +285,7 @@ function clearAll() {
             <DocumentCard
               v-for="doc in documents"
               :key="doc.idx"
-              :doc="doc"
+              :document="doc"
               :scheme-labels="schemeLabels"
               :scheme-groups="schemeGroups"
               :include-keys="visibleDocumentTags"
@@ -293,7 +299,7 @@ function clearAll() {
         <div v-else>
           <div class="m-2 d-flex flex-row">
             <div class="d-flex align-items-center me-2 fs-2">
-              <font-awesome-icon icon="file-lines" class="text-muted" />
+              <font-awesome-icon icon="file-lines" class="text-body-secondary" />
             </div>
             <div>
               No results, yet. <br />
@@ -306,7 +312,7 @@ function clearAll() {
   </FluidContainerGrid>
   <ReportingModal
     v-if="reportDoc"
-    :doc="reportDoc"
+    :document="reportDoc"
     :scheme-labels="schemeLabels"
     :scheme-groups="schemeGroups"
     @close="reportDoc = null"

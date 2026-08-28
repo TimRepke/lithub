@@ -6,6 +6,7 @@ export default {
   name: routeBaseName,
   path: "policymap",
   component: () => import("./ContainerView.vue"),
+  meta: { title: "Policy Map — Literature Hub" },
   children: [
     {
       name: `${routeBaseName}-explore`,

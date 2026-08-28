@@ -47,7 +47,7 @@ async function download(mask?: string) {
 
 <template>
   <div>
-    <button class="btn btn-sm text-muted" @click="downloadSecondary = !downloadSecondary">
+    <button class="btn btn-sm text-body-secondary" @click="downloadSecondary = !downloadSecondary">
       <font-awesome-icon icon="download" />
       Download
     </button>

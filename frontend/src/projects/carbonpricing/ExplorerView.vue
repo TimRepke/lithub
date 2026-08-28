@@ -19,6 +19,8 @@ import FluidContainer from "@/components/FluidContainer.vue";
 import ReportingModal from "@/components/ReportingModal.vue";
 import type { AnnotatedDocument } from "@/util/types";
 import HistogramFilter from "@/components/HistogramFilter.vue";
+import ToolTip from "@/components/ToolTip.vue";
+import { ClearFilterEvent, EventBus } from "@/util/events.ts";
 
 type IndexKeys = "scatter" | "geo";
 const dataset = datasetStore.dataset as Dataset<IndexKeys>;
@@ -48,7 +50,9 @@ const reportDoc = ref<AnnotatedDocument | null>(null);
 function startPauseResultFetching(active: boolean) {
   results.paused.value = !active;
 }
-
+function clearAll() {
+  EventBus.emit(new ClearFilterEvent());
+}
 onMounted(() => {
   results.delayedUpdate();
 });
@@ -65,6 +69,17 @@ onMounted(() => {
             {{ globalCounts.countTotal.toLocaleString() }}
           </div>
           <InclusiveIcon v-model:inclusive="inclusive" class="ms-auto" />
+
+          <ToolTip text="Clear all filters" position="left">
+            <button
+              type="button"
+              @click="clearAll()"
+              aria-label="Clear all filters"
+              class="text-body-secondary ms-2 btn btn-link"
+              style="border: none; background: none; padding: 0; text-decoration: none">
+              <font-awesome-icon icon="filter-circle-xmark" class="icon" />
+            </button>
+          </ToolTip>
         </div>
 
         <div class="filter-sidebar-container">
@@ -114,7 +129,7 @@ onMounted(() => {
             <DocumentCard
               v-for="doc in documents"
               :key="doc.idx"
-              :doc="doc"
+              :document="doc"
               :scheme-labels="schemeLabels"
               @report="(doc) => (reportDoc = doc)" />
           </div>
@@ -125,7 +140,7 @@ onMounted(() => {
         <div v-else>
           <div class="m-2 d-flex flex-row">
             <div class="d-flex align-items-center me-2 fs-2">
-              <font-awesome-icon icon="file-lines" class="text-muted" />
+              <font-awesome-icon icon="file-lines" class="text-body-secondary" />
             </div>
             <div>
               No results, yet. <br />
@@ -138,7 +153,7 @@ onMounted(() => {
   </FluidContainerGrid>
   <ReportingModal
     v-if="reportDoc"
-    :doc="reportDoc"
+    :document="reportDoc"
     :scheme-labels="schemeLabels"
     :scheme-groups="schemeGroups"
     @close="reportDoc = null"
