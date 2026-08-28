@@ -295,7 +295,7 @@ const formatNumber = new Intl.NumberFormat("en-US", {
             </option>
           </select>
         </div>
-        <div class="col text-muted small p-0 mt-4" style="flex: 0">
+        <div class="col text-body-secondary small p-0 mt-4" style="flex: 0">
           <font-awesome-icon icon="right-left" role="button" @click="swapAxes" />
         </div>
         <div class="col">
@@ -355,7 +355,7 @@ const formatNumber = new Intl.NumberFormat("en-US", {
             </tr>
           </tbody>
         </table>
-        <div class="text-muted small">
+        <div class="text-body-secondary small">
           <span class="fst-italic">
             Please note, that most labels use double-coding. This means that multiple classes of a label can be assigned
             to a document and counts overlap. Therefore, you can select normalisation by total (the unique record count

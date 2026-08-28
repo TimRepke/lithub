@@ -7,23 +7,28 @@ import { scaleBand, scaleLinear } from "d3-scale";
 import { brushX, D3BrushEvent } from "d3-brush";
 import { zoom as d3zoom, D3ZoomEvent } from "d3-zoom";
 import { axisBottom } from "d3-axis";
-import { create as d3create } from "d3-selection";
+import { create as d3create, pointer as d3pointer } from "d3-selection";
 import { ClearFilterEvent, EventBus } from "@/util/events.ts";
+
+type Stack = { year: number; count: number; colour: string; padding: number };
+type Year = { year: number; stack: Stack[] };
+
+const uniq = crypto.randomUUID();
 
 const mask = defineModel<HistogramMask>("mask", { required: true });
 const { masks, active, years, clear, selectRange, extent } = mask.value;
+
 const middle = years[Math.ceil(years.length / 2)];
-const margin = { top: 5, bottom: 15, left: 10, right: 10 };
+const margin = { top: 10, bottom: 15, left: 10, right: 10 };
 const width = ref(400);
-const height = ref(150 - margin.top - margin.bottom); // computed(() => Math.min(width.value / 1.618, 175) - margin.top - margin.bottom);
+const height = ref(150); // computed(() => Math.min(width.value / 1.618, 175) - margin.top - margin.bottom);
 
 const colours = {
   handle: "#a6761d",
   barTotal: "#dadacd",
   barFiltered: "#e6ab02",
 };
-type Stack = { year: number; count: number; colour: string; padding: number };
-type Year = { year: number; stack: Stack[] };
+let focusYear: number | null = null;
 const data = computed(() =>
   years.map((yr) => ({
     year: yr,
@@ -49,11 +54,45 @@ const data = computed(() =>
     ],
   })),
 );
+const selectedYearFirst = computed(() => {
+  for (const yr of years) {
+    if (masks[yr].active.value) return yr;
+  }
+  return null;
+});
 
-let focusYear: number | null = null;
+const selectedYearLast = computed(() => {
+  for (let i = years.length - 1; i >= 0; i--) {
+    if (masks[years[i]].active.value) return years[i];
+  }
+  return null;
+});
+
 function cagr(span: number, valStart: number, valEnd: number) {
   return Math.pow(valEnd / valStart, 1 / span) - 1;
 }
+const cagrData = computed(() => {
+  return years.map((_yr, index) => {
+    const cagr5Total =
+      index < 5
+        ? "—"
+        : percentFormatter.format(cagr(5, data.value[index - 5].stack[1].count, data.value[index].stack[1].count));
+    const cagr10Total =
+      index < 10
+        ? "—"
+        : percentFormatter.format(cagr(10, data.value[index - 10].stack[1].count, data.value[index].stack[1].count));
+    const cagr5Filtered =
+      index < 5 || data.value[index - 5].stack[2].count <= 0
+        ? "—"
+        : percentFormatter.format(cagr(5, data.value[index - 5].stack[2].count, data.value[index].stack[2].count));
+    const cagr10Filtered =
+      index < 10 || data.value[index - 10].stack[2].count <= 0
+        ? "—"
+        : percentFormatter.format(cagr(10, data.value[index - 10].stack[2].count, data.value[index].stack[2].count));
+    return { cagr5Total, cagr10Total, cagr5Filtered, cagr10Filtered };
+  });
+});
+
 function showTooltip(d: Year, index: number) {
   const cagr5 =
     index < 5
@@ -90,7 +129,8 @@ function showTooltip(d: Year, index: number) {
   tooltip.style("left", `${(xScale(d.year) ?? 0) + offset}px`);
 
   groupBars.selectAll("rect.bar").classed("hist-hl", false);
-  (groupBars.select(`g.barstack[year="${d.year}"]`).node() as SVGGElement).children[0].classList.add("hist-hl");
+  const stackNode = groupBars.select(`g.barstack[year="${d.year}"]`).node() as SVGGElement | null;
+  if (stackNode && stackNode.children) stackNode.children[0].classList.add("hist-hl");
   clearTooltipDelay();
 }
 
@@ -99,23 +139,33 @@ const { delayedCall: hideTooltip, clear: clearTooltipDelay } = useDelay(() => {
   tooltip.classed("hidden", true);
 }, 300);
 
-const yScale = scaleLinear().domain(extent.value.total);
+const yScale = scaleLinear().domain([0, extent.value.total[1]]);
 const xScale = scaleBand<number>() //
   .domain(years)
   .padding(0.2);
 const xAxis = axisBottom<number>(xScale);
 
 const tooltip = d3create("div").attr("class", "hist-tooltip hidden");
-const svg = d3create("svg");
+const svg = d3create("svg")
+  .attr("role", "img")
+  .attr("aria-labelledby", `hist-title-${uniq}`)
+  .attr("aria-describedby", `hist-summary-${uniq}`);
+svg.append("title").attr("id", `hist-title-${uniq}`).text("Publication years histogram");
+
 const g = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
-const groupBars = g.append("g").attr("transform", `translate(0, -5)`);
-const groupAxis = g.append("g").attr("transform", `translate(0, ${height.value - 5})`);
+// 0.5 = half stroke with because strokes are on centre of edge
+const groupBars = g.append("g").attr("transform", `translate(0, -${margin.top - 0.5})`);
+const groupAxis = g.append("g").attr("transform", `translate(0, ${height.value - margin.top})`);
 const groupBrush = g
   .append("g")
   .attr("class", "brush")
   .on("wheel", (e) => e.preventDefault())
   .on("mousemove", (e: MouseEvent) => {
-    const hoverYear = Math.max(0, Math.min(years.length - 1, Math.floor(e.clientX / xScale.step()) - 1));
+    // Use the pointer position relative to the plot group `g` (the space in
+    // which xScale is defined) rather than the viewport-relative clientX, so
+    // the detected bar is correct regardless of where the chart sits on screen.
+    const [mx] = d3pointer(e, g.node());
+    const hoverYear = Math.max(0, Math.min(years.length - 1, Math.floor(mx / xScale.step())));
     if (hoverYear !== focusYear) {
       focusYear = hoverYear;
       showTooltip(data.value[focusYear], hoverYear);
@@ -135,12 +185,11 @@ const zoom = d3zoom<SVGSVGElement, undefined>()
   ])
   .on("zoom", (event: D3ZoomEvent<SVGSVGElement, undefined>) => {
     if (event.sourceEvent && event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
-    groupBars.attr(
-      "transform",
-      // -5 to account for margin + axis; the rest term adjusts weird offset side effects
-      `translate(0, ${-(height.value * (event.transform.k - 1)) - 5 + 5 * (event.transform.k / 10)})
-               scale(1, ${event.transform.k})`,
-    );
+    groupBars
+      .selectAll("g.barstack")
+      .selectAll<SVGRectElement, Stack>("rect.bar")
+      .attr("y", (d) => yScale(extent.value.total[1] - d.count * event.transform.k))
+      .attr("height", (d) => Math.max(0, yScale(d.count * event.transform.k)));
   });
 
 const brush = brushX<undefined>()
@@ -211,6 +260,8 @@ const { call: delayedRedraw } = useDelay(() => {
     .attr("width", (d) => xScale.bandwidth() + d.padding * 2)
     .attr("height", (d) => Math.max(0, yScale(d.count)))
     .attr("fill", (d) => d.colour)
+    .attr("stroke", (d) => (d.colour !== "white" ? "black" : "none"))
+    .attr("stroke-width", 1)
     .attr("opacity", 1);
 
   groupAxis.call(xAxis);
@@ -219,7 +270,6 @@ const { call: delayedRedraw } = useDelay(() => {
 }, 50);
 
 const histogramElement = ref<HTMLDivElement | null>(null);
-const uniq = crypto.randomUUID();
 
 onMounted(async () => {
   if (histogramElement.value) {
@@ -251,6 +301,54 @@ watch([data, width], delayedRedraw);
       </div>
     </div>
     <div ref="histogramElement" class="hist" />
+    <div :id="`hist-summary-${uniq}`" class="screen-reader-only">
+      <h3>Publication data by year</h3>
+      <p>
+        This chart shows the number of publications across {{ years.length }} years from {{ years[0] }} to
+        {{ years[years.length - 1] }}. The total count ranges from {{ extent.total[0] }} to
+        {{ extent.total[1] }} publications. Use the brush interaction or select start/end buttons to filter publications
+        by year range. Currently selected the year range {{ selectedYearFirst }} to {{ selectedYearLast }}.
+      </p>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Total Pubs</th>
+            <th>5yr CAGR</th>
+            <th>10yr CAGR</th>
+            <th>Filtered Pubs</th>
+            <th>5yr CAGR (filtered)</th>
+            <th>10yr CAGR (filtered)</th>
+            <th>Range</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(yr, index) in years" :key="yr">
+            <td>{{ yr }}</td>
+            <td>{{ masks[yr].counts.value.countTotal }}</td>
+            <td>{{ cagrData[index].cagr5Total }}</td>
+            <td>{{ cagrData[index].cagr10Total }}</td>
+            <td>{{ masks[yr].counts.value.countFiltered }}</td>
+            <td>{{ cagrData[index].cagr5Filtered }}</td>
+            <td>{{ cagrData[index].cagr10Filtered }}</td>
+            <td>
+              <button
+                :aria-label="`Set ${yr} as start year`"
+                @click="selectRange(yr, selectedYearLast || years[years.length - 1])"
+                type="button">
+                Start
+              </button>
+              <button
+                :aria-label="`Set ${yr} as end year`"
+                @click="selectRange(selectedYearFirst || years[0], yr)"
+                type="button">
+                End
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 

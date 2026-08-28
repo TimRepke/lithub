@@ -54,7 +54,7 @@ const styleColours = computed(() =>
       </div>
     </div>
     <div>
-      <select v-model="group" class="form-select form-select-sm mb-3">
+      <select v-model="group" :aria-label="`${headline} filter scheme`" class="form-select form-select-sm mb-3">
         <option v-for="(grp, gi) in groupMasks" :value="gi">{{ grp.name }}</option>
       </select>
     </div>

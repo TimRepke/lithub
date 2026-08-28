@@ -1,30 +1,32 @@
 <script setup lang="ts">
-import { PropType, ref } from "vue";
+import { nextTick, PropType, ref, watchEffect } from "vue";
 import type { AnnotatedDocument, SchemeLabel, SchemeGroup } from "@/util/types";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { POST } from "@/util/api.ts";
 import { is } from "@/util";
 
+type LabelFeedback = SchemeGroup & { isWrong: boolean; values: (SchemeLabel & { selected: boolean })[] };
+
 const emits = defineEmits<{ (e: "close"): void }>();
 
 const {
-  doc: document,
+  document: doc,
   schemeLabels,
   schemeGroups,
   dataset,
 } = defineProps({
   schemeLabels: { type: Object as PropType<Record<string, SchemeLabel>>, required: true },
   schemeGroups: { type: Object as PropType<Record<string, SchemeGroup>>, required: true },
-  doc: { type: Object as PropType<AnnotatedDocument>, required: true },
+  document: { type: Object as PropType<AnnotatedDocument>, required: true },
   dataset: { type: String, required: true },
 });
 
 const details = ref(false);
 const name = ref<string>("");
 const email = ref<string>("");
-const comment = ref<string>(`I discovered inconsistencies for "${document.title}"`);
+const comment = ref<string>(`I discovered inconsistencies for "${doc.title}"`);
 const relevant = ref(true);
-type LabelFeedback = SchemeGroup & { isWrong: boolean; values: (SchemeLabel & { selected: boolean })[] };
+
 const feedback = ref(
   Object.values(schemeGroups)
     .map((group) => {
@@ -34,7 +36,7 @@ const feedback = ref(
           isWrong: false,
           values: group.labels.map((key) => ({
             ...schemeLabels[key],
-            selected: document?.labels[key] > 0.5,
+            selected: doc?.labels[key] > 0.5,
           })),
         } as LabelFeedback;
       }
@@ -47,7 +49,7 @@ async function submitFeedback() {
   try {
     await POST({
       path: "/basic/report",
-      params: { dataset, document: document?.idx, kind: "ERROR" },
+      params: { dataset, document: doc?.idx, kind: "ERROR" },
       payload: {
         name: name.value,
         email: email.value,
@@ -65,13 +67,29 @@ async function submitFeedback() {
   }
   emits("close");
 }
+
+watchEffect(async () => {
+  if (doc) {
+    await nextTick();
+    const firstInput: HTMLElement | null | undefined = document
+      .getElementById("reporting-modal")
+      ?.querySelector("input, select, textarea, button, object, a, area[href], [tabindex]");
+    firstInput?.focus();
+  }
+});
 </script>
 
 <template>
   <template v-if="doc">
     <div class="modal modal-lg fade show d-block">
       <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
+        <div
+          id="reporting-modal"
+          class="modal-content"
+          role="dialog"
+          aria-labelledby="exampleModalCenteredScrollableTitle"
+          aria-modal="true"
+          tabindex="-1">
           <div class="modal-header">
             <h1 class="modal-title fs-5" id="exampleModalCenteredScrollableTitle">Report data issue</h1>
             <button type="button" class="btn-close" aria-label="Close" @click="$emit('close')"></button>
@@ -84,7 +102,7 @@ async function submitFeedback() {
             <div class="mb-3 row">
               <div class="col">
                 <label for="report-name" class="form-label">
-                  Name <span class="text-muted small">(optional)</span>
+                  Name <span class="text-body-secondary small">(optional)</span>
                 </label>
                 <input
                   type="text"
@@ -95,7 +113,7 @@ async function submitFeedback() {
               </div>
               <div class="col">
                 <label for="report-email" class="form-label">
-                  Email address <span class="text-muted small">(optional)</span>
+                  Email address <span class="text-body-secondary small">(optional)</span>
                 </label>
                 <input
                   type="email"
@@ -109,12 +127,14 @@ async function submitFeedback() {
               <label for="report-comment" class="form-label">Comment</label>
               <textarea class="form-control form-control-sm" id="report-comment" rows="4" v-model="comment"></textarea>
             </div>
-            <label class="d-flex text-muted small align-items-center" role="button">
+            <button
+              type="button"
+              class="btn btn-link p-0 text-start text-body-secondary small"
+              @click="details = !details"
+              :aria-expanded="details">
               <font-awesome-icon :icon="details ? 'minus' : 'plus'" class="me-2" />
               <span class="me-2">Additional details</span>
-              <hr class="flex-grow-1" />
-              <input type="checkbox" v-model="details" id="report-details" class="d-none" />
-            </label>
+            </button>
             <div class="mb-3" v-if="details">
               <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" role="switch" id="report-relevant" v-model="relevant" />
@@ -137,7 +157,13 @@ async function submitFeedback() {
                   <div class="labels">
                     <template v-for="value in label.values" :key="+value.value">
                       <input type="checkbox" v-model="value.selected" :id="`report-mistake-${value.key}`" />
-                      <label :for="`report-mistake-${value.key}`">{{ value.name }}</label>
+                      <label
+                        :for="`report-mistake-${value.key}`"
+                        tabindex="0"
+                        @keydown.space.prevent="value.selected = !value.selected"
+                        @keydown.enter.prevent="value.selected = !value.selected"
+                        >{{ value.name }}</label
+                      >
                     </template>
                   </div>
                 </template>
